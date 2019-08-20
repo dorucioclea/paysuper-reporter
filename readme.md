@@ -11,13 +11,23 @@ Consumer NAT Streaming server to generate reporting documents (royalties, taxes,
 ## Environment variables:
 
 | Name                            | Required | Default                                        | Description                                                                                                                             |
-|:--------------------------------|:--------:|:-----------------------------------------------|:----------------------------------------------------------------------|
-| NATS_SERVER_URLS                | -        | 127.0.0.1:4222                                 | The nats server URLs (separated by comma)                             |
-| NATS_ASYNC                      | -        | false                                          | Publish asynchronously                                                |
-| NATS_USER                       | -        |                                                | User sets the username to be used when connecting to the server       |
-| NATS_PASSWORD                   | -        |                                                | Password sets the password to be used when connecting to a server     |
-| NATS_CLUSTER_ID                 | -        | test-cluster                                   | The NATS Streaming cluster ID                                         |
-| NATS_CLIENT_ID                  | -        | billing-server-publisher                       | The NATS Streaming client ID to connect with                          |
+|:--------------------------------|:--------:|:-----------------------------------------------|:------------------------------------------------------------------------|
+| MONGO_DSN                       | true     | -                                              | MongoBD DSN connection string                                           |
+| MONGO_DIAL_TIMEOUT              | -        | 10                                             | MongoBD dial timeout in seconds                                         |
+| NATS_SERVER_URLS                | -        | 127.0.0.1:4222                                 | The nats server URLs (separated by comma)                               |
+| NATS_ASYNC                      | -        | false                                          | Publish asynchronously                                                  |
+| NATS_USER                       | -        |                                                | User sets the username to be used when connecting to the server         |
+| NATS_PASSWORD                   | -        |                                                | Password sets the password to be used when connecting to a server       |
+| NATS_CLUSTER_ID                 | -        | test-cluster                                   | The NATS Streaming cluster ID                                           |
+| NATS_CLIENT_ID                  | -        | billing-server-publisher                       | The NATS Streaming client ID to connect with                            |
+| S3_ACCESS_KEY                   | true     |                                                |                                                                         |
+| S3_SECRET_KEY                   | true     |                                                |                                                                         |
+| S3_ENDPOINT                     | true     |                                                |                                                                         |
+| S3_BUCKET_NAME                  | true     |                                                |                                                                         |
+| S3_REGION                       | -        | eu-west-1                                      |                                                                         |
+| S3_SECURE                       | -        | false                                          |                                                                         |
+| DOC_API_URL                     | -        | http://127.0.0.1:5488                          | URL of document generation service                                      |
+| DOC_API_TIMEOUT                 | -        | 60000                                          | Timeout for waiting for a response from the document generation service |
 
 ## Usage Example:
 

@@ -24,14 +24,14 @@ type S3Config struct {
 	SecretKey   string `envconfig:"S3_SECRET_KEY" required:"true"`
 	Endpoint    string `envconfig:"S3_ENDPOINT" required:"true"`
 	BucketName  string `envconfig:"S3_BUCKET_NAME" required:"true"`
-	Region      string `envconfig:"S3_REGION" default:"us-west-2"`
+	Region      string `envconfig:"S3_REGION" default:"eu-west-1"`
 	Secure      bool   `envconfig:"S3_SECURE" default:"false"`
 }
 
 // DocumentGenerator defines the parameters for connecting to the document generator service.
 type DocumentGenerator struct {
 	ApiUrl  string `envconfig:"DOC_API_URL" default:"http://127.0.0.1:5488"`
-	Timeout int    `envconfig:"DOC_API_URL" default:"60000"`
+	Timeout int    `envconfig:"DOC_API_TIMEOUT" default:"60000"`
 }
 
 type Config struct {
