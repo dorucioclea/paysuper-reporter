@@ -1,0 +1,50 @@
+syntax = "proto3";
+option go_package = "github.com/paysuper/paysuper-reporter/pkg";
+package pkg;
+
+message ReportRequest {
+    //@inject_tag: json:"file_id" validate:"required,hexadecimal,len=24"
+    string file_id = 1;
+    //@inject_tag: json:"template_id" validate:"required,alpha"
+    string template_id = 2;
+    //@inject_tag: json:"template_id" validate:"required,alpha"
+    string output_format = 3;
+    //@inject_tag: json:"table_name" validate:"required,alpha"
+    string table_name = 4;
+    //@inject_tag: json:"fields" validate:"required,dive,alpha"
+    repeated string fields = 5;
+    //@inject_tag: json:"match" validate:"required"
+    bytes match = 6;
+    //@inject_tag: json:"group"
+    bytes group = 7;
+}
+
+message Payload {
+    //@inject_tag: json:"template"
+    PayloadTemplate template = 1;
+    //@inject_tag: json:"options"
+    PayloadOptions options = 2;
+    //@inject_tag: json:"data"
+    bytes data = 3;
+}
+
+message PayloadTemplate {
+    //@inject_tag: json:"shortid,omitempty"
+    string short_id = 1;
+    //@inject_tag: json:"name,omitempty"
+    string name = 2;
+    //@inject_tag: json:"recipe,omitempty"
+    string recipe = 3;
+    //@inject_tag: json:"content,omitempty"
+    string content = 4;
+}
+
+message PayloadOptions {
+    //@inject_tag: json:"timeout,omitempty"
+    string timeout = 1;
+}
+
+message File {
+    //@inject_tag: json:"file,omitempty"
+    bytes file = 1;
+}
