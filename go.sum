@@ -801,6 +801,8 @@ github.com/paysuper/paysuper-currencies v0.0.0-20190723132218-9628e1b3ba42 h1:eS
 github.com/paysuper/paysuper-currencies v0.0.0-20190723132218-9628e1b3ba42/go.mod h1:151KLmte00rDeSTyON3HAnV3TuB73eCjqK/ydRWrD8k=
 github.com/paysuper/paysuper-database-mongo v0.1.0 h1:RMSIYB8rpTAAHc0wmIQz8XQVa8KB6/xX8iA8ceiDic8=
 github.com/paysuper/paysuper-database-mongo v0.1.0/go.mod h1:IZu996j//Qoq+uzzCBL5GEYisfF4di/fwedWHlLz7sc=
+github.com/paysuper/paysuper-database-mongo v0.1.1-0.20190820120816-3d23959ac513 h1:/CWtPqtgvnuLxuh9TWMEsEMSyU+4+SEiUergONwn5kM=
+github.com/paysuper/paysuper-database-mongo v0.1.1-0.20190820120816-3d23959ac513/go.mod h1:IZu996j//Qoq+uzzCBL5GEYisfF4di/fwedWHlLz7sc=
 github.com/paysuper/paysuper-recurring-repository v1.0.104/go.mod h1:FyZzueaAoG6apdmfjz7BQd5QMgV3KRIGgFhRXHEIpro=
 github.com/paysuper/paysuper-recurring-repository v1.0.111/go.mod h1:4XX2FeDCMGxAHBO/Pn9mE8JJiPaYaNxXhQnZL91ec0Y=
 github.com/paysuper/paysuper-recurring-repository v1.0.113 h1:jumiog+1NakjhyldLwFB2px/gm8DjiQLNwXLopJ73wk=

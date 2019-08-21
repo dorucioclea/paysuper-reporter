@@ -46,7 +46,7 @@ require (
 	github.com/olekukonko/tablewriter v0.0.1 // indirect
 	github.com/paysuper/document-signer v0.0.0-20190812065749-d26175441785 // indirect
 	github.com/paysuper/paysuper-billing-server v0.0.0-20190811082025-15dcd1a932fa
-	github.com/paysuper/paysuper-database-mongo v0.1.0
+	github.com/paysuper/paysuper-database-mongo v0.1.1-0.20190820120816-3d23959ac513
 	github.com/paysuper/paysuper-recurring-repository v1.0.113
 	github.com/prometheus/client_golang v1.1.0 // indirect
 	github.com/sirupsen/logrus v1.4.2 // indirect
