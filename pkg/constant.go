@@ -1,6 +1,11 @@
 package pkg
 
 const (
+	ServiceName    = "p1payreporter"
+	ServiceVersion = "latest"
+
+	LoggerName = "PAYSUPER_BILLING_REPORTER"
+
 	SubjectRequestReportFileCreate = "report_file_create"
 
 	HeaderAccept      = "Accept"

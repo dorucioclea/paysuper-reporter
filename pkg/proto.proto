@@ -2,6 +2,97 @@ syntax = "proto3";
 option go_package = "github.com/paysuper/paysuper-reporter/pkg";
 package pkg;
 
+import "google/protobuf/timestamp.proto";
+
+service ReporterService {
+    rpc CreateFile(CreateFileRequest) returns (CreateFileResponse) {}
+    rpc UpdateFile(UpdateFileRequest) returns (ResponseError) {}
+    rpc GetFile(GetFileRequest) returns (GetFileResponse) {}
+}
+
+message CreateFileRequest {
+    // @inject_tag: query:"merchant_id" validate:"required,hexadecimal,len=24"
+    string merchant_id = 1;
+    // @inject_tag: query:"period_from" validate:"required,numeric,gt=0"
+    int64 period_from = 2;
+    // @inject_tag: query:"period_to" validate:"required,numeric,gt=0"
+    int64 period_to = 3;
+    // @inject_tag: query:"report_type" validate:"required,alpha"
+    string report_type = 4;
+    // @inject_tag: query:"file_type" validate:"required,alpha"
+    string file_type = 5;
+}
+
+message ResponseError {
+    //@inject_tag: json:"status"
+    int32 status = 1;
+    //@inject_tag: json:"message"
+    ResponseErrorMessage message = 2;
+}
+
+message ResponseErrorMessage {
+    //@inject_tag: json:"code"
+    string code = 1;
+    //@inject_tag: json:"message"
+    string message = 2;
+    //@inject_tag: json:"details,omitempty"
+    string details = 3;
+}
+
+message CreateFileResponse {
+    // @inject_tag: json:"status"
+    int32 status = 1;
+    // @inject_tag: json:"message,omitempty"
+    ResponseErrorMessage message = 2;
+    // @inject_tag: json:"file_id"
+    string file_id = 3;
+}
+
+message UpdateFileRequest {
+    // @inject_tag: query:"id" validate:"required,hexadecimal,len=24"
+    string id = 1;
+    // @inject_tag: query:"file_path" validate:"required"
+    string file_path = 2;
+}
+
+message GetFileRequest {
+    // @inject_tag: query:"merchant_id" validate:"required,hexadecimal,len=24"
+    string merchant_id = 1;
+    // @inject_tag: query:"id" validate:"required,hexadecimal,len=24"
+    string id = 2;
+}
+
+message GetFileResponse {
+    // @inject_tag: json:"status"
+    int32 status = 1;
+    // @inject_tag: json:"message,omitempty"
+    ResponseErrorMessage message = 2;
+    // @inject_tag: json:"file"
+    ReportFile file = 3;
+}
+
+message ReportFile {
+    //@inject_tag: json:"id" bson:"_id"
+    string id = 1;
+    // @inject_tag: json:"merchant_id"
+    string merchant_id = 2;
+    // @inject_tag: json:"file_path"
+    string type = 3;
+    //@inject_tag: json:"date_from"
+    google.protobuf.Timestamp date_from = 4;
+    //@inject_tag: json:"date_to"
+    google.protobuf.Timestamp date_to = 5;
+    // @inject_tag: json:"file_path"
+    string file_path = 6;
+    // @inject_tag: json:"created_at"
+    google.protobuf.Timestamp created_at = 7;
+}
+
+message DeleteOldestReportFilesRequest {
+    // @inject_tag: query:"days" validate:"required,number"
+    int32 days = 1;
+}
+
 message ReportRequest {
     //@inject_tag: json:"file_id" validate:"required,hexadecimal,len=24"
     string file_id = 1;

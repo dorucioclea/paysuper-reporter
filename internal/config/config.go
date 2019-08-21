@@ -40,7 +40,8 @@ type Config struct {
 	S3   S3Config
 	DG   DocumentGenerator
 
-	MicroRegistry string `envconfig:"MICRO_REGISTRY" required:"false"`
+	MicroRegistry      string `envconfig:"MICRO_REGISTRY" required:"false"`
+	DocumentStorageTtl string `envconfig:"DOCUMENT_STORAGE_TTL" default:"604800"`
 }
 
 func NewConfig() (*Config, error) {

@@ -28,6 +28,7 @@ Consumer NAT Streaming server to generate reporting documents (royalties, taxes,
 | S3_SECURE                       | -        | false                                          |                                                                         |
 | DOC_API_URL                     | -        | http://127.0.0.1:5488                          | URL of document generation service                                      |
 | DOC_API_TIMEOUT                 | -        | 60000                                          | Timeout for waiting for a response from the document generation service |
+| DOCUMENT_STORAGE_TTL            | -        | 604800                                         | Time to live the document in the S3 and DB storage                      |
 
 ## Usage Example:
 

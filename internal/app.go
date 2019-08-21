@@ -6,14 +6,9 @@ import (
 	"fmt"
 	"github.com/carlescere/goback"
 	"github.com/globalsign/mgo"
-	"github.com/micro/go-micro"
-	"github.com/micro/go-micro/client/selector/static"
 	"github.com/nats-io/stan.go"
 	"github.com/nats-io/stan.go/pb"
-	pkgBilling "github.com/paysuper/paysuper-billing-server/pkg"
-	"github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
 	mongodb "github.com/paysuper/paysuper-database-mongo"
-	"github.com/paysuper/paysuper-recurring-repository/pkg/constant"
 	"github.com/paysuper/paysuper-reporter/internal/config"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"go.uber.org/zap"
@@ -24,8 +19,7 @@ import (
 )
 
 const (
-	loggerName = "PAYSUPER_BILLING_REPORTER"
-	fileMask   = "report_%s.%s"
+	fileMask = "report_%s.%s"
 )
 
 type Application struct {
@@ -36,7 +30,6 @@ type Application struct {
 	s3                S3ClientInterface
 	documentGenerator DocumentGeneratorInterface
 	backOff           goback.SimpleBackoff
-	billingService    grpc.BillingService
 
 	fatalFn func(msg string, fields ...zap.Field)
 }
@@ -48,7 +41,6 @@ func NewApplication() *Application {
 	app.initDatabase()
 	app.initS3()
 	app.initDocumentGenerator()
-	app.initBillingServer()
 
 	return app
 }
@@ -60,7 +52,7 @@ func (app *Application) initLogger() {
 		log.Fatalf("Logger initialization failed with error: %s\n", err)
 	}
 
-	app.log = logger.Named(loggerName)
+	app.log = logger.Named(pkg.LoggerName)
 	zap.ReplaceGlobals(app.log)
 
 	app.fatalFn = zap.L().Fatal
@@ -112,23 +104,6 @@ func (app *Application) initDocumentGenerator() {
 	}
 
 	zap.L().Info("Document generator initialization successfully...")
-}
-
-func (app *Application) initBillingServer() {
-	options := []micro.Option{
-		micro.Name("p1payapi"),
-		micro.Version(constant.PayOneMicroserviceVersion),
-	}
-
-	if os.Getenv("MICRO_SELECTOR") == "static" {
-		log.Println("Use micro selector `static`")
-		options = append(options, micro.Selector(static.NewSelector()))
-	}
-
-	service := micro.NewService(options...)
-	service.Init()
-
-	app.billingService = grpc.NewBillingService(pkgBilling.ServiceName, service.Client())
 }
 
 func (app *Application) Run() {
@@ -255,14 +230,6 @@ func (app *Application) execute(msg *stan.Msg) {
 		return
 	}
 
-	_, err = app.billingService.UpdateReportFile(
-		context.Background(),
-		&grpc.UpdateReportFileRequest{Id: req.FileId, FilePath: filePath},
-	)
-	if err != nil {
-		zap.L().Error("Unable to update report", zap.Error(err))
-		return
-	}
 }
 
 func (app *Application) buildReport(req *pkg.ReportRequest) (interface{}, error) {
