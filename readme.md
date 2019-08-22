@@ -12,8 +12,10 @@ Consumer NAT Streaming server to generate reporting documents (royalties, taxes,
 
 | Name                            | Required | Default                                        | Description                                                                                                                             |
 |:--------------------------------|:--------:|:-----------------------------------------------|:------------------------------------------------------------------------|
+| METRICS_PORT                    | -        | 8086                                           | Http server port for health and metrics request                         |
 | MONGO_DSN                       | true     | -                                              | MongoBD DSN connection string                                           |
 | MONGO_DIAL_TIMEOUT              | -        | 10                                             | MongoBD dial timeout in seconds                                         |
+| MONGO_MODE                      | -        | 4                                              | Consistency mode for the MongoDB session                                |
 | NATS_SERVER_URLS                | -        | 127.0.0.1:4222                                 | The nats server URLs (separated by comma)                               |
 | NATS_ASYNC                      | -        | false                                          | Publish asynchronously                                                  |
 | NATS_USER                       | -        |                                                | User sets the username to be used when connecting to the server         |
@@ -26,9 +28,13 @@ Consumer NAT Streaming server to generate reporting documents (royalties, taxes,
 | S3_BUCKET_NAME                  | true     |                                                |                                                                         |
 | S3_REGION                       | -        | eu-west-1                                      |                                                                         |
 | S3_SECURE                       | -        | false                                          |                                                                         |
-| DOC_API_URL                     | -        | http://127.0.0.1:5488                          | URL of document generation service                                      |
-| DOC_API_TIMEOUT                 | -        | 60000                                          | Timeout for waiting for a response from the document generation service |
-| DOCUMENT_STORAGE_TTL            | -        | 604800                                         | Time to live the document in the S3 and DB storage                      |
+| CENTRIFUGO_SECRET               | true     | -                                              | Centrifugo secret key                                                   |
+| CENTRIFUGO_API_SECRET           | true     | -                                              | Centrifugo API secret key                                               |
+| CENTRIFUGO_URL                  | -        | http://127.0.0.1:8000                          | Centrifugo API gateway                                                  |
+| CENTRIFUGO_MERCHANT_CHANNEL     | -        | paysuper:merchant#%s                           | Centrifugo channel name to send notifications to merchant               |
+| DOCGEN_API_URL                  | -        | http://127.0.0.1:5488                          | URL of document generation service                                      |
+| DOCGEN_API_TIMEOUT              | -        | 60000                                          | Timeout for waiting for a response from the document generation service |
+| DOCUMENT_RETENTION_TIME         | -        | 604800                                         | Time to live the document in the S3 and DB storage                      |
 
 ## Usage Example:
 
