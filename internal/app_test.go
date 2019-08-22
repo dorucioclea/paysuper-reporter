@@ -2,7 +2,7 @@ package internal
 
 import (
 	"github.com/paysuper/paysuper-reporter/internal/mock"
-	"github.com/paysuper/paysuper-reporter/pkg"
+	"github.com/paysuper/paysuper-reporter/pkg/proto"
 	"github.com/streadway/amqp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -107,7 +107,7 @@ func (suite *ApplicationTestSuite) TestApplication_Run_Subscribe_Error() {
 }
 
 func (suite *ApplicationTestSuite) TestApplication_EmailConfirmProcess_Ok() {
-	payload := &pkg.Payload{
+	payload := &proto.Payload{
 		TemplateAlias: "template1",
 		TemplateModel: map[string]string{"param1": "value1"},
 	}
@@ -117,7 +117,7 @@ func (suite *ApplicationTestSuite) TestApplication_EmailConfirmProcess_Ok() {
 }
 
 func (suite *ApplicationTestSuite) TestApplication_EmailConfirmProcess_CreatingHttpRequestError() {
-	payload := &pkg.Payload{
+	payload := &proto.Payload{
 		TemplateAlias: "template1",
 		TemplateModel: map[string]string{"param1": "value1"},
 	}
@@ -131,7 +131,7 @@ func (suite *ApplicationTestSuite) TestApplication_EmailConfirmProcess_CreatingH
 }
 
 func (suite *ApplicationTestSuite) TestApplication_EmailConfirmProcess_SendEmailFailedError() {
-	payload := &pkg.Payload{
+	payload := &proto.Payload{
 		TemplateAlias: "template1",
 		TemplateModel: map[string]string{"param1": "value1"},
 	}
@@ -145,7 +145,7 @@ func (suite *ApplicationTestSuite) TestApplication_EmailConfirmProcess_SendEmail
 }
 
 func (suite *ApplicationTestSuite) TestApplication_EmailConfirmProcess_ReadingResponseBodyError() {
-	payload := &pkg.Payload{
+	payload := &proto.Payload{
 		TemplateAlias: "template1",
 		TemplateModel: map[string]string{"param1": "value1"},
 	}
@@ -159,7 +159,7 @@ func (suite *ApplicationTestSuite) TestApplication_EmailConfirmProcess_ReadingRe
 }
 
 func (suite *ApplicationTestSuite) TestApplication_EmailConfirmProcess_IncorrectJsonResponseError() {
-	payload := &pkg.Payload{
+	payload := &proto.Payload{
 		TemplateAlias: "template1",
 		TemplateModel: map[string]string{"param1": "value1"},
 	}

@@ -4,16 +4,20 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/InVisionApp/go-health"
+	"github.com/InVisionApp/go-health/handlers"
 	"github.com/carlescere/goback"
-	"github.com/globalsign/mgo"
 	"github.com/nats-io/stan.go"
 	"github.com/nats-io/stan.go/pb"
 	mongodb "github.com/paysuper/paysuper-database-mongo"
 	"github.com/paysuper/paysuper-reporter/internal/config"
+	"github.com/paysuper/paysuper-reporter/internal/repository"
 	"github.com/paysuper/paysuper-reporter/pkg"
+	"github.com/paysuper/paysuper-reporter/pkg/proto"
 	"go.uber.org/zap"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"time"
 )
@@ -23,15 +27,22 @@ const (
 )
 
 type Application struct {
-	cfg               *config.Config
-	log               *zap.Logger
-	database          *mongodb.Source
-	messageBroker     MessageBrokerInterface
-	s3                S3ClientInterface
-	documentGenerator DocumentGeneratorInterface
-	backOff           goback.SimpleBackoff
+	cfg                  *config.Config
+	log                  *zap.Logger
+	database             *mongodb.Source
+	messageBroker        MessageBrokerInterface
+	s3                   S3ClientInterface
+	centrifugo           CentrifugoInterface
+	documentGenerator    DocumentGeneratorInterface
+	backOff              goback.SimpleBackoff
+	router               *http.ServeMux
+	reportFileRepository repository.ReportFileRepositoryInterface
 
 	fatalFn func(msg string, fields ...zap.Field)
+}
+
+type appHealthCheck struct {
+	db *mongodb.Source
 }
 
 func NewApplication() *Application {
@@ -40,9 +51,41 @@ func NewApplication() *Application {
 	app.initConfig()
 	app.initDatabase()
 	app.initS3()
+	app.initCentrifugo()
 	app.initDocumentGenerator()
 
+	app.reportFileRepository = repository.NewReportFileRepository(app.database)
+
+	app.router = http.NewServeMux()
+	app.initHealth()
+
 	return app
+}
+
+func (app *Application) initHealth() {
+	h := health.New()
+	err := h.AddChecks([]*health.Config{
+		{
+			Name: "health-check",
+			Checker: &appHealthCheck{
+				db: app.database,
+			},
+			Interval: time.Duration(1) * time.Second,
+			Fatal:    true,
+		},
+	})
+
+	if err != nil {
+		app.fatalFn("Health check register failed", zap.Error(err))
+	}
+
+	if err = h.Start(); err != nil {
+		app.fatalFn("Health check start failed", zap.Error(err))
+	}
+
+	app.log.Info("Health check listener started", zap.String("port", app.cfg.MetricsPort))
+
+	app.router.HandleFunc("/health", handlers.NewJSONHandlerFunc(h, nil))
 }
 
 func (app *Application) initLogger() {
@@ -75,7 +118,7 @@ func (app *Application) initConfig() {
 func (app *Application) initDatabase() {
 	var err error
 
-	app.database, err = mongodb.NewDatabase(mongodb.Mode(mgo.Secondary))
+	app.database, err = mongodb.NewDatabase(mongodb.Mode(app.cfg.Db.MongoMode))
 
 	if err != nil {
 		app.fatalFn("Database connection failed", zap.Error(err))
@@ -93,6 +136,10 @@ func (app *Application) initS3() {
 	}
 
 	zap.L().Info("S3 initialization successfully...")
+}
+
+func (app *Application) initCentrifugo() {
+	app.centrifugo = newCentrifugoClient(&app.cfg.CentrifugoConfig)
 }
 
 func (app *Application) initDocumentGenerator() {
@@ -185,7 +232,7 @@ func (app *Application) handler(ctx context.Context) error {
 }
 
 func (app *Application) execute(msg *stan.Msg) {
-	req := &pkg.ReportRequest{}
+	req := &proto.ReportRequest{}
 	if err := json.Unmarshal(msg.Data, req); err != nil {
 		zap.L().Error("Invalid message data", zap.Error(err))
 		return
@@ -203,8 +250,8 @@ func (app *Application) execute(msg *stan.Msg) {
 		return
 	}
 
-	payload := &pkg.Payload{
-		Template: &pkg.PayloadTemplate{
+	payload := &proto.Payload{
+		Template: &proto.PayloadTemplate{
 			ShortId: req.TemplateId,
 		},
 		Data: data,
@@ -232,11 +279,18 @@ func (app *Application) execute(msg *stan.Msg) {
 
 }
 
-func (app *Application) buildReport(req *pkg.ReportRequest) (interface{}, error) {
+func (app *Application) buildReport(req *proto.ReportRequest) (interface{}, error) {
 	var data interface{}
 	if err := app.database.Collection(req.TableName).Find(req.Match).All(&data); err != nil {
 		return nil, err
 	}
 
 	return data, nil
+}
+
+func (c *appHealthCheck) Status() (interface{}, error) {
+	if err := c.db.Ping(); err != nil {
+		return "fail", err
+	}
+	return "ok", nil
 }

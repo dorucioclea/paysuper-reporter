@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
+	errs "errors"
 	"github.com/paysuper/paysuper-reporter/internal/config"
 	"github.com/paysuper/paysuper-reporter/pkg"
+	"github.com/paysuper/paysuper-reporter/pkg/errors"
+	"github.com/paysuper/paysuper-reporter/pkg/proto"
 	"go.uber.org/zap"
 	"io/ioutil"
 	"net/http"
@@ -14,11 +16,11 @@ import (
 )
 
 const (
-	documentGeneratorContextKey = "DocumentGenerator"
+	documentGeneratorContextKey = "DocumentGeneratorConfig"
 )
 
 type DocumentGeneratorInterface interface {
-	Render(payload *pkg.Payload) (*pkg.File, error)
+	Render(payload *proto.Payload) (*proto.File, error)
 }
 
 type DocumentGeneratorRenderRequest struct {
@@ -33,7 +35,7 @@ type DocumentGenerator struct {
 	httpClient *http.Client
 }
 
-func newDocumentGenerator(config *config.DocumentGenerator) (DocumentGeneratorInterface, error) {
+func newDocumentGenerator(config *config.DocumentGeneratorConfig) (DocumentGeneratorInterface, error) {
 	client := DocumentGenerator{
 		apiUrl:     config.ApiUrl,
 		timeout:    config.Timeout,
@@ -43,7 +45,7 @@ func newDocumentGenerator(config *config.DocumentGenerator) (DocumentGeneratorIn
 	return client, nil
 }
 
-func (dg DocumentGenerator) Render(payload *pkg.Payload) (*pkg.File, error) {
+func (dg DocumentGenerator) Render(payload *proto.Payload) (*proto.File, error) {
 	b, err := json.Marshal(payload)
 
 	if err != nil {
@@ -72,7 +74,7 @@ func (dg DocumentGenerator) Render(payload *pkg.Payload) (*pkg.File, error) {
 		return nil, err
 	}
 
-	msg := &pkg.File{}
+	msg := &proto.File{}
 	err = json.Unmarshal(b, msg)
 
 	if err != nil {
@@ -80,7 +82,7 @@ func (dg DocumentGenerator) Render(payload *pkg.Payload) (*pkg.File, error) {
 	}
 
 	if rsp.StatusCode != http.StatusOK {
-		return nil, errors.New(pkg.ErrorBadResponse)
+		return nil, errs.New(errors.ErrorDocumentGeneratorRender.Message)
 	}
 
 	return msg, nil
