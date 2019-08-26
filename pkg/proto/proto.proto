@@ -7,11 +7,7 @@ import "google/protobuf/timestamp.proto";
 service ReporterService {
     rpc CreateFile (CreateFileRequest) returns (CreateFileResponse) {
     }
-    rpc UpdateFile (UpdateFileRequest) returns (ResponseError) {
-    }
-    rpc GetFile (GetFileRequest) returns (GetFileResponse) {
-    }
-    rpc LoadFile (GetFileRequest) returns (LoadFileResponse) {
+    rpc LoadFile (LoadFileRequest) returns (LoadFileResponse) {
     }
 }
 
@@ -26,6 +22,35 @@ message CreateFileRequest {
     string report_type = 4;
     // @inject_tag: query:"file_type" validate:"required,alpha"
     string file_type = 5;
+    // @inject_tag: query:"additional_params"
+    bytes additional_params = 6;
+}
+
+message CreateFileResponse {
+    // @inject_tag: json:"status"
+    int32 status = 1;
+    // @inject_tag: json:"message,omitempty"
+    ResponseErrorMessage message = 2;
+    // @inject_tag: json:"file_id"
+    string file_id = 3;
+}
+
+message LoadFileRequest {
+    // @inject_tag: query:"merchant_id" validate:"required,hexadecimal,len=24"
+    string merchant_id = 1;
+    // @inject_tag: query:"id" validate:"required,hexadecimal,len=24"
+    string id = 2;
+}
+
+message LoadFileResponse {
+    // @inject_tag: json:"status"
+    int32 status = 1;
+    // @inject_tag: json:"message,omitempty"
+    ResponseErrorMessage message = 2;
+    //@inject_tag: json:"file"
+    File file = 3;
+    //@inject_tag: json:"content_type"
+    string content_type = 4;
 }
 
 message ResponseError {
@@ -44,38 +69,6 @@ message ResponseErrorMessage {
     string details = 3;
 }
 
-message CreateFileResponse {
-    // @inject_tag: json:"status"
-    int32 status = 1;
-    // @inject_tag: json:"message,omitempty"
-    ResponseErrorMessage message = 2;
-    // @inject_tag: json:"file_id"
-    string file_id = 3;
-}
-
-message UpdateFileRequest {
-    // @inject_tag: query:"id" validate:"required,hexadecimal,len=24"
-    string id = 1;
-    // @inject_tag: query:"file_path" validate:"required"
-    string file_path = 2;
-}
-
-message GetFileRequest {
-    // @inject_tag: query:"merchant_id" validate:"required,hexadecimal,len=24"
-    string merchant_id = 1;
-    // @inject_tag: query:"id" validate:"required,hexadecimal,len=24"
-    string id = 2;
-}
-
-message GetFileResponse {
-    // @inject_tag: json:"status"
-    int32 status = 1;
-    // @inject_tag: json:"message,omitempty"
-    ResponseErrorMessage message = 2;
-    // @inject_tag: json:"file"
-    ReportFile file = 3;
-}
-
 message ReportFile {
     //@inject_tag: json:"id" bson:"_id"
     string id = 1;
@@ -91,9 +84,9 @@ message ReportFile {
     google.protobuf.Timestamp created_at = 6;
 }
 
-message DeleteOldestReportFilesRequest {
-    // @inject_tag: query:"days" validate:"required,number"
-    int32 days = 1;
+message File {
+    //@inject_tag: json:"file,omitempty"
+    bytes file = 1;
 }
 
 message ReportRequest {
@@ -136,20 +129,4 @@ message PayloadTemplate {
 message PayloadOptions {
     //@inject_tag: json:"timeout,omitempty"
     string timeout = 1;
-}
-
-message LoadFileResponse {
-    // @inject_tag: json:"status"
-    int32 status = 1;
-    // @inject_tag: json:"message,omitempty"
-    ResponseErrorMessage message = 2;
-    //@inject_tag: json:"file"
-    File file = 3;
-    //@inject_tag: json:"content_type"
-    string content_type = 4;
-}
-
-message File {
-    //@inject_tag: json:"file,omitempty"
-    bytes file = 1;
 }

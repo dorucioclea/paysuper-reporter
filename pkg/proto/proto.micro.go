@@ -36,9 +36,7 @@ var _ server.Option
 
 type ReporterService interface {
 	CreateFile(ctx context.Context, in *CreateFileRequest, opts ...client.CallOption) (*CreateFileResponse, error)
-	UpdateFile(ctx context.Context, in *UpdateFileRequest, opts ...client.CallOption) (*ResponseError, error)
-	GetFile(ctx context.Context, in *GetFileRequest, opts ...client.CallOption) (*GetFileResponse, error)
-	LoadFile(ctx context.Context, in *GetFileRequest, opts ...client.CallOption) (*LoadFileResponse, error)
+	LoadFile(ctx context.Context, in *LoadFileRequest, opts ...client.CallOption) (*LoadFileResponse, error)
 }
 
 type reporterService struct {
@@ -69,27 +67,7 @@ func (c *reporterService) CreateFile(ctx context.Context, in *CreateFileRequest,
 	return out, nil
 }
 
-func (c *reporterService) UpdateFile(ctx context.Context, in *UpdateFileRequest, opts ...client.CallOption) (*ResponseError, error) {
-	req := c.c.NewRequest(c.name, "ReporterService.UpdateFile", in)
-	out := new(ResponseError)
-	err := c.c.Call(ctx, req, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *reporterService) GetFile(ctx context.Context, in *GetFileRequest, opts ...client.CallOption) (*GetFileResponse, error) {
-	req := c.c.NewRequest(c.name, "ReporterService.GetFile", in)
-	out := new(GetFileResponse)
-	err := c.c.Call(ctx, req, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *reporterService) LoadFile(ctx context.Context, in *GetFileRequest, opts ...client.CallOption) (*LoadFileResponse, error) {
+func (c *reporterService) LoadFile(ctx context.Context, in *LoadFileRequest, opts ...client.CallOption) (*LoadFileResponse, error) {
 	req := c.c.NewRequest(c.name, "ReporterService.LoadFile", in)
 	out := new(LoadFileResponse)
 	err := c.c.Call(ctx, req, out, opts...)
@@ -103,17 +81,13 @@ func (c *reporterService) LoadFile(ctx context.Context, in *GetFileRequest, opts
 
 type ReporterServiceHandler interface {
 	CreateFile(context.Context, *CreateFileRequest, *CreateFileResponse) error
-	UpdateFile(context.Context, *UpdateFileRequest, *ResponseError) error
-	GetFile(context.Context, *GetFileRequest, *GetFileResponse) error
-	LoadFile(context.Context, *GetFileRequest, *LoadFileResponse) error
+	LoadFile(context.Context, *LoadFileRequest, *LoadFileResponse) error
 }
 
 func RegisterReporterServiceHandler(s server.Server, hdlr ReporterServiceHandler, opts ...server.HandlerOption) error {
 	type reporterService interface {
 		CreateFile(ctx context.Context, in *CreateFileRequest, out *CreateFileResponse) error
-		UpdateFile(ctx context.Context, in *UpdateFileRequest, out *ResponseError) error
-		GetFile(ctx context.Context, in *GetFileRequest, out *GetFileResponse) error
-		LoadFile(ctx context.Context, in *GetFileRequest, out *LoadFileResponse) error
+		LoadFile(ctx context.Context, in *LoadFileRequest, out *LoadFileResponse) error
 	}
 	type ReporterService struct {
 		reporterService
@@ -130,14 +104,6 @@ func (h *reporterServiceHandler) CreateFile(ctx context.Context, in *CreateFileR
 	return h.ReporterServiceHandler.CreateFile(ctx, in, out)
 }
 
-func (h *reporterServiceHandler) UpdateFile(ctx context.Context, in *UpdateFileRequest, out *ResponseError) error {
-	return h.ReporterServiceHandler.UpdateFile(ctx, in, out)
-}
-
-func (h *reporterServiceHandler) GetFile(ctx context.Context, in *GetFileRequest, out *GetFileResponse) error {
-	return h.ReporterServiceHandler.GetFile(ctx, in, out)
-}
-
-func (h *reporterServiceHandler) LoadFile(ctx context.Context, in *GetFileRequest, out *LoadFileResponse) error {
+func (h *reporterServiceHandler) LoadFile(ctx context.Context, in *LoadFileRequest, out *LoadFileResponse) error {
 	return h.ReporterServiceHandler.LoadFile(ctx, in, out)
 }

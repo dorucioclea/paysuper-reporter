@@ -25,7 +25,11 @@ const (
 	ReportTypeRoyalty         = "royalty"
 	ReportTypeRoyaltyTemplate = "royalty_report"
 
-	OutputXslx = "xlsx"
-	OutputCsv  = "csv"
-	OutputPdf  = "pdf"
+	OutputXlsxExtension = "xlsx"
+	OutputCsvExtension  = "csv"
+	OutputPdfExtension  = "pdf"
+
+	OutputXlsxContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+	OutputCsvContentType  = "text/csv"
+	OutputPdfContentType  = "application/pdf"
 )
