@@ -5,25 +5,10 @@ package proto;
 import "google/protobuf/timestamp.proto";
 
 service ReporterService {
-    rpc CreateFile (CreateFileRequest) returns (CreateFileResponse) {
+    rpc CreateFile (ReportFile) returns (CreateFileResponse) {
     }
     rpc LoadFile (LoadFileRequest) returns (LoadFileResponse) {
     }
-}
-
-message CreateFileRequest {
-    // @inject_tag: query:"merchant_id" validate:"required,hexadecimal,len=24"
-    string merchant_id = 1;
-    // @inject_tag: query:"period_from" validate:"required,numeric,gt=0"
-    int64 period_from = 2;
-    // @inject_tag: query:"period_to" validate:"required,numeric,gt=0"
-    int64 period_to = 3;
-    // @inject_tag: query:"report_type" validate:"required,alpha"
-    string report_type = 4;
-    // @inject_tag: query:"file_type" validate:"required,alpha"
-    string file_type = 5;
-    // @inject_tag: query:"additional_params"
-    bytes additional_params = 6;
 }
 
 message CreateFileResponse {
@@ -31,8 +16,8 @@ message CreateFileResponse {
     int32 status = 1;
     // @inject_tag: json:"message,omitempty"
     ResponseErrorMessage message = 2;
-    // @inject_tag: json:"file_id"
-    string file_id = 3;
+    // @inject_tag: json:"file"
+    ReportFile file = 3;
 }
 
 message LoadFileRequest {
@@ -72,16 +57,18 @@ message ResponseErrorMessage {
 message ReportFile {
     //@inject_tag: json:"id" bson:"_id"
     string id = 1;
-    // @inject_tag: json:"merchant_id"
+    // @inject_tag: json:"merchant_id" validate:"required,hexadecimal,len=24"
     string merchant_id = 2;
-    // @inject_tag: json:"file_path"
-    string type = 3;
-    //@inject_tag: json:"date_from"
-    google.protobuf.Timestamp date_from = 4;
-    //@inject_tag: json:"date_to"
-    google.protobuf.Timestamp date_to = 5;
+    // @inject_tag: json:"report_type" validate:"required,alpha"
+    string report_type = 3;
+    // @inject_tag: json:"file_type" validate:"required,alpha"
+    string file_type = 4;
+    // @inject_tag: json:"params" structure:"params,jsonpb"
+    bytes params = 5;
+    // @inject_tag: json:"template" validate:"required,hexadecimal"
+    string template = 6;
     // @inject_tag: json:"created_at"
-    google.protobuf.Timestamp created_at = 6;
+    google.protobuf.Timestamp created_at = 9;
 }
 
 message File {
@@ -106,16 +93,16 @@ message ReportRequest {
     bytes group = 7;
 }
 
-message Payload {
+message GeneratorPayload {
     //@inject_tag: json:"template"
-    PayloadTemplate template = 1;
+    GeneratorTemplate template = 1;
     //@inject_tag: json:"options"
-    PayloadOptions options = 2;
+    GeneratorOptions options = 2;
     //@inject_tag: json:"data"
     bytes data = 3;
 }
 
-message PayloadTemplate {
+message GeneratorTemplate {
     //@inject_tag: json:"shortid,omitempty"
     string short_id = 1;
     //@inject_tag: json:"name,omitempty"
@@ -126,7 +113,297 @@ message PayloadTemplate {
     string content = 4;
 }
 
-message PayloadOptions {
+message GeneratorOptions {
     //@inject_tag: json:"timeout,omitempty"
     string timeout = 1;
+}
+
+message RoyaltyReportDetails {
+    //@inject_tag: bson:"gross_amount"
+    double gross_amount = 1;
+    //@inject_tag: bson:"transactions_count"
+    int32 transactions_count = 2;
+    //@inject_tag: bson:"fee_amount"
+    double fee_amount = 3;
+    //@inject_tag: bson:"vat_amount"
+    double vat_amount = 4;
+    //@inject_tag: bson:"payout_amount"
+    double payout_amount = 5;
+    //@inject_tag: bson:"currency"
+    string currency = 6;
+}
+
+message RoyaltyReportCorrection {
+    // @inject_tag: validate:"omitempty,numeric,gt=0"
+    double amount = 1;
+    string reason = 2;
+}
+
+message RoyaltyReport {
+    string id = 1;
+    string merchant_id = 2;
+    google.protobuf.Timestamp created_at = 3;
+    google.protobuf.Timestamp updated_at = 4;
+    string payout_id = 5;
+    google.protobuf.Timestamp payout_date = 6;
+    string status = 7;
+    google.protobuf.Timestamp period_from = 8;
+    google.protobuf.Timestamp period_to = 9;
+    google.protobuf.Timestamp accept_expire_at = 10;
+    google.protobuf.Timestamp accepted_at = 11;
+    RoyaltyReportDetails amounts = 12;
+    RoyaltyReportCorrection correction = 13;
+}
+
+message OrderViewPublic {
+    // @inject_tag: json:"-" bson:"_id"
+    string id = 1; // unique internal order identifier in Protocol One
+    // @inject_tag: json:"uuid" bson:"uuid"
+    string uuid = 2; // unique public order identifier in Protocol One
+    // @inject_tag: json:"total_payment_amount" bson:"total_payment_amount"
+    double total_payment_amount = 3;
+    // @inject_tag: json:"currency" bson:"currency"
+    string currency = 4;
+    // @inject_tag: json:"project" bson:"project"
+    ProjectOrder project = 5;
+    // @inject_tag: bson:"created_at" bson:"created_at"
+    google.protobuf.Timestamp created_at = 6;
+    // @inject_tag: json:"transaction" bson:"pm_order_id"
+    string transaction = 7; // unique order id in payment system
+    // @inject_tag: json:"payment_method" bson:"payment_method"
+    PaymentMethodOrder payment_method = 8;
+    // @inject_tag: json:"country_code" bson:"country_code"
+    string country_code = 9;
+    // @inject_tag: json:"merchant_id" bson:"merchant_id"
+    string merchant_id = 10;
+    // @inject_tag: json:"locale" bson:"locale"
+    string locale = 11;
+    // @inject_tag: json:"status" bson:"status"
+    string status = 12;
+    // @inject_tag: json:"transaction_date" bson:"pm_order_close_date"
+    google.protobuf.Timestamp transaction_date = 13;
+    // @inject_tag: json:"user" bson:"user"
+    OrderUser user = 14;
+    // @inject_tag: json:"billing_address" bson:"billing_address"
+    OrderBillingAddress billing_address = 15;
+    // @inject_tag: json:"type" bson:"type"
+    string type = 16;
+    // @inject_tag: json:"is_vat_deduction" bson:"is_vat_deduction"
+    bool is_vat_deduction = 17;
+    // @inject_tag: json:"gross_revenue" bson:"gross_revenue"
+    OrderViewMoney gross_revenue = 18;
+    // @inject_tag: json:"tax_fee" bson:"tax_fee"
+    OrderViewMoney tax_fee = 19;
+    // @inject_tag: json:"tax_fee_currency_exchange_fee" bson:"tax_fee_currency_exchange_fee"
+    OrderViewMoney tax_fee_currency_exchange_fee = 20;
+    // @inject_tag: json:"tax_fee_total" bson:"tax_fee_total"
+    OrderViewMoney tax_fee_total = 21;
+    // @inject_tag: json:"method_fee_total" bson:"method_fee_total"
+    OrderViewMoney method_fee_total = 22;
+    // @inject_tag: json:"method_fee_tariff" bson:"method_fee_tariff"
+    OrderViewMoney method_fee_tariff = 23;
+    // @inject_tag: json:"method_fixed_fee_tariff" bson:"method_fixed_fee_tariff"
+    OrderViewMoney method_fixed_fee_tariff = 24;
+    // @inject_tag: json:"paysuper_fixed_fee" bson:"paysuper_fixed_fee"
+    OrderViewMoney paysuper_fixed_fee = 25;
+    // @inject_tag: json:"fees_total" bson:"fees_total"
+    OrderViewMoney fees_total = 26;
+    // @inject_tag: json:"fees_total_local" bson:"fees_total_local"
+    OrderViewMoney fees_total_local = 27;
+    // @inject_tag: json:"net_revenue" bson:"net_revenue"
+    OrderViewMoney net_revenue = 28;
+    // @inject_tag: json:"refund_gross_revenue" bson:"refund_gross_revenue"
+    OrderViewMoney refund_gross_revenue = 29;
+    // @inject_tag: json:"method_refund_fee_tariff" bson:"method_refund_fee_tariff"
+    OrderViewMoney method_refund_fee_tariff = 30;
+    // @inject_tag: json:"merchant_refund_fixed_fee_tariff" bson:"merchant_refund_fixed_fee_tariff"
+    OrderViewMoney merchant_refund_fixed_fee_tariff = 31;
+    // @inject_tag: json:"refund_tax_fee" bson:"refund_tax_fee"
+    OrderViewMoney refund_tax_fee = 32;
+    // @inject_tag: json:"refund_tax_fee_currency_exchange_fee" bson:"refund_tax_fee_currency_exchange_fee"
+    OrderViewMoney refund_tax_fee_currency_exchange_fee = 33;
+    // @inject_tag: json:"paysuper_refund_tax_fee_currency_exchange_fee" bson:"paysuper_refund_tax_fee_currency_exchange_fee"
+    OrderViewMoney paysuper_refund_tax_fee_currency_exchange_fee = 34;
+    // @inject_tag: json:"refund_reverse_revenue" bson:"refund_reverse_revenue"
+    OrderViewMoney refund_reverse_revenue = 35;
+    // @inject_tag: json:"refund_fees_total" bson:"refund_fees_total"
+    OrderViewMoney refund_fees_total = 36;
+    // @inject_tag: json:"refund_fees_total_local" bson:"refund_fees_total_local"
+    OrderViewMoney refund_fees_total_local = 37;
+}
+
+message OrderViewMoney {
+    double amount = 1;
+    string currency = 2;
+}
+
+message OrderBillingAddress {
+    // @inject_tag: validate:"omitempty,alpha,len=2"
+    string country = 1;
+    string city = 2;
+    // @inject_tag: bson:"postal_code"
+    string postal_code = 3;
+    string state = 4;
+}
+
+message OrderUser {
+    // @inject_tag: json:"id"
+    string id = 1;
+    // @inject_tag: json:"object"
+    string object = 2;
+    // @inject_tag: json:"external_id" bson:"external_id"
+    string external_id = 3;
+    // @inject_tag: json:"name"
+    string name = 4;
+    // @inject_tag: json:"email" validate:"omitempty,email"
+    string email = 5;
+    // @inject_tag: json:"email_verified" bson:"email_verified"
+    bool email_verified = 6;
+    // @inject_tag: json:"phone" validate:"omitempty,phone"
+    string phone = 7;
+    // @inject_tag: json:"phone_verified" bson:"phone_verified"
+    bool phone_verified = 8;
+    // @inject_tag: json:"ip" validate:"omitempty,ip"
+    string ip = 9;
+    // @inject_tag: json:"locale" validate:"omitempty,alpha,len=2"
+    string locale = 10;
+    // @inject_tag: json:"address"
+    OrderBillingAddress address = 11;
+    // @inject_tag: json:"metadata"
+    map<string, string> metadata = 12;
+    // @inject_tag: json:"-"
+    string tech_email = 13;
+    //@inject_tag: json:"notify_new_region" bson:"notify_new_region"
+    bool notify_new_region = 14;
+    //@inject_tag: json:"notify_new_region_email" bson:"notify_new_region_email"
+    string notify_new_region_email = 15;
+}
+
+message ProjectOrder {
+    string id = 1;
+    string merchant_id = 2;
+    map<string, string> name = 3;
+    string url_success = 4;
+    string url_fail = 5;
+    repeated string notify_emails = 6;
+    string secret_key = 7;
+    bool send_notify_email = 8;
+    string url_check_account = 9;
+    string url_process_payment = 10;
+    string callback_protocol = 11;
+    string url_chargeback_payment = 12;
+    string url_cancel_payment = 13;
+    string url_fraud_payment = 14;
+    string url_refund_payment = 15;
+    int32 status = 16;
+}
+
+message PaymentMethodOrder {
+    // @inject_tag: json:"-" bson:"_id"
+    string id = 1;
+    // @inject_tag: json:"title" bson:"name"
+    string name = 2;
+    // @inject_tag: bson:"external_id" json:"external_id"
+    string external_id = 3;
+    // @inject_tag: bson:"params"
+    PaymentMethodParams params = 4;
+    // @inject_tag: bson:"payment_system_id" json:"payment_system_id"
+    string payment_system_id = 5;
+    // @inject_tag: json:"type" bson:"group_alias"
+    string group = 6;
+    // @inject_tag: json:"saved" bson:"saved"
+    bool saved = 7;
+    //@inject_tag: json:"card" bson:"card"
+    PaymentMethodCard card = 8;
+    //@inject_tag: json:"wallet" bson:"wallet"
+    PaymentMethodWallet wallet = 9;
+    //@inject_tag: json:"crypto_currency" bson:"crypto_currency"
+    PaymentMethodCrypto crypto_currency = 10;
+    // @inject_tag: json:"type" bson:"group_alias"
+    string handler = 11;
+}
+
+message PaymentMethodParams {
+    // @inject_tag: bson:"currency" json:"currency" validate:"required,alpha,len=3"
+    string currency = 1;
+    // @inject_tag: bson:"terminal_id" json:"terminal_id" validate:"omitempty,alphanum"
+    string terminal_id = 2;
+    // @inject_tag: bson:"secret" json:"secret" validate:"omitempty"
+    string secret = 3;
+    // @inject_tag: bson:"secret_callback" json:"secret_callback" validate:"omitempty"
+    string secret_callback = 5;
+}
+
+message PaymentMethodCard {
+    //@inject_tag: json:"first6" bson:"first6"
+    string first6 = 1;
+    //@inject_tag: json:"last4" bson:"last4"
+    string last4 = 2;
+    //@inject_tag: json:"masked" bson:"masked"
+    string masked = 3;
+    //@inject_tag: json:"expiry_month" bson:"expiry_month"
+    string expiry_month = 4;
+    //@inject_tag: json:"expiry_year" bson:"expiry_year"
+    string expiry_year = 5;
+    //@inject_tag: json:"brand" bson:"brand"
+    string brand = 6;
+    //@inject_tag: json:"fingerprint" bson:"fingerprint"
+    string fingerprint = 7;
+    //@inject_tag: json:"secure3d" bson:"secure3d"
+    bool secure3d = 8;
+}
+
+message PaymentMethodWallet {
+    //@inject_tag: json:"brand" bson:"brand"
+    string brand = 1;
+    //@inject_tag: json:"account" bson:"account"
+    string account = 2;
+}
+
+message PaymentMethodCrypto {
+    //@inject_tag: json:"brand" bson:"brand"
+    string brand = 1;
+    //@inject_tag: json:"address" bson:"address"
+    string address = 2;
+}
+
+message VatReport {
+    //@inject_tag: json:"id" bson:"_id" validate:"omitempty,hexadecimal,len=24"
+    string id = 1;
+    //@inject_tag: json:"country" bson:"country" validate:"required,alpha,len=2"
+    string country = 2;
+    // @inject_tag: json:"vat_rate" bson:"vat_rate" validate:"numeric,gte=0,lte=1"
+    double vat_rate = 3;
+    //@inject_tag: json:"currency" bson:"currency" validate:"required,alpha,len=3"
+    string currency = 4;
+    // @inject_tag: json:"transactions_count" bson:"transactions_count" validate:"numeric,gte=0"
+    int32 transactions_count = 5;
+    // @inject_tag: json:"gross_revenue" bson:"gross_revenue" validate:"numeric,gte=0"
+    double gross_revenue = 6;
+    // @inject_tag: json:"vat_amount" bson:"vat_amount" validate:"numeric,gte=0"
+    double vat_amount = 7;
+    // @inject_tag: json:"fees_amount" bson:"fees_amount" validate:"numeric,gte=0"
+    double fees_amount = 8;
+    // @inject_tag: json:"deduction_amount" bson:"deduction_amount" validate:"numeric,gte=0"
+    double deduction_amount = 9;
+    // @inject_tag: json:"correction_amount" bson:"correction_amount" validate:"numeric,lte=0"
+    double correction_amount = 10;
+    //@inject_tag: json:"status" bson:"status" validate:"required,alpha,oneof=threshold expired pending need_to_pay paid overdue canceled"
+    string status = 11;
+    // @inject_tag: json:"country_annual_turnover" bson:"country_annual_turnover" validate:"numeric,gte=0"
+    double country_annual_turnover = 12;
+    // @inject_tag: json:"world_annual_turnover" bson:"world_annual_turnover" validate:"numeric,gte=0"
+    double world_annual_turnover = 13;
+    //@inject_tag: json:"amounts_approximate" bson:"amounts_approximate"
+    bool amounts_approximate = 14;
+    //@inject_tag: json:"date_from" bson:"date_from"
+    google.protobuf.Timestamp date_from = 15;
+    //@inject_tag: json:"date_to" bson:"date_to"
+    google.protobuf.Timestamp date_to = 16;
+    //@inject_tag: json:"pay_until_date" bson:"pay_until_date"
+    google.protobuf.Timestamp pay_until_date = 17;
+    //@inject_tag: json:"created_at" bson:"created_at"
+    google.protobuf.Timestamp created_at = 18;
+    //@inject_tag: json:"updated_at" bson:"updated_at"
+    google.protobuf.Timestamp updated_at = 19;
 }

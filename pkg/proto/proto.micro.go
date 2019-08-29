@@ -35,7 +35,7 @@ var _ server.Option
 // Client API for ReporterService service
 
 type ReporterService interface {
-	CreateFile(ctx context.Context, in *CreateFileRequest, opts ...client.CallOption) (*CreateFileResponse, error)
+	CreateFile(ctx context.Context, in *ReportFile, opts ...client.CallOption) (*CreateFileResponse, error)
 	LoadFile(ctx context.Context, in *LoadFileRequest, opts ...client.CallOption) (*LoadFileResponse, error)
 }
 
@@ -57,7 +57,7 @@ func NewReporterService(name string, c client.Client) ReporterService {
 	}
 }
 
-func (c *reporterService) CreateFile(ctx context.Context, in *CreateFileRequest, opts ...client.CallOption) (*CreateFileResponse, error) {
+func (c *reporterService) CreateFile(ctx context.Context, in *ReportFile, opts ...client.CallOption) (*CreateFileResponse, error) {
 	req := c.c.NewRequest(c.name, "ReporterService.CreateFile", in)
 	out := new(CreateFileResponse)
 	err := c.c.Call(ctx, req, out, opts...)
@@ -80,13 +80,13 @@ func (c *reporterService) LoadFile(ctx context.Context, in *LoadFileRequest, opt
 // Server API for ReporterService service
 
 type ReporterServiceHandler interface {
-	CreateFile(context.Context, *CreateFileRequest, *CreateFileResponse) error
+	CreateFile(context.Context, *ReportFile, *CreateFileResponse) error
 	LoadFile(context.Context, *LoadFileRequest, *LoadFileResponse) error
 }
 
 func RegisterReporterServiceHandler(s server.Server, hdlr ReporterServiceHandler, opts ...server.HandlerOption) error {
 	type reporterService interface {
-		CreateFile(ctx context.Context, in *CreateFileRequest, out *CreateFileResponse) error
+		CreateFile(ctx context.Context, in *ReportFile, out *CreateFileResponse) error
 		LoadFile(ctx context.Context, in *LoadFileRequest, out *LoadFileResponse) error
 	}
 	type ReporterService struct {
@@ -100,7 +100,7 @@ type reporterServiceHandler struct {
 	ReporterServiceHandler
 }
 
-func (h *reporterServiceHandler) CreateFile(ctx context.Context, in *CreateFileRequest, out *CreateFileResponse) error {
+func (h *reporterServiceHandler) CreateFile(ctx context.Context, in *ReportFile, out *CreateFileResponse) error {
 	return h.ReporterServiceHandler.CreateFile(ctx, in, out)
 }
 

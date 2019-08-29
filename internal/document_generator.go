@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	errs "errors"
+	"errors"
 	"github.com/paysuper/paysuper-reporter/internal/config"
 	"github.com/paysuper/paysuper-reporter/pkg"
-	"github.com/paysuper/paysuper-reporter/pkg/errors"
+	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
 	"github.com/paysuper/paysuper-reporter/pkg/proto"
 	"go.uber.org/zap"
 	"io/ioutil"
@@ -20,7 +20,7 @@ const (
 )
 
 type DocumentGeneratorInterface interface {
-	Render(payload *proto.Payload) (*proto.File, error)
+	Render(payload *proto.GeneratorPayload) (*proto.File, error)
 }
 
 type DocumentGeneratorRenderRequest struct {
@@ -45,7 +45,7 @@ func newDocumentGenerator(config *config.DocumentGeneratorConfig) (DocumentGener
 	return client, nil
 }
 
-func (dg DocumentGenerator) Render(payload *proto.Payload) (*proto.File, error) {
+func (dg DocumentGenerator) Render(payload *proto.GeneratorPayload) (*proto.File, error) {
 	b, err := json.Marshal(payload)
 
 	if err != nil {
@@ -82,7 +82,7 @@ func (dg DocumentGenerator) Render(payload *proto.Payload) (*proto.File, error) 
 	}
 
 	if rsp.StatusCode != http.StatusOK {
-		return nil, errs.New(errors.ErrorDocumentGeneratorRender.Message)
+		return nil, errors.New(errs.ErrorDocumentGeneratorRender.Message)
 	}
 
 	return msg, nil

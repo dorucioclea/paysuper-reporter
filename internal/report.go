@@ -2,18 +2,14 @@ package internal
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"github.com/globalsign/mgo/bson"
-	"github.com/golang/protobuf/ptypes"
+	"github.com/paysuper/paysuper-reporter/internal/builder"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
 	"github.com/paysuper/paysuper-reporter/pkg/proto"
 	"go.uber.org/zap"
 	"io/ioutil"
 	"os"
-	"sort"
-	"time"
 )
 
 var (
@@ -43,10 +39,10 @@ var (
 		},
 	}
 
-	reportFileTypes = []string{
-		pkg.OutputXslx,
-		pkg.OutputCsv,
-		pkg.OutputPdf,
+	reportFileTypes = map[string]string{
+		pkg.OutputXlsxExtension: pkg.OutputXlsxContentType,
+		pkg.OutputCsvExtension:  pkg.OutputCsvContentType,
+		pkg.OutputPdfExtension:  pkg.OutputPdfContentType,
 	}
 )
 
@@ -58,108 +54,78 @@ type ReportFileTemplate struct {
 	Group      string
 }
 
-func (app *Application) CreateFile(ctx context.Context, req *proto.CreateFileRequest, res *proto.CreateFileResponse) error {
-	template, ok := reportTemplates[req.ReportType]
-	if !ok {
-		zap.S().Errorf(errors.ErrorTemplateNotFound.Message, "data", req)
+func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, res *proto.CreateFileResponse) error {
+	if file.Template == "" {
+		zap.S().Errorf(errors.ErrorTemplateNotFound.Message, "file", file)
 		res.Status = pkg.ResponseStatusBadData
 		res.Message = errors.ErrorTemplateNotFound
 
 		return nil
 	}
 
-	i := sort.SearchStrings(reportFileTypes, req.FileType)
-	if i == len(reportFileTypes) {
-		zap.S().Errorf(errors.ErrorType.Message, "data", req)
+	if _, ok := reportTemplates[file.ReportType]; !ok {
+		zap.S().Errorf(errors.ErrorReportTypeNotFound.Message, "file", file)
 		res.Status = pkg.ResponseStatusBadData
-		res.Message = errors.ErrorType
+		res.Message = errors.ErrorReportTypeNotFound
 
 		return nil
 	}
 
-	file := &proto.ReportFile{
-		Id:         bson.NewObjectId().Hex(),
-		MerchantId: req.MerchantId,
-		Type:       req.ReportType,
+	if _, ok := reportFileTypes[file.FileType]; !ok {
+		zap.S().Errorf(errors.ErrorFileTypeNotFound.Message, "file", file)
+		res.Status = pkg.ResponseStatusBadData
+		res.Message = errors.ErrorFileTypeNotFound
+
+		return nil
 	}
-	file.DateFrom, _ = ptypes.TimestampProto(time.Unix(req.PeriodFrom, 0))
-	file.DateTo, _ = ptypes.TimestampProto(time.Unix(req.PeriodTo, 0))
+
+	mgoReport, err := file.GetBSON()
+
+	if err != nil {
+		zap.S().Errorf(errors.ErrorConvertBson.Message, "file", file)
+		res.Status = pkg.ResponseStatusBadData
+		res.Message = errors.ErrorConvertBson
+
+		return nil
+	}
+
+	h := builder.NewBuilder(
+		mgoReport.(*proto.MgoReportFile),
+		app.reportFileRepository,
+		app.royaltyReportRepository,
+		app.vatReportRepository,
+	)
+	bldr, err := h.GetBuilder()
+
+	if err != nil {
+		zap.S().Errorf(errors.ErrorHandlerNotFound.Message, "file", file)
+		res.Status = pkg.ResponseStatusSystemError
+		res.Message = errors.ErrorHandlerNotFound
+
+		return nil
+	}
+
+	if err = bldr.Validate(); err != nil {
+		zap.S().Errorf(errors.ErrorHandlerValidation.Message, "file", mgoReport)
+		res.Status = pkg.ResponseStatusBadData
+		res.Message = errors.ErrorHandlerValidation
+
+		return nil
+	}
+
+	file.Id = bson.NewObjectId().Hex()
 
 	if err := app.reportFileRepository.Insert(file); err != nil {
-		zap.S().Errorf(errors.ErrorUnableToCreate.Message, "data", req)
+		zap.S().Errorf(errors.ErrorUnableToCreate.Message, "file", file)
 		res.Status = pkg.ResponseStatusSystemError
 		res.Message = errors.ErrorUnableToCreate
 		return nil
 	}
 
-	match, err := json.Marshal(template.Match)
-	if err != nil {
-		res.Status = pkg.ResponseStatusSystemError
-		res.Message = errors.ErrorMarshalMatch
-		return err
-	}
-
-	group, err := json.Marshal(template.Group)
-	if err != nil {
-		res.Status = pkg.ResponseStatusSystemError
-		res.Message = errors.ErrorMarshalGroup
-		return err
-	}
-
-	msg := &proto.ReportRequest{
-		FileId:       file.Id,
-		TemplateId:   template.TemplateId,
-		OutputFormat: req.FileType,
-		TableName:    template.Table,
-		Fields:       template.Fields,
-		Match:        match,
-		Group:        group,
-	}
-	if err := app.messageBroker.Publish(pkg.SubjectRequestReportFileCreate, msg, false); err != nil {
-		zap.S().Errorf(errors.ErrorMessageBrokerFailed.Message, "data", req)
+	if err := app.messageBroker.Publish(pkg.SubjectRequestReportFileCreate, mgoReport, false); err != nil {
+		zap.S().Errorf(errors.ErrorMessageBrokerFailed.Message, "file", mgoReport)
 		res.Status = pkg.ResponseStatusSystemError
 		res.Message = errors.ErrorMessageBrokerFailed
-		return nil
-	}
-
-	res.Status = pkg.ResponseStatusOk
-	res.FileId = file.Id
-
-	return nil
-}
-
-func (app *Application) UpdateFile(ctx context.Context, req *proto.UpdateFileRequest, res *proto.ResponseError) error {
-	file, err := app.reportFileRepository.GetById(req.Id)
-
-	if err != nil {
-		zap.S().Errorf(errors.ErrorNotFound.Message, "data", req)
-		res.Status = pkg.ResponseStatusNotFound
-		res.Message = errors.ErrorNotFound
-		return nil
-	}
-
-	err = app.centrifugo.Publish(fmt.Sprintf(app.cfg.CentrifugoConfig.MerchantChannel, file.MerchantId), file)
-
-	if err != nil {
-		zap.S().Error(errors.ErrorCentrifugoNotificationFailed, zap.Error(err), zap.Any("report_file", file))
-		res.Status = pkg.ResponseStatusSystemError
-		res.Message = errors.ErrorCentrifugoNotificationFailed
-
-		return nil
-	}
-
-	res.Status = pkg.ResponseStatusOk
-
-	return nil
-}
-
-func (app *Application) GetFile(ctx context.Context, req *proto.GetFileRequest, res *proto.GetFileResponse) error {
-	file, err := app.reportFileRepository.GetById(req.Id)
-
-	if err != nil {
-		zap.S().Errorf(errors.ErrorNotFound.Message, "data", req)
-		res.Status = pkg.ResponseStatusNotFound
-		res.Message = errors.ErrorNotFound
 		return nil
 	}
 
@@ -169,7 +135,7 @@ func (app *Application) GetFile(ctx context.Context, req *proto.GetFileRequest, 
 	return nil
 }
 
-func (app *Application) LoadFile(ctx context.Context, req *proto.GetFileRequest, res *proto.LoadFileResponse) error {
+func (app *Application) LoadFile(ctx context.Context, req *proto.LoadFileRequest, res *proto.LoadFileResponse) error {
 	file, err := app.reportFileRepository.GetById(req.Id)
 
 	if err != nil {

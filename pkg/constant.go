@@ -32,4 +32,6 @@ const (
 	OutputXlsxContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 	OutputCsvContentType  = "text/csv"
 	OutputPdfContentType  = "application/pdf"
+
+	ParamsFieldId = "id"
 )

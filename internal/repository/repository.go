@@ -9,3 +9,5 @@ type Repository struct {
 }
 
 type ReportFileRepository Repository
+type RoyaltyReportRepository Repository
+type VatReportRepository Repository

@@ -10,9 +10,11 @@ import (
 	"github.com/nats-io/stan.go"
 	"github.com/nats-io/stan.go/pb"
 	mongodb "github.com/paysuper/paysuper-database-mongo"
+	"github.com/paysuper/paysuper-reporter/internal/builder"
 	"github.com/paysuper/paysuper-reporter/internal/config"
 	"github.com/paysuper/paysuper-reporter/internal/repository"
 	"github.com/paysuper/paysuper-reporter/pkg"
+	"github.com/paysuper/paysuper-reporter/pkg/errors"
 	"github.com/paysuper/paysuper-reporter/pkg/proto"
 	"go.uber.org/zap"
 	"io/ioutil"
@@ -27,16 +29,18 @@ const (
 )
 
 type Application struct {
-	cfg                  *config.Config
-	log                  *zap.Logger
-	database             *mongodb.Source
-	messageBroker        MessageBrokerInterface
-	s3                   S3ClientInterface
-	centrifugo           CentrifugoInterface
-	documentGenerator    DocumentGeneratorInterface
-	backOff              goback.SimpleBackoff
-	router               *http.ServeMux
-	reportFileRepository repository.ReportFileRepositoryInterface
+	cfg                     *config.Config
+	log                     *zap.Logger
+	database                *mongodb.Source
+	messageBroker           MessageBrokerInterface
+	s3                      S3ClientInterface
+	centrifugo              CentrifugoInterface
+	documentGenerator       DocumentGeneratorInterface
+	backOff                 goback.SimpleBackoff
+	router                  *http.ServeMux
+	reportFileRepository    repository.ReportFileRepositoryInterface
+	royaltyReportRepository repository.RoyaltyReportRepositoryInterface
+	vatReportRepository     repository.VatReportRepositoryInterface
 
 	fatalFn func(msg string, fields ...zap.Field)
 }
@@ -55,6 +59,8 @@ func NewApplication() *Application {
 	app.initDocumentGenerator()
 
 	app.reportFileRepository = repository.NewReportFileRepository(app.database)
+	app.royaltyReportRepository = repository.NewRoyaltyReportRepository(app.database)
+	app.vatReportRepository = repository.NewVatReportRepository(app.database)
 
 	app.router = http.NewServeMux()
 	app.initHealth()
@@ -232,27 +238,43 @@ func (app *Application) handler(ctx context.Context) error {
 }
 
 func (app *Application) execute(msg *stan.Msg) {
-	req := &proto.ReportRequest{}
-	if err := json.Unmarshal(msg.Data, req); err != nil {
+	reportFile := &proto.MgoReportFile{}
+
+	if err := json.Unmarshal(msg.Data, reportFile); err != nil {
 		zap.L().Error("Invalid message data", zap.Error(err))
 		return
 	}
 
-	report, err := app.buildReport(req)
+	h := builder.NewBuilder(
+		reportFile,
+		app.reportFileRepository,
+		app.royaltyReportRepository,
+		app.vatReportRepository,
+	)
+	bldr, err := h.GetBuilder()
+
 	if err != nil {
-		zap.L().Error("Unable to build report", zap.Error(err))
+		zap.L().Error("Unable to get builder", zap.Error(err))
 		return
 	}
 
-	data, err := json.Marshal(report)
+	rawData, err := bldr.Build()
+
+	if err != nil {
+		zap.L().Error("Unable to build document", zap.Error(err))
+		return
+	}
+
+	data, err := json.Marshal(rawData)
+
 	if err != nil {
 		zap.L().Error("Unable to marshal report", zap.Error(err))
 		return
 	}
 
-	payload := &proto.Payload{
-		Template: &proto.PayloadTemplate{
-			ShortId: req.TemplateId,
+	payload := &proto.GeneratorPayload{
+		Template: &proto.GeneratorTemplate{
+			ShortId: reportFile.Template,
 		},
 		Data: data,
 	}
@@ -263,7 +285,7 @@ func (app *Application) execute(msg *stan.Msg) {
 		return
 	}
 
-	fileName := fmt.Sprintf(fileMask, req.FileId, req.OutputFormat)
+	fileName := fmt.Sprintf(fileMask, reportFile.Id, reportFile.FileType)
 	filePath := os.TempDir() + string(os.PathSeparator) + fileName
 
 	if err = ioutil.WriteFile(filePath, file.File, 0644); err != nil {
@@ -277,15 +299,14 @@ func (app *Application) execute(msg *stan.Msg) {
 		return
 	}
 
-}
+	err = app.centrifugo.Publish(fmt.Sprintf(app.cfg.CentrifugoConfig.MerchantChannel, reportFile.MerchantId), file)
 
-func (app *Application) buildReport(req *proto.ReportRequest) (interface{}, error) {
-	var data interface{}
-	if err := app.database.Collection(req.TableName).Find(req.Match).All(&data); err != nil {
-		return nil, err
+	if err != nil {
+		zap.S().Error(errors.ErrorCentrifugoNotificationFailed, zap.Error(err), zap.Any("report_file", reportFile))
+		return
 	}
 
-	return data, nil
+	return
 }
 
 func (c *appHealthCheck) Status() (interface{}, error) {
