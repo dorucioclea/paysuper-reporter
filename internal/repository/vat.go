@@ -40,7 +40,12 @@ func (h *VatReportRepository) GetById(id string) (*proto.VatReport, error) {
 	err := h.db.Collection(collectionVatReports).Find(query).One(&report)
 
 	if err != nil {
-		zap.S().Errorf(errors.ErrorDatabaseQueryFailed.Message, "err", err.Error(), "collection", collectionRoyaltyReport, "id", id)
+		zap.L().Error(
+			errors.ErrorDatabaseQueryFailed.Message,
+			zap.Error(err),
+			zap.String("collection", collectionRoyaltyReport),
+			zap.String("id", id),
+		)
 	}
 
 	return nil, err
@@ -62,7 +67,12 @@ func (h *VatReportRepository) GetTransactions(report *proto.VatReport) ([]*proto
 	err := h.db.Collection(collectionOrderView).Find(match).Sort("created_at").All(&result)
 
 	if err != nil {
-		zap.S().Errorf(errors.ErrorDatabaseQueryFailed.Message, "err", err.Error(), "collection", collectionOrderView, "match", match)
+		zap.L().Error(
+			errors.ErrorDatabaseQueryFailed.Message,
+			zap.Error(err),
+			zap.String("collection", collectionOrderView),
+			zap.Any("match", match),
+		)
 		return nil, err
 	}
 

@@ -63,7 +63,7 @@ message ReportFile {
     string report_type = 3;
     // @inject_tag: json:"file_type" validate:"required,alpha"
     string file_type = 4;
-    // @inject_tag: json:"params" structure:"params,jsonpb"
+    // @inject_tag: json:"params"
     bytes params = 5;
     // @inject_tag: json:"template" validate:"required,hexadecimal"
     string template = 6;

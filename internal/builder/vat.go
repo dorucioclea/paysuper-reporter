@@ -21,17 +21,17 @@ func (h *Vat) Validate() error {
 }
 
 func (h *Vat) Build() (interface{}, error) {
-	royalty, err := h.vatReportRepository.GetById(h.report.Params[pkg.ParamsFieldId].(string))
+	vat, err := h.vatReportRepository.GetById(h.report.Params[pkg.ParamsFieldId].(string))
 
 	if err != nil {
 		return nil, err
 	}
 
-	orders, err := h.vatReportRepository.GetTransactions(royalty)
+	orders, err := h.vatReportRepository.GetTransactions(vat)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return map[string]interface{}{"royalty": royalty, "orders": orders}, nil
+	return map[string]interface{}{"vat": vat, "orders": orders}, nil
 }

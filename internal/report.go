@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"github.com/globalsign/mgo/bson"
+	awsWrapper "github.com/paysuper/paysuper-aws-manager"
 	"github.com/paysuper/paysuper-reporter/internal/builder"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
@@ -16,26 +17,12 @@ var (
 	reportTemplates = map[string]*ReportFileTemplate{
 		pkg.ReportTypeVat: {
 			TemplateId: pkg.ReportTypeVatTemplate,
-			Table:      "",
-			Fields:     []string{"payment_system_id", "name", "min_payment_amount", "max_payment_amount"},
-			Match: `{
-				"is_active": true,
-			}`,
-			Group: "",
 		},
 		pkg.ReportTypeTax: {
 			TemplateId: pkg.ReportTypeTaxTemplate,
-			Table:      "",
-			Fields:     []string{},
-			Match:      "",
-			Group:      "",
 		},
 		pkg.ReportTypeRoyalty: {
 			TemplateId: pkg.ReportTypeRoyaltyTemplate,
-			Table:      "",
-			Fields:     []string{},
-			Match:      "",
-			Group:      "",
 		},
 	}
 
@@ -56,7 +43,7 @@ type ReportFileTemplate struct {
 
 func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, res *proto.CreateFileResponse) error {
 	if file.Template == "" {
-		zap.S().Errorf(errors.ErrorTemplateNotFound.Message, "file", file)
+		zap.L().Error(errors.ErrorTemplateNotFound.Message, zap.Any("file", file))
 		res.Status = pkg.ResponseStatusBadData
 		res.Message = errors.ErrorTemplateNotFound
 
@@ -64,7 +51,7 @@ func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, 
 	}
 
 	if _, ok := reportTemplates[file.ReportType]; !ok {
-		zap.S().Errorf(errors.ErrorReportTypeNotFound.Message, "file", file)
+		zap.L().Error(errors.ErrorReportTypeNotFound.Message, zap.Any("file", file))
 		res.Status = pkg.ResponseStatusBadData
 		res.Message = errors.ErrorReportTypeNotFound
 
@@ -72,7 +59,7 @@ func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, 
 	}
 
 	if _, ok := reportFileTypes[file.FileType]; !ok {
-		zap.S().Errorf(errors.ErrorFileTypeNotFound.Message, "file", file)
+		zap.L().Error(errors.ErrorFileTypeNotFound.Message, zap.Any("file", file))
 		res.Status = pkg.ResponseStatusBadData
 		res.Message = errors.ErrorFileTypeNotFound
 
@@ -82,7 +69,7 @@ func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, 
 	mgoReport, err := file.GetBSON()
 
 	if err != nil {
-		zap.S().Errorf(errors.ErrorConvertBson.Message, "file", file)
+		zap.L().Error(errors.ErrorConvertBson.Message, zap.Any("file", file))
 		res.Status = pkg.ResponseStatusBadData
 		res.Message = errors.ErrorConvertBson
 
@@ -98,7 +85,7 @@ func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, 
 	bldr, err := h.GetBuilder()
 
 	if err != nil {
-		zap.S().Errorf(errors.ErrorHandlerNotFound.Message, "file", file)
+		zap.L().Error(errors.ErrorHandlerNotFound.Message, zap.Any("file", file))
 		res.Status = pkg.ResponseStatusSystemError
 		res.Message = errors.ErrorHandlerNotFound
 
@@ -106,7 +93,7 @@ func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, 
 	}
 
 	if err = bldr.Validate(); err != nil {
-		zap.S().Errorf(errors.ErrorHandlerValidation.Message, "file", mgoReport)
+		zap.L().Error(errors.ErrorHandlerValidation.Message, zap.Any("file", mgoReport))
 		res.Status = pkg.ResponseStatusBadData
 		res.Message = errors.ErrorHandlerValidation
 
@@ -116,14 +103,14 @@ func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, 
 	file.Id = bson.NewObjectId().Hex()
 
 	if err := app.reportFileRepository.Insert(file); err != nil {
-		zap.S().Errorf(errors.ErrorUnableToCreate.Message, "file", file)
+		zap.L().Error(errors.ErrorUnableToCreate.Message, zap.Any("file", file))
 		res.Status = pkg.ResponseStatusSystemError
 		res.Message = errors.ErrorUnableToCreate
 		return nil
 	}
 
 	if err := app.messageBroker.Publish(pkg.SubjectRequestReportFileCreate, mgoReport, false); err != nil {
-		zap.S().Errorf(errors.ErrorMessageBrokerFailed.Message, "file", mgoReport)
+		zap.L().Error(errors.ErrorMessageBrokerFailed.Message, zap.Any("file", mgoReport))
 		res.Status = pkg.ResponseStatusSystemError
 		res.Message = errors.ErrorMessageBrokerFailed
 		return nil
@@ -139,15 +126,16 @@ func (app *Application) LoadFile(ctx context.Context, req *proto.LoadFileRequest
 	file, err := app.reportFileRepository.GetById(req.Id)
 
 	if err != nil {
-		zap.S().Errorf(errors.ErrorNotFound.Message, "data", req)
+		zap.L().Error(errors.ErrorNotFound.Message, zap.Any("data", req))
 		res.Status = pkg.ResponseStatusNotFound
 		res.Message = errors.ErrorNotFound
 		return nil
 	}
 
 	filePath := os.TempDir() + string(os.PathSeparator) + file.Id
-	if err = app.s3.Get(file.Id, filePath, GetObjectOptions{}); err != nil {
-		zap.S().Errorf(errors.ErrorNotFound.Message, "data", req)
+
+	if _, err = app.s3.Download(ctx, filePath, &awsWrapper.DownloadInput{FileName: file.Id}); err != nil {
+		zap.L().Error(errors.ErrorNotFound.Message, zap.Any("data", req))
 		res.Status = pkg.ResponseStatusNotFound
 		res.Message = errors.ErrorNotFound
 		return nil
@@ -157,7 +145,7 @@ func (app *Application) LoadFile(ctx context.Context, req *proto.LoadFileRequest
 	defer f.Close()
 
 	if err != nil {
-		zap.S().Errorf(errors.ErrorNotFound.Message, "data", req)
+		zap.L().Error(errors.ErrorNotFound.Message, zap.Any("data", req))
 		res.Status = pkg.ResponseStatusNotFound
 		res.Message = errors.ErrorNotFound
 		return nil
@@ -165,7 +153,7 @@ func (app *Application) LoadFile(ctx context.Context, req *proto.LoadFileRequest
 
 	b, err := ioutil.ReadAll(f)
 	if err != nil {
-		zap.S().Errorf(errors.ErrorNotFound.Message, "data", req)
+		zap.L().Error(errors.ErrorNotFound.Message, zap.Any("data", req))
 		res.Status = pkg.ResponseStatusNotFound
 		res.Message = errors.ErrorNotFound
 		return nil

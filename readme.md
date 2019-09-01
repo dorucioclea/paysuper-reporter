@@ -22,12 +22,11 @@ Consumer NAT Streaming server to generate reporting documents (royalties, taxes,
 | NATS_PASSWORD                   | -        |                                                | Password sets the password to be used when connecting to a server       |
 | NATS_CLUSTER_ID                 | -        | test-cluster                                   | The NATS Streaming cluster ID                                           |
 | NATS_CLIENT_ID                  | -        | billing-server-publisher                       | The NATS Streaming client ID to connect with                            |
-| S3_ACCESS_KEY                   | true     |                                                |                                                                         |
-| S3_SECRET_KEY                   | true     |                                                |                                                                         |
-| S3_ENDPOINT                     | true     |                                                |                                                                         |
-| S3_BUCKET_NAME                  | true     |                                                |                                                                         |
-| S3_REGION                       | -        | eu-west-1                                      |                                                                         |
-| S3_SECURE                       | -        | false                                          |                                                                         |
+| AWS_ACCESS_KEY_ID               | true     |                                                |                                                                         |
+| AWS_SECRET_ACCESS_KEY           | true     |                                                |                                                                         |
+| AWS_TOKEN                       | true     |                                                |                                                                         |
+| AWS_BUCKET                      | true     |                                                |                                                                         |
+| AWS_REGION                      | true     |                                                |                                                                         |
 | CENTRIFUGO_SECRET               | true     | -                                              | Centrifugo secret key                                                   |
 | CENTRIFUGO_API_SECRET           | true     | -                                              | Centrifugo API secret key                                               |
 | CENTRIFUGO_URL                  | -        | http://127.0.0.1:8000                          | Centrifugo API gateway                                                  |

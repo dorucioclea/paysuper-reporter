@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"github.com/carlescere/goback"
 	"github.com/nats-io/stan.go"
 	"github.com/nats-io/stan.go/pb"
+	awsWrapper "github.com/paysuper/paysuper-aws-manager"
 	mongodb "github.com/paysuper/paysuper-database-mongo"
 	"github.com/paysuper/paysuper-reporter/internal/builder"
 	"github.com/paysuper/paysuper-reporter/internal/config"
@@ -33,7 +35,7 @@ type Application struct {
 	log                     *zap.Logger
 	database                *mongodb.Source
 	messageBroker           MessageBrokerInterface
-	s3                      S3ClientInterface
+	s3                      awsWrapper.AwsManagerInterface
 	centrifugo              CentrifugoInterface
 	documentGenerator       DocumentGeneratorInterface
 	backOff                 goback.SimpleBackoff
@@ -136,7 +138,7 @@ func (app *Application) initDatabase() {
 func (app *Application) initS3() {
 	var err error
 
-	app.s3, err = newS3Client(&app.cfg.S3)
+	app.s3, err = awsWrapper.New()
 	if err != nil {
 		app.fatalFn("S3 initialization failed", zap.Error(err))
 	}
@@ -289,11 +291,12 @@ func (app *Application) execute(msg *stan.Msg) {
 	filePath := os.TempDir() + string(os.PathSeparator) + fileName
 
 	if err = ioutil.WriteFile(filePath, file.File, 0644); err != nil {
-		zap.S().Errorf("internal error", "err", err.Error())
+		zap.L().Error("internal error", zap.Error(err))
 		return
 	}
 
-	_, err = app.s3.Put(fileName, filePath, PutObjectOptions{})
+	_, err = app.s3.Upload(context.TODO(), &awsWrapper.UploadInput{Body: bytes.NewReader(file.File), FileName: fileName})
+
 	if err != nil {
 		zap.L().Error("Unable to upload report to the S3", zap.Error(err))
 		return
@@ -302,7 +305,11 @@ func (app *Application) execute(msg *stan.Msg) {
 	err = app.centrifugo.Publish(fmt.Sprintf(app.cfg.CentrifugoConfig.MerchantChannel, reportFile.MerchantId), file)
 
 	if err != nil {
-		zap.S().Error(errors.ErrorCentrifugoNotificationFailed, zap.Error(err), zap.Any("report_file", reportFile))
+		zap.L().Error(
+			errors.ErrorCentrifugoNotificationFailed.Message,
+			zap.Error(err),
+			zap.Any("report_file", reportFile),
+		)
 		return
 	}
 

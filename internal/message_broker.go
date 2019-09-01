@@ -71,11 +71,19 @@ func (c MessageBroker) Publish(subject string, msg interface{}, async bool) erro
 		defer glock.Unlock()
 
 		if err != nil {
-			zap.S().Fatalf("Error in server ack for guid in the message broker", "err", err.Error(), "lguid", lguid)
+			zap.L().Fatal(
+				"Error in server ack for guid in the message broker",
+				zap.Error(err),
+				zap.Any("lguid", lguid),
+			)
 		}
 
 		if lguid != guid {
-			zap.S().Fatalf("Expected a matching guid in ack callback in the message broker", "guid", guid, "lguid", lguid)
+			zap.L().Fatal(
+				"Expected a matching guid in ack callback in the message broker",
+				zap.Any("guid", guid),
+				zap.Any("lguid", lguid),
+			)
 		}
 		ch <- true
 	}
@@ -94,14 +102,14 @@ func (c MessageBroker) Publish(subject string, msg interface{}, async bool) erro
 		glock.Unlock()
 
 		if guid == "" {
-			zap.S().Fatal("Expected non-empty guid to be returned from the message broker")
+			zap.L().Fatal("Expected non-empty guid to be returned from the message broker")
 		}
 
 		select {
 		case <-ch:
 			break
 		case <-time.After(5 * time.Second):
-			zap.S().Fatal("Timeout to publish message to the message broker")
+			zap.L().Fatal("Timeout to publish message to the message broker")
 		}
 	}
 

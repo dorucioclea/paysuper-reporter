@@ -2,9 +2,9 @@ package internal
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
+	"github.com/paysuper/paysuper-recurring-repository/tools"
 	"github.com/paysuper/paysuper-reporter/internal/config"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
@@ -12,7 +12,6 @@ import (
 	"go.uber.org/zap"
 	"io/ioutil"
 	"net/http"
-	"time"
 )
 
 const (
@@ -39,7 +38,7 @@ func newDocumentGenerator(config *config.DocumentGeneratorConfig) (DocumentGener
 	client := DocumentGenerator{
 		apiUrl:     config.ApiUrl,
 		timeout:    config.Timeout,
-		httpClient: &http.Client{Transport: &httpTransport{}},
+		httpClient: tools.NewLoggedHttpClient(zap.S()),
 	}
 
 	return client, nil
@@ -86,49 +85,4 @@ func (dg DocumentGenerator) Render(payload *proto.GeneratorPayload) (*proto.File
 	}
 
 	return msg, nil
-}
-
-type httpTransport struct {
-	Transport http.RoundTripper
-}
-
-func (t *httpTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	ctx := context.WithValue(req.Context(), documentGeneratorContextKey, time.Now())
-	req = req.WithContext(ctx)
-
-	var reqBody []byte
-
-	if req.Body != nil {
-		reqBody, _ = ioutil.ReadAll(req.Body)
-	}
-
-	req.Body = ioutil.NopCloser(bytes.NewBuffer(reqBody))
-	rsp, err := http.DefaultTransport.RoundTrip(req)
-
-	if err != nil {
-		return rsp, err
-	}
-
-	var rspBody []byte
-
-	if rsp.Body != nil {
-		rspBody, err = ioutil.ReadAll(rsp.Body)
-
-		if err != nil {
-			return rsp, err
-		}
-	}
-
-	rsp.Body = ioutil.NopCloser(bytes.NewBuffer(rspBody))
-
-	zap.L().Info(
-		req.URL.Path,
-		zap.Any("request_headers", req.Header),
-		zap.ByteString("request_body", reqBody),
-		zap.Int("response_status", rsp.StatusCode),
-		zap.Any("response_headers", rsp.Header),
-		zap.ByteString("response_body", rspBody),
-	)
-
-	return rsp, err
 }
