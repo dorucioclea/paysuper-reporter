@@ -2,12 +2,11 @@ package repository
 
 import (
 	"github.com/globalsign/mgo/bson"
-	"github.com/golang/protobuf/ptypes"
 	billingPkg "github.com/paysuper/paysuper-billing-server/pkg"
+	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
 	database "github.com/paysuper/paysuper-database-mongo"
 	"github.com/paysuper/paysuper-reporter/internal/helpers"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
-	"github.com/paysuper/paysuper-reporter/pkg/proto"
 	"go.uber.org/zap"
 )
 
@@ -16,8 +15,8 @@ const (
 )
 
 type VatReportRepositoryInterface interface {
-	GetById(string) (*proto.VatReport, error)
-	GetTransactions(*proto.VatReport) ([]*proto.OrderViewPublic, error)
+	GetById(string) (*billingProto.MgoVatReport, error)
+	GetTransactions(*billingProto.MgoVatReport) ([]*billingProto.MgoOrderViewPublic, error)
 }
 
 func NewVatReportRepository(db *database.Source) VatReportRepositoryInterface {
@@ -25,8 +24,8 @@ func NewVatReportRepository(db *database.Source) VatReportRepositoryInterface {
 	return s
 }
 
-func (h *VatReportRepository) GetById(id string) (*proto.VatReport, error) {
-	var report *proto.VatReport
+func (h *VatReportRepository) GetById(id string) (*billingProto.MgoVatReport, error) {
+	var report *billingProto.MgoVatReport
 
 	query := bson.M{
 		"status": bson.M{
@@ -51,16 +50,13 @@ func (h *VatReportRepository) GetById(id string) (*proto.VatReport, error) {
 	return nil, err
 }
 
-func (h *VatReportRepository) GetTransactions(report *proto.VatReport) ([]*proto.OrderViewPublic, error) {
-	var result []*proto.OrderViewPublic
-
-	from, _ := ptypes.Timestamp(report.DateFrom)
-	to, _ := ptypes.Timestamp(report.DateTo)
+func (h *VatReportRepository) GetTransactions(report *billingProto.MgoVatReport) ([]*billingProto.MgoOrderViewPublic, error) {
+	var result []*billingProto.MgoOrderViewPublic
 
 	match := bson.M{
 		"pm_order_close_date": bson.M{
-			"$gte": helpers.BeginOfDay(from),
-			"$lte": helpers.EndOfDay(to),
+			"$gte": helpers.BeginOfDay(report.DateFrom),
+			"$lte": helpers.EndOfDay(report.DateTo),
 		},
 		"country_code": report.Country,
 	}

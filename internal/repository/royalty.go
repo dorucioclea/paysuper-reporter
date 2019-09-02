@@ -2,11 +2,10 @@ package repository
 
 import (
 	"github.com/globalsign/mgo/bson"
-	"github.com/golang/protobuf/ptypes"
+	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
 	database "github.com/paysuper/paysuper-database-mongo"
 	"github.com/paysuper/paysuper-recurring-repository/pkg/constant"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
-	"github.com/paysuper/paysuper-reporter/pkg/proto"
 	"go.uber.org/zap"
 )
 
@@ -16,8 +15,8 @@ const (
 )
 
 type RoyaltyReportRepositoryInterface interface {
-	GetById(string) (*proto.RoyaltyReport, error)
-	GetTransactions(*proto.RoyaltyReport) ([]*proto.OrderViewPublic, error)
+	GetById(string) (*billingProto.MgoRoyaltyReport, error)
+	GetTransactions(*billingProto.MgoRoyaltyReport) ([]*billingProto.MgoOrderViewPublic, error)
 }
 
 func NewRoyaltyReportRepository(db *database.Source) RoyaltyReportRepositoryInterface {
@@ -25,8 +24,8 @@ func NewRoyaltyReportRepository(db *database.Source) RoyaltyReportRepositoryInte
 	return s
 }
 
-func (h *RoyaltyReportRepository) GetById(id string) (*proto.RoyaltyReport, error) {
-	var report *proto.RoyaltyReport
+func (h *RoyaltyReportRepository) GetById(id string) (*billingProto.MgoRoyaltyReport, error) {
+	var report *billingProto.MgoRoyaltyReport
 	err := h.db.Collection(collectionRoyaltyReport).Find(bson.M{"_id": bson.ObjectIdHex(id)}).One(&report)
 
 	if err != nil {
@@ -41,15 +40,12 @@ func (h *RoyaltyReportRepository) GetById(id string) (*proto.RoyaltyReport, erro
 	return report, err
 }
 
-func (h *RoyaltyReportRepository) GetTransactions(report *proto.RoyaltyReport) ([]*proto.OrderViewPublic, error) {
-	var result []*proto.OrderViewPublic
-
-	from, _ := ptypes.Timestamp(report.PeriodFrom)
-	to, _ := ptypes.Timestamp(report.PeriodTo)
+func (h *RoyaltyReportRepository) GetTransactions(report *billingProto.MgoRoyaltyReport) ([]*billingProto.MgoOrderViewPublic, error) {
+	var result []*billingProto.MgoOrderViewPublic
 
 	match := bson.M{
-		"merchant_id":         bson.ObjectIdHex(report.MerchantId),
-		"pm_order_close_date": bson.M{"$gte": from, "$lte": to},
+		"merchant_id":         report.MerchantId.Hex(),
+		"pm_order_close_date": bson.M{"$gte": report.PeriodFrom, "$lte": report.PeriodTo},
 		"status":              constant.OrderPublicStatusProcessed,
 	}
 	err := h.db.Collection(collectionOrderView).Find(match).Sort("created_at").All(&result)
