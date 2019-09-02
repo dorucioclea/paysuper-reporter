@@ -71,6 +71,10 @@ github.com/ProtocolONE/geoip-service v0.0.0-20190130072841-bf3b3b79a742 h1:CRqv6
 github.com/ProtocolONE/geoip-service v0.0.0-20190130072841-bf3b3b79a742/go.mod h1:HT0K5P2RhETGsI3b9aW1+a0L1PJPMypkDhMecJu2n68=
 github.com/ProtocolONE/go-micro-plugins v0.3.0 h1:LMPWEsMiuJnBa92b+Bsi0CHOGl1LhNR9PwWxCkyvQkM=
 github.com/ProtocolONE/go-micro-plugins v0.3.0/go.mod h1:/gvuHZoDRGfxS+ox0fHXuwwsTEVEHWRWKOhzbnozrZ8=
+github.com/ProtocolONE/nats v0.0.0-20190902054145-bf183d5de147 h1:IK9lBNcJuwAl54yR99511u8pWQUSq3Wn0ROan0O9F+0=
+github.com/ProtocolONE/nats v0.0.0-20190902054145-bf183d5de147/go.mod h1:gLdlQyiQNnKeNy1b/3gcxRQIpoVFee2dJOXOde2EHE0=
+github.com/ProtocolONE/nats v0.0.0-20190902060206-036d846c5b66 h1:0ezjMvnSItby6dUx0aWgGhwU80fQFqwz2ZHxCYXAddw=
+github.com/ProtocolONE/nats v0.0.0-20190902060206-036d846c5b66/go.mod h1:gLdlQyiQNnKeNy1b/3gcxRQIpoVFee2dJOXOde2EHE0=
 github.com/ProtocolONE/rabbitmq v0.0.0-20190129162844-9f24367e139c/go.mod h1:ZnV4uG7YnB4iU8c8co8XU4w7xL0sGaGEw5d9g1THmwk=
 github.com/RoaringBitmap/roaring v0.4.7/go.mod h1:8khRDP4HmeXns4xIj9oGrKSz7XTQiJx2zgh7AcNke4w=
 github.com/RoaringBitmap/roaring v0.4.16/go.mod h1:8khRDP4HmeXns4xIj9oGrKSz7XTQiJx2zgh7AcNke4w=
