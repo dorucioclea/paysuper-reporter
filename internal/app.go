@@ -8,7 +8,6 @@ import (
 	"github.com/InVisionApp/go-health"
 	"github.com/InVisionApp/go-health/handlers"
 	nats "github.com/ProtocolONE/nats/pkg"
-	"github.com/carlescere/goback"
 	"github.com/nats-io/stan.go"
 	"github.com/nats-io/stan.go/pb"
 	awsWrapper "github.com/paysuper/paysuper-aws-manager"
@@ -39,7 +38,6 @@ type Application struct {
 	s3                      awsWrapper.AwsManagerInterface
 	centrifugo              CentrifugoInterface
 	documentGenerator       DocumentGeneratorInterface
-	backOff                 goback.SimpleBackoff
 	router                  *http.ServeMux
 	reportFileRepository    repository.ReportFileRepositoryInterface
 	royaltyReportRepository repository.RoyaltyReportRepositoryInterface
@@ -163,60 +161,19 @@ func (app *Application) initDocumentGenerator() {
 }
 
 func (app *Application) Run() {
-	b := app.backOff
-	cb := &b
-	for {
-		var err error
+	var err error
 
-		ctx := context.TODO()
-		app.messageBroker, err = nats.New()
+	app.messageBroker, err = nats.NewNatsManager()
 
-		if err != nil {
-			zap.L().Error("connect to NATS Streaming server failed", zap.Error(err))
-			// Next attempt
-			d, err := cb.NextAttempt()
-			if err != nil {
-				zap.L().Error("backoff error", zap.Error(err))
-			}
-			if d < 0 {
-				d = 0
-			}
-			time.Sleep(d)
-			continue
-		}
+	if err != nil {
+		app.fatalFn("Unable to connect to the NATS server", zap.Error(err))
+	}
 
-		zap.L().Info("Message broker initialization successfully...")
+	startOpt := stan.StartAt(pb.StartPosition_NewOnly)
+	_, err = app.messageBroker.QueueSubscribe(pkg.SubjectRequestReportFileCreate, "", app.execute, startOpt)
 
-		cb.Reset()
-
-		if err = app.handler(ctx); err != nil {
-			zap.L().Error("handler error: %v", zap.Error(err))
-			goto nextAttempt
-		}
-
-		zap.L().Debug("connected to NATS Streaming server, waiting of signal")
-		// graceful shutdown
-		select {
-		case <-ctx.Done():
-		}
-
-	nextAttempt:
-		if err := app.messageBroker.Close(); err != nil {
-			zap.L().Error("Close connection to NATS Streaming server failed", zap.Error(err))
-		}
-
-		zap.L().Debug("retry to reconnect to NATS Streaming server")
-		d, err := cb.NextAttempt()
-		if err != nil {
-			zap.L().Error("BackOff attempt error", zap.Error(err))
-		}
-		// fix bug with negative time
-		if d < 0 {
-			cb.Reset()
-			d = 0
-		}
-		time.Sleep(d)
-		continue
+	if err != nil {
+		zap.L().Fatal("Unable to subscribe to the broker message", zap.Error(err))
 	}
 }
 
@@ -226,18 +183,6 @@ func (app *Application) Stop() {
 	} else {
 		zap.L().Info("Logger synced")
 	}
-}
-
-func (app *Application) handler(ctx context.Context) error {
-	startOpt := stan.StartAt(pb.StartPosition_NewOnly)
-
-	_, err := app.messageBroker.QueueSubscribe(pkg.SubjectRequestReportFileCreate, "", app.execute, startOpt)
-	if err != nil {
-		app.messageBroker.Close()
-		zap.L().Fatal("Unable to subscribe to the broker message", zap.Error(err))
-	}
-
-	return err
 }
 
 func (app *Application) execute(msg *stan.Msg) {

@@ -75,6 +75,10 @@ github.com/ProtocolONE/nats v0.0.0-20190902054145-bf183d5de147 h1:IK9lBNcJuwAl54
 github.com/ProtocolONE/nats v0.0.0-20190902054145-bf183d5de147/go.mod h1:gLdlQyiQNnKeNy1b/3gcxRQIpoVFee2dJOXOde2EHE0=
 github.com/ProtocolONE/nats v0.0.0-20190902060206-036d846c5b66 h1:0ezjMvnSItby6dUx0aWgGhwU80fQFqwz2ZHxCYXAddw=
 github.com/ProtocolONE/nats v0.0.0-20190902060206-036d846c5b66/go.mod h1:gLdlQyiQNnKeNy1b/3gcxRQIpoVFee2dJOXOde2EHE0=
+github.com/ProtocolONE/nats v0.0.0-20190902111957-3aa86dad6322 h1:xdhxf7CH3QJ+jSxhKBuqtIjP/dwWIlMBtsae7RchJu8=
+github.com/ProtocolONE/nats v0.0.0-20190902111957-3aa86dad6322/go.mod h1:+Zg4dszF05FvoJThh+A2lWHO6gEqA8nbmboV5gBSMRI=
+github.com/ProtocolONE/nats v0.0.0-20190902133219-427509ecd02b h1:9hOFzhK4nWfjQbGLSETgujBfD02gAN3WOaUyu9vXVRE=
+github.com/ProtocolONE/nats v0.0.0-20190902133219-427509ecd02b/go.mod h1:+Zg4dszF05FvoJThh+A2lWHO6gEqA8nbmboV5gBSMRI=
 github.com/ProtocolONE/rabbitmq v0.0.0-20190129162844-9f24367e139c/go.mod h1:ZnV4uG7YnB4iU8c8co8XU4w7xL0sGaGEw5d9g1THmwk=
 github.com/RoaringBitmap/roaring v0.4.7/go.mod h1:8khRDP4HmeXns4xIj9oGrKSz7XTQiJx2zgh7AcNke4w=
 github.com/RoaringBitmap/roaring v0.4.16/go.mod h1:8khRDP4HmeXns4xIj9oGrKSz7XTQiJx2zgh7AcNke4w=

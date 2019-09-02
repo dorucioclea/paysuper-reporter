@@ -22,14 +22,12 @@ type NatsConfig struct {
 	Password   string `envconfig:"NATS_PASSWORD" default:""`
 }
 
-// NatsConfig defines the parameters for connecting to the NATS streaming server.
+// AWS defines the parameters for connecting to the NATS streaming server.
 type S3Config struct {
-	AccessKeyId string `envconfig:"S3_ACCESS_KEY" required:"true"`
-	SecretKey   string `envconfig:"S3_SECRET_KEY" required:"true"`
-	Endpoint    string `envconfig:"S3_ENDPOINT" required:"true"`
-	BucketName  string `envconfig:"S3_BUCKET_NAME" required:"true"`
-	Region      string `envconfig:"S3_REGION" default:"eu-west-1"`
-	Secure      bool   `envconfig:"S3_SECURE" default:"false"`
+	AccessKeyId string `envconfig:"AWS_ACCESS_KEY_ID" required:"true"`
+	SecretKey   string `envconfig:"AWS_SECRET_ACCESS_KEY" required:"true"`
+	Region      string `envconfig:"AWS_REGION" required:"true"`
+	BucketName  string `envconfig:"AWS_BUCKET" required:"true"`
 }
 
 // Centrifugo defines the parameters for connecting to the Centrifugo server.
