@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/InVisionApp/go-health"
 	"github.com/InVisionApp/go-health/handlers"
+	nats "github.com/ProtocolONE/nats/pkg"
 	"github.com/carlescere/goback"
 	"github.com/nats-io/stan.go"
 	"github.com/nats-io/stan.go/pb"
@@ -34,7 +35,7 @@ type Application struct {
 	cfg                     *config.Config
 	log                     *zap.Logger
 	database                *mongodb.Source
-	messageBroker           MessageBrokerInterface
+	messageBroker           nats.NatsManagerInterface
 	s3                      awsWrapper.AwsManagerInterface
 	centrifugo              CentrifugoInterface
 	documentGenerator       DocumentGeneratorInterface
@@ -167,8 +168,8 @@ func (app *Application) Run() {
 	for {
 		var err error
 
-		ctxStan, cancel := context.WithCancel(context.Background())
-		app.messageBroker, err = newMessageBroker(&app.cfg.Nats, cancel)
+		ctx := context.TODO()
+		app.messageBroker, err = nats.New()
 
 		if err != nil {
 			zap.L().Error("connect to NATS Streaming server failed", zap.Error(err))
@@ -188,7 +189,7 @@ func (app *Application) Run() {
 
 		cb.Reset()
 
-		if err = app.handler(ctxStan); err != nil {
+		if err = app.handler(ctx); err != nil {
 			zap.L().Error("handler error: %v", zap.Error(err))
 			goto nextAttempt
 		}
@@ -196,7 +197,7 @@ func (app *Application) Run() {
 		zap.L().Debug("connected to NATS Streaming server, waiting of signal")
 		// graceful shutdown
 		select {
-		case <-ctxStan.Done():
+		case <-ctx.Done():
 		}
 
 	nextAttempt:
@@ -230,7 +231,7 @@ func (app *Application) Stop() {
 func (app *Application) handler(ctx context.Context) error {
 	startOpt := stan.StartAt(pb.StartPosition_NewOnly)
 
-	_, err := app.messageBroker.QueueSubscribe(pkg.SubjectRequestReportFileCreate, app.execute, startOpt)
+	_, err := app.messageBroker.QueueSubscribe(pkg.SubjectRequestReportFileCreate, "", app.execute, startOpt)
 	if err != nil {
 		app.messageBroker.Close()
 		zap.L().Fatal("Unable to subscribe to the broker message", zap.Error(err))
