@@ -53,6 +53,7 @@ type Config struct {
 
 	MetricsPort           string `envconfig:"METRICS_PORT" required:"false" default:"8086"`
 	MicroRegistry         string `envconfig:"MICRO_REGISTRY" required:"false"`
+	MicroSelector         string `envconfig:"MICRO_SELECTOR" required:"false" default:"static"`
 	DocumentRetentionTime string `envconfig:"DOCUMENT_RETENTION_TIME" default:"604800"`
 }
 

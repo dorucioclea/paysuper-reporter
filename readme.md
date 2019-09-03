@@ -13,6 +13,7 @@ Consumer NAT Streaming server to generate reporting documents (royalties, taxes,
 | Name                            | Required | Default                                        | Description                                                                                                                             |
 |:--------------------------------|:--------:|:-----------------------------------------------|:------------------------------------------------------------------------|
 | METRICS_PORT                    | -        | 8086                                           | Http server port for health and metrics request                         |
+| MICRO_SELECTOR                  | -        | static                                         | Type of selector for Micro service                                      |
 | MONGO_DSN                       | true     | -                                              | MongoBD DSN connection string                                           |
 | MONGO_DIAL_TIMEOUT              | -        | 10                                             | MongoBD dial timeout in seconds                                         |
 | MONGO_MODE                      | -        | 4                                              | Consistency mode for the MongoDB session                                |

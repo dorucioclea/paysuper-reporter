@@ -8,6 +8,9 @@ import (
 	"github.com/InVisionApp/go-health"
 	"github.com/InVisionApp/go-health/handlers"
 	nats "github.com/ProtocolONE/nats/pkg"
+	"github.com/micro/go-micro"
+	"github.com/micro/go-plugins/client/selector/static"
+	"github.com/micro/go-plugins/wrapper/monitoring/prometheus"
 	"github.com/nats-io/stan.go"
 	"github.com/nats-io/stan.go/pb"
 	awsWrapper "github.com/paysuper/paysuper-aws-manager"
@@ -65,6 +68,27 @@ func NewApplication() *Application {
 
 	app.router = http.NewServeMux()
 	app.initHealth()
+
+	var service micro.Service
+	options := []micro.Option{
+		micro.Name(pkg.ServiceName),
+		micro.Version(pkg.ServiceVersion),
+		micro.WrapHandler(prometheus.NewHandlerWrapper()),
+	}
+
+	if app.cfg.MicroSelector == "static" {
+		zap.L().Info(`Use micro selector "static"`)
+		options = append(options, micro.Selector(static.NewSelector()))
+	}
+
+	service = micro.NewService(options...)
+	service.Init()
+
+	err := proto.RegisterReporterServiceHandler(service.Server(), app)
+
+	if err != nil {
+		app.fatalFn("Can`t register service in micro", zap.Error(err))
+	}
 
 	return app
 }
