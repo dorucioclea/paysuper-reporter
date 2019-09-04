@@ -28,6 +28,7 @@ type Handler struct {
 	reportFileRepository    repository.ReportFileRepositoryInterface
 	royaltyReportRepository repository.RoyaltyRepositoryInterface
 	vatReportRepository     repository.VatRepositoryInterface
+	transactionsRepository  repository.TransactionsRepositoryInterface
 }
 
 type DefaultHandler struct {
@@ -39,12 +40,14 @@ func NewBuilder(
 	reportFileRepository repository.ReportFileRepositoryInterface,
 	royaltyReportRepository repository.RoyaltyRepositoryInterface,
 	vatReportRepository repository.VatRepositoryInterface,
+	transactionsRepository repository.TransactionsRepositoryInterface,
 ) *Handler {
 	return &Handler{
 		report:                  report,
 		reportFileRepository:    reportFileRepository,
 		royaltyReportRepository: royaltyReportRepository,
 		vatReportRepository:     vatReportRepository,
+		transactionsRepository:  transactionsRepository,
 	}
 }
 

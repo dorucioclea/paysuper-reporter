@@ -27,7 +27,7 @@ func (h *VatTransactions) Build() (interface{}, error) {
 		return nil, err
 	}
 
-	orders, err := h.vatReportRepository.GetTransactions(vat)
+	orders, err := h.transactionsRepository.GetByVat(vat)
 
 	if err != nil {
 		return nil, err

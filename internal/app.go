@@ -224,6 +224,7 @@ func (app *Application) execute(msg *stan.Msg) {
 		app.reportFileRepository,
 		app.royaltyRepository,
 		app.vatRepository,
+		app.transactionsRepository,
 	)
 	bldr, err := h.GetBuilder()
 

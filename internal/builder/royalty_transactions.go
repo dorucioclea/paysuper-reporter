@@ -27,7 +27,7 @@ func (h *RoyaltyTransactions) Build() (interface{}, error) {
 		return nil, err
 	}
 
-	orders, err := h.royaltyReportRepository.GetTransactions(royalty)
+	orders, err := h.transactionsRepository.GetByRoyalty(royalty)
 
 	if err != nil {
 		return nil, err
