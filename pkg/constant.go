@@ -18,12 +18,16 @@ const (
 	ResponseStatusNotFound    = int32(404)
 	ResponseStatusSystemError = int32(500)
 
-	ReportTypeTransactions         = "transactions"
-	ReportTypeTransactionsTemplate = "transactions_report"
-	ReportTypeVat                  = "vat"
-	ReportTypeVatTemplate          = "vat_report"
-	ReportTypeRoyalty              = "royalty"
-	ReportTypeRoyaltyTemplate      = "royalty_report"
+	ReportTypeTransactions                = "transactions"
+	ReportTypeTransactionsTemplate        = "transactions_report"
+	ReportTypeVat                         = "vat"
+	ReportTypeVatTemplate                 = "vat_report"
+	ReportTypeVatTransactions             = "vat_transactions"
+	ReportTypeVatTransactionsTemplate     = "vat_transactions_report"
+	ReportTypeRoyalty                     = "royalty"
+	ReportTypeRoyaltyTemplate             = "royalty_report"
+	ReportTypeRoyaltyTransactions         = "royalty_transactions"
+	ReportTypeRoyaltyTransactionsTemplate = "royalty_transactions_report"
 
 	OutputXlsxExtension = "xlsx"
 	OutputCsvExtension  = "csv"

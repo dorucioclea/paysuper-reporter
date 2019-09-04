@@ -10,9 +10,11 @@ import (
 
 var (
 	builders = map[string]func(*Handler) BuildInterface{
-		pkg.ReportTypeTransactions: newTransactionsHandler,
-		pkg.ReportTypeVat:          newVatHandler,
-		pkg.ReportTypeRoyalty:      newRoyaltyHandler,
+		pkg.ReportTypeVat:                 newVatHandler,
+		pkg.ReportTypeVatTransactions:     newVatTransactionsHandler,
+		pkg.ReportTypeRoyalty:             newRoyaltyHandler,
+		pkg.ReportTypeRoyaltyTransactions: newRoyaltyTransactionsHandler,
+		pkg.ReportTypeTransactions:        newTransactionsHandler,
 	}
 )
 
@@ -24,8 +26,8 @@ type BuildInterface interface {
 type Handler struct {
 	report                  *proto.MgoReportFile
 	reportFileRepository    repository.ReportFileRepositoryInterface
-	royaltyReportRepository repository.RoyaltyReportRepositoryInterface
-	vatReportRepository     repository.VatReportRepositoryInterface
+	royaltyReportRepository repository.RoyaltyRepositoryInterface
+	vatReportRepository     repository.VatRepositoryInterface
 }
 
 type DefaultHandler struct {
@@ -35,8 +37,8 @@ type DefaultHandler struct {
 func NewBuilder(
 	report *proto.MgoReportFile,
 	reportFileRepository repository.ReportFileRepositoryInterface,
-	royaltyReportRepository repository.RoyaltyReportRepositoryInterface,
-	vatReportRepository repository.VatReportRepositoryInterface,
+	royaltyReportRepository repository.RoyaltyRepositoryInterface,
+	vatReportRepository repository.VatRepositoryInterface,
 ) *Handler {
 	return &Handler{
 		report:                  report,

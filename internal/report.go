@@ -18,11 +18,17 @@ var (
 		pkg.ReportTypeVat: {
 			TemplateId: pkg.ReportTypeVatTemplate,
 		},
-		pkg.ReportTypeTransactions: {
-			TemplateId: pkg.ReportTypeTransactionsTemplate,
+		pkg.ReportTypeVatTransactions: {
+			TemplateId: pkg.ReportTypeVatTransactionsTemplate,
 		},
 		pkg.ReportTypeRoyalty: {
 			TemplateId: pkg.ReportTypeRoyaltyTemplate,
+		},
+		pkg.ReportTypeRoyaltyTransactions: {
+			TemplateId: pkg.ReportTypeRoyaltyTransactionsTemplate,
+		},
+		pkg.ReportTypeTransactions: {
+			TemplateId: pkg.ReportTypeTransactionsTemplate,
 		},
 	}
 
@@ -79,8 +85,8 @@ func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, 
 	h := builder.NewBuilder(
 		mgoReport.(*proto.MgoReportFile),
 		app.reportFileRepository,
-		app.royaltyReportRepository,
-		app.vatReportRepository,
+		app.royaltyRepository,
+		app.vatRepository,
 	)
 	bldr, err := h.GetBuilder()
 

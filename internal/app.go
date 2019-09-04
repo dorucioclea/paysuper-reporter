@@ -34,17 +34,18 @@ const (
 )
 
 type Application struct {
-	cfg                     *config.Config
-	log                     *zap.Logger
-	database                *mongodb.Source
-	messageBroker           nats.NatsManagerInterface
-	s3                      awsWrapper.AwsManagerInterface
-	centrifugo              CentrifugoInterface
-	documentGenerator       DocumentGeneratorInterface
-	router                  *http.ServeMux
-	reportFileRepository    repository.ReportFileRepositoryInterface
-	royaltyReportRepository repository.RoyaltyReportRepositoryInterface
-	vatReportRepository     repository.VatReportRepositoryInterface
+	cfg                    *config.Config
+	log                    *zap.Logger
+	database               *mongodb.Source
+	messageBroker          nats.NatsManagerInterface
+	s3                     awsWrapper.AwsManagerInterface
+	centrifugo             CentrifugoInterface
+	documentGenerator      DocumentGeneratorInterface
+	router                 *http.ServeMux
+	reportFileRepository   repository.ReportFileRepositoryInterface
+	royaltyRepository      repository.RoyaltyRepositoryInterface
+	vatRepository          repository.VatRepositoryInterface
+	transactionsRepository repository.TransactionsRepositoryInterface
 
 	fatalFn func(msg string, fields ...zap.Field)
 }
@@ -63,8 +64,9 @@ func NewApplication() *Application {
 	app.initDocumentGenerator()
 
 	app.reportFileRepository = repository.NewReportFileRepository(app.database)
-	app.royaltyReportRepository = repository.NewRoyaltyReportRepository(app.database)
-	app.vatReportRepository = repository.NewVatReportRepository(app.database)
+	app.royaltyRepository = repository.NewRoyaltyReportRepository(app.database)
+	app.vatRepository = repository.NewVatRepository(app.database)
+	app.transactionsRepository = repository.NewTransactionsRepository(app.database)
 
 	app.router = http.NewServeMux()
 	app.initHealth()
@@ -220,8 +222,8 @@ func (app *Application) execute(msg *stan.Msg) {
 	h := builder.NewBuilder(
 		reportFile,
 		app.reportFileRepository,
-		app.royaltyReportRepository,
-		app.vatReportRepository,
+		app.royaltyRepository,
+		app.vatRepository,
 	)
 	bldr, err := h.GetBuilder()
 
