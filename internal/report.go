@@ -18,8 +18,8 @@ var (
 		pkg.ReportTypeVat: {
 			TemplateId: pkg.ReportTypeVatTemplate,
 		},
-		pkg.ReportTypeTax: {
-			TemplateId: pkg.ReportTypeTaxTemplate,
+		pkg.ReportTypeTransactions: {
+			TemplateId: pkg.ReportTypeTransactionsTemplate,
 		},
 		pkg.ReportTypeRoyalty: {
 			TemplateId: pkg.ReportTypeRoyaltyTemplate,

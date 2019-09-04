@@ -10,9 +10,9 @@ import (
 
 var (
 	builders = map[string]func(*Handler) BuildInterface{
-		pkg.ReportTypeTax:     newTaxHandler,
-		pkg.ReportTypeVat:     newVatHandler,
-		pkg.ReportTypeRoyalty: newRoyaltyHandler,
+		pkg.ReportTypeTransactions: newTransactionsHandler,
+		pkg.ReportTypeVat:          newVatHandler,
+		pkg.ReportTypeRoyalty:      newRoyaltyHandler,
 	}
 )
 

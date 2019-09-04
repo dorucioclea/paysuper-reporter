@@ -18,12 +18,12 @@ const (
 	ResponseStatusNotFound    = int32(404)
 	ResponseStatusSystemError = int32(500)
 
-	ReportTypeTax             = "tax"
-	ReportTypeTaxTemplate     = "tax_report"
-	ReportTypeVat             = "vat"
-	ReportTypeVatTemplate     = "vat_report"
-	ReportTypeRoyalty         = "royalty"
-	ReportTypeRoyaltyTemplate = "royalty_report"
+	ReportTypeTransactions         = "transactions"
+	ReportTypeTransactionsTemplate = "transactions_report"
+	ReportTypeVat                  = "vat"
+	ReportTypeVatTemplate          = "vat_report"
+	ReportTypeRoyalty              = "royalty"
+	ReportTypeRoyaltyTemplate      = "royalty_report"
 
 	OutputXlsxExtension = "xlsx"
 	OutputCsvExtension  = "csv"

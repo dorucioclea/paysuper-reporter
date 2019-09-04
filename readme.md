@@ -6,7 +6,7 @@ Document reporter
 [![codecov](https://codecov.io/gh/paysuper/paysuper-reporter/branch/master/graph/badge.svg)](https://codecov.io/gh/paysuper/paysuper-reporter)
 [![Go Report Card](https://goreportcard.com/badge/github.com/paysuper/paysuper-reporter)](https://goreportcard.com/report/github.com/paysuper/paysuper-reporter)
 
-Consumer NAT Streaming server to generate reporting documents (royalties, taxes, payments and others).
+Consumer NAT Streaming server to generate reporting documents (royalties, vats, transactions and others).
 
 ## Environment variables:
 
