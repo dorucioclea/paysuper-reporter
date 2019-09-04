@@ -5,7 +5,7 @@ go 1.12
 require (
 	github.com/InVisionApp/go-health v2.1.0+incompatible
 	github.com/Jeffail/gabs v1.1.1 // indirect
-	github.com/ProtocolONE/nats v0.0.0-20190902133219-427509ecd02b
+	github.com/ProtocolONE/nats v0.0.0-20190904164325-63182375cfb8
 	github.com/SAP/go-hdb v0.13.2 // indirect
 	github.com/SermoDigital/jose v0.9.2-0.20161205224733-f6df55f235c2 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20180720115003-f9ffefc3facf // indirect

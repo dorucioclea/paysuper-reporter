@@ -29,10 +29,6 @@ import (
 	"time"
 )
 
-const (
-	fileMask = "report_%s.%s"
-)
-
 type Application struct {
 	cfg                    *config.Config
 	log                    *zap.Logger
@@ -41,7 +37,6 @@ type Application struct {
 	s3                     awsWrapper.AwsManagerInterface
 	centrifugo             CentrifugoInterface
 	documentGenerator      DocumentGeneratorInterface
-	router                 *http.ServeMux
 	reportFileRepository   repository.ReportFileRepositoryInterface
 	royaltyRepository      repository.RoyaltyRepositoryInterface
 	vatRepository          repository.VatRepositoryInterface
@@ -62,35 +57,13 @@ func NewApplication() *Application {
 	app.initS3()
 	app.initCentrifugo()
 	app.initDocumentGenerator()
+	app.initMessageBroker()
+	app.initHealth()
 
 	app.reportFileRepository = repository.NewReportFileRepository(app.database)
 	app.royaltyRepository = repository.NewRoyaltyReportRepository(app.database)
 	app.vatRepository = repository.NewVatRepository(app.database)
 	app.transactionsRepository = repository.NewTransactionsRepository(app.database)
-
-	app.router = http.NewServeMux()
-	app.initHealth()
-
-	var service micro.Service
-	options := []micro.Option{
-		micro.Name(pkg.ServiceName),
-		micro.Version(pkg.ServiceVersion),
-		micro.WrapHandler(prometheus.NewHandlerWrapper()),
-	}
-
-	if app.cfg.MicroSelector == "static" {
-		zap.L().Info(`Use micro selector "static"`)
-		options = append(options, micro.Selector(static.NewSelector()))
-	}
-
-	service = micro.NewService(options...)
-	service.Init()
-
-	err := proto.RegisterReporterServiceHandler(service.Server(), app)
-
-	if err != nil {
-		app.fatalFn("Can`t register service in micro", zap.Error(err))
-	}
 
 	return app
 }
@@ -118,7 +91,7 @@ func (app *Application) initHealth() {
 
 	app.log.Info("Health check listener started", zap.String("port", app.cfg.MetricsPort))
 
-	app.router.HandleFunc("/health", handlers.NewJSONHandlerFunc(h, nil))
+	http.HandleFunc("/health", handlers.NewJSONHandlerFunc(h, nil))
 }
 
 func (app *Application) initLogger() {
@@ -173,6 +146,8 @@ func (app *Application) initS3() {
 
 func (app *Application) initCentrifugo() {
 	app.centrifugo = newCentrifugoClient(&app.cfg.CentrifugoConfig)
+
+	zap.L().Info("Centrifugo initialization successfully...")
 }
 
 func (app *Application) initDocumentGenerator() {
@@ -186,17 +161,44 @@ func (app *Application) initDocumentGenerator() {
 	zap.L().Info("Document generator initialization successfully...")
 }
 
-func (app *Application) Run() {
+func (app *Application) initMessageBroker() {
 	var err error
 
 	app.messageBroker, err = nats.NewNatsManager()
 
 	if err != nil {
-		app.fatalFn("Unable to connect to the NATS server", zap.Error(err))
+		app.fatalFn("Message broker initialization failed", zap.Error(err))
+	}
+
+	zap.L().Info("Message broker initialization successfully...")
+}
+
+func (app *Application) Run() {
+	var service micro.Service
+	options := []micro.Option{
+		micro.Name(pkg.ServiceName),
+		micro.Version(pkg.ServiceVersion),
+		micro.WrapHandler(prometheus.NewHandlerWrapper()),
+	}
+
+	if app.cfg.MicroSelector == "static" {
+		zap.L().Info(`Use micro selector "static"`)
+		options = append(options, micro.Selector(static.NewSelector()))
+	}
+
+	service = micro.NewService(options...)
+	service.Init()
+
+	if err := proto.RegisterReporterServiceHandler(service.Server(), app); err != nil {
+		app.fatalFn("Can`t register service in micro", zap.Error(err))
+	}
+
+	if err := service.Run(); err != nil {
+		app.fatalFn("Can`t run service", zap.Error(err))
 	}
 
 	startOpt := stan.StartAt(pb.StartPosition_NewOnly)
-	_, err = app.messageBroker.QueueSubscribe(pkg.SubjectRequestReportFileCreate, "", app.execute, startOpt)
+	_, err := app.messageBroker.QueueSubscribe(pkg.SubjectRequestReportFileCreate, "", app.execute, startOpt)
 
 	if err != nil {
 		zap.L().Fatal("Unable to subscribe to the broker message", zap.Error(err))
@@ -260,7 +262,7 @@ func (app *Application) execute(msg *stan.Msg) {
 		return
 	}
 
-	fileName := fmt.Sprintf(fileMask, reportFile.Id, reportFile.FileType)
+	fileName := fmt.Sprintf(pkg.FileMask, reportFile.Id, reportFile.FileType)
 	filePath := os.TempDir() + string(os.PathSeparator) + fileName
 
 	if err = ioutil.WriteFile(filePath, file.File, 0644); err != nil {
@@ -290,8 +292,10 @@ func (app *Application) execute(msg *stan.Msg) {
 }
 
 func (c *appHealthCheck) Status() (interface{}, error) {
+	// INFO: Always is fail on locally if your DB don't have secondary members of the replica set
 	if err := c.db.Ping(); err != nil {
 		return "fail", err
 	}
+
 	return "ok", nil
 }
