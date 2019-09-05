@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/paysuper/paysuper-recurring-repository/tools"
 	"github.com/paysuper/paysuper-reporter/internal/config"
 	"github.com/paysuper/paysuper-reporter/pkg"
@@ -12,10 +13,6 @@ import (
 	"go.uber.org/zap"
 	"io/ioutil"
 	"net/http"
-)
-
-const (
-	documentGeneratorContextKey = "DocumentGeneratorConfig"
 )
 
 type DocumentGeneratorInterface interface {
@@ -51,7 +48,7 @@ func (dg DocumentGenerator) Render(payload *proto.GeneratorPayload) (*proto.File
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, dg.apiUrl, bytes.NewBuffer(b))
+	req, err := http.NewRequest(http.MethodPost, dg.apiUrl+"/api/report", bytes.NewBuffer(b))
 
 	if err != nil {
 		return nil, err
@@ -66,22 +63,31 @@ func (dg DocumentGenerator) Render(payload *proto.GeneratorPayload) (*proto.File
 		return nil, err
 	}
 
+	defer rsp.Body.Close()
+
 	b, err = ioutil.ReadAll(rsp.Body)
-	_ = rsp.Body.Close()
 
 	if err != nil {
 		return nil, err
+	}
+
+	fmt.Println("response Body:", string(b))
+
+	if rsp.StatusCode != 200 {
+		var rspErr map[string]interface{}
+
+		if err = json.Unmarshal(b, &rspErr); err != nil {
+			return nil, errors.New(errs.ErrorDocumentGeneratorRender.Message)
+		}
+
+		return nil, errors.New(fmt.Sprintf("%s", rspErr["message"]))
 	}
 
 	msg := &proto.File{}
-	err = json.Unmarshal(b, msg)
+	err = json.Unmarshal(b, msg.File)
 
 	if err != nil {
 		return nil, err
-	}
-
-	if rsp.StatusCode != http.StatusOK {
-		return nil, errors.New(errs.ErrorDocumentGeneratorRender.Message)
 	}
 
 	return msg, nil

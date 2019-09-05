@@ -40,8 +40,13 @@ type CentrifugoConfig struct {
 
 // DocumentGeneratorConfig defines the parameters for connecting to the document generator service.
 type DocumentGeneratorConfig struct {
-	ApiUrl  string `envconfig:"DOCGEN_API_URL" default:"http://127.0.0.1:5488"`
-	Timeout int    `envconfig:"DOCGEN_API_TIMEOUT" default:"60000"`
+	ApiUrl                      string `envconfig:"DOCGEN_API_URL" default:"http://127.0.0.1:5488"`
+	Timeout                     int    `envconfig:"DOCGEN_API_TIMEOUT" default:"60000"`
+	RoyaltyTemplate             string `envconfig:"DOCGEN_ROYALTY_TEMPLATE" required:"true"`
+	RoyaltyTransactionsTemplate string `envconfig:"DOCGEN_ROYALTY_TRANSACTIONS_TEMPLATE" required:"true"`
+	VatTemplate                 string `envconfig:"DOCGEN_VAT_TEMPLATE" required:"true"`
+	VatTransactionsTemplate     string `envconfig:"DOCGEN_VAT_TRANSACTIONS_TEMPLATE" required:"true"`
+	TransactionsTemplate        string `envconfig:"DOCGEN_TRANSACTIONS_TEMPLATE" required:"true"`
 }
 
 type Config struct {

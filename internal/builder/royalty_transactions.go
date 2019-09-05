@@ -2,6 +2,7 @@ package builder
 
 import (
 	"errors"
+	"fmt"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
 )
@@ -21,7 +22,7 @@ func (h *RoyaltyTransactions) Validate() error {
 }
 
 func (h *RoyaltyTransactions) Build() (interface{}, error) {
-	royalty, err := h.royaltyReportRepository.GetById(h.report.Params[pkg.ParamsFieldId].(string))
+	royalty, err := h.royaltyReportRepository.GetById(fmt.Sprintf("%s", h.report.Params[pkg.ParamsFieldId]))
 
 	if err != nil {
 		return nil, err

@@ -16,8 +16,8 @@ message CreateFileResponse {
     int32 status = 1;
     // @inject_tag: json:"message,omitempty"
     ResponseErrorMessage message = 2;
-    // @inject_tag: json:"file"
-    ReportFile file = 3;
+    // @inject_tag: json:"file_id"
+    string file_id = 3;
 }
 
 message LoadFileRequest {
@@ -91,29 +91,4 @@ message ReportRequest {
     bytes match = 6;
     //@inject_tag: json:"group"
     bytes group = 7;
-}
-
-message GeneratorPayload {
-    //@inject_tag: json:"template"
-    GeneratorTemplate template = 1;
-    //@inject_tag: json:"options"
-    GeneratorOptions options = 2;
-    //@inject_tag: json:"data"
-    bytes data = 3;
-}
-
-message GeneratorTemplate {
-    //@inject_tag: json:"shortid,omitempty"
-    string short_id = 1;
-    //@inject_tag: json:"name,omitempty"
-    string name = 2;
-    //@inject_tag: json:"recipe,omitempty"
-    string recipe = 3;
-    //@inject_tag: json:"content,omitempty"
-    string content = 4;
-}
-
-message GeneratorOptions {
-    //@inject_tag: json:"timeout,omitempty"
-    string timeout = 1;
 }

@@ -10,31 +10,36 @@ Consumer NAT Streaming server to generate reporting documents (royalties, vats, 
 
 ## Environment variables:
 
-| Name                            | Required | Default                                        | Description                                                                                                                             |
-|:--------------------------------|:--------:|:-----------------------------------------------|:------------------------------------------------------------------------|
-| METRICS_PORT                    | -        | 8086                                           | Http server port for health and metrics request                         |
-| MICRO_SELECTOR                  | -        | static                                         | Type of selector for Micro service                                      |
-| MONGO_DSN                       | true     | -                                              | MongoBD DSN connection string                                           |
-| MONGO_DIAL_TIMEOUT              | -        | 10                                             | MongoBD dial timeout in seconds                                         |
-| MONGO_MODE                      | -        | 4                                              | Consistency mode for the MongoDB session                                |
-| NATS_SERVER_URLS                | -        | 127.0.0.1:4222                                 | The nats server URLs (separated by comma)                               |
-| NATS_ASYNC                      | -        | false                                          | Publish asynchronously                                                  |
-| NATS_USER                       | -        |                                                | User sets the username to be used when connecting to the server         |
-| NATS_PASSWORD                   | -        |                                                | Password sets the password to be used when connecting to a server       |
-| NATS_CLUSTER_ID                 | -        | test-cluster                                   | The NATS Streaming cluster ID                                           |
-| NATS_CLIENT_ID                  | -        | billing-server-publisher                       | The NATS Streaming client ID to connect with                            |
-| AWS_ACCESS_KEY_ID               | true     |                                                |                                                                         |
-| AWS_SECRET_ACCESS_KEY           | true     |                                                |                                                                         |
-| AWS_TOKEN                       | true     |                                                |                                                                         |
-| AWS_BUCKET                      | true     |                                                |                                                                         |
-| AWS_REGION                      | true     |                                                |                                                                         |
-| CENTRIFUGO_SECRET               | true     | -                                              | Centrifugo secret key                                                   |
-| CENTRIFUGO_API_SECRET           | true     | -                                              | Centrifugo API secret key                                               |
-| CENTRIFUGO_URL                  | -        | http://127.0.0.1:8000                          | Centrifugo API gateway                                                  |
-| CENTRIFUGO_MERCHANT_CHANNEL     | -        | paysuper:merchant#%s                           | Centrifugo channel name to send notifications to merchant               |
-| DOCGEN_API_URL                  | -        | http://127.0.0.1:5488                          | URL of document generation service                                      |
-| DOCGEN_API_TIMEOUT              | -        | 60000                                          | Timeout for waiting for a response from the document generation service |
-| DOCUMENT_RETENTION_TIME         | -        | 604800                                         | Time to live the document in the S3 and DB storage                      |
+| Name                                 | Required | Default                                        | Description                                                                                                                             |
+|:-------------------------------------|:--------:|:-----------------------------------------------|:------------------------------------------------------------------------|
+| METRICS_PORT                         | -        | 8086                                           | Http server port for health and metrics request                         |
+| MICRO_SELECTOR                       | -        | static                                         | Type of selector for Micro service                                      |
+| MONGO_DSN                            | true     | -                                              | MongoBD DSN connection string                                           |
+| MONGO_DIAL_TIMEOUT                   | -        | 10                                             | MongoBD dial timeout in seconds                                         |
+| MONGO_MODE                           | -        | 4                                              | Consistency mode for the MongoDB session                                |
+| NATS_SERVER_URLS                     | -        | 127.0.0.1:4222                                 | The nats server URLs (separated by comma)                               |
+| NATS_ASYNC                           | -        | false                                          | Publish asynchronously                                                  |
+| NATS_USER                            | -        |                                                | User sets the username to be used when connecting to the server         |
+| NATS_PASSWORD                        | -        |                                                | Password sets the password to be used when connecting to a server       |
+| NATS_CLUSTER_ID                      | -        | test-cluster                                   | The NATS Streaming cluster ID                                           |
+| NATS_CLIENT_ID                       | -        | billing-server-publisher                       | The NATS Streaming client ID to connect with                            |
+| AWS_ACCESS_KEY_ID                    | true     |                                                |                                                                         |
+| AWS_SECRET_ACCESS_KEY                | true     |                                                |                                                                         |
+| AWS_TOKEN                            | true     |                                                |                                                                         |
+| AWS_BUCKET                           | true     |                                                |                                                                         |
+| AWS_REGION                           | true     |                                                |                                                                         |
+| CENTRIFUGO_SECRET                    | true     | -                                              | Centrifugo secret key                                                   |
+| CENTRIFUGO_API_SECRET                | true     | -                                              | Centrifugo API secret key                                               |
+| CENTRIFUGO_URL                       | -        | http://127.0.0.1:8000                          | Centrifugo API gateway                                                  |
+| CENTRIFUGO_MERCHANT_CHANNEL          | -        | paysuper:merchant#%s                           | Centrifugo channel name to send notifications to merchant               |
+| DOCGEN_API_URL                       | -        | http://127.0.0.1:5488                          | URL of document generation service                                      |
+| DOCGEN_API_TIMEOUT                   | -        | 60000                                          | Timeout for waiting for a response from the document generation service |
+| DOCGEN_ROYALTY_TEMPLATE              | true     |                                                | ID of template in the JSReport for royalty report                       |
+| DOCGEN_ROYALTY_TRANSACTIONS_TEMPLATE | true     |                                                | ID of template in the JSReport for royalty transactions report          |
+| DOCGEN_VAT_TEMPLATE                  | true     |                                                | ID of template in the JSReport for vat report                           |
+| DOCGEN_VAT_TRANSACTIONS_TEMPLATE     | true     |                                                | ID of template in the JSReport for vat transactions report              |
+| DOCGEN_TRANSACTIONS_TEMPLATE         | true     |                                                | ID of template in the JSReport for find transactions report             |
+| DOCUMENT_RETENTION_TIME              | -        | 604800                                         | Time to live the document in the S3 and DB storage                      |
 
 ## Usage Example:
 

@@ -40,7 +40,7 @@ func (h *VatRepository) GetById(id string) (*billingProto.MgoVatReport, error) {
 		zap.L().Error(
 			errors.ErrorDatabaseQueryFailed.Message,
 			zap.Error(err),
-			zap.String("collection", collectionRoyalty),
+			zap.String("collection", collectionVat),
 			zap.String("id", id),
 		)
 	}

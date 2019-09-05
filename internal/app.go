@@ -179,6 +179,25 @@ func (app *Application) Run() {
 		micro.Name(pkg.ServiceName),
 		micro.Version(pkg.ServiceVersion),
 		micro.WrapHandler(prometheus.NewHandlerWrapper()),
+		micro.BeforeStart(func() error {
+			go func() {
+				startOpt := stan.StartAt(pb.StartPosition_NewOnly)
+				_, err := app.messageBroker.QueueSubscribe(pkg.SubjectRequestReportFileCreate, "", app.execute, startOpt)
+
+				if err != nil {
+					zap.L().Fatal("Unable to subscribe to the broker message", zap.Error(err))
+				}
+			}()
+
+			return nil
+		}),
+		micro.AfterStop(func() error {
+			if err := app.messageBroker.Close(); err != nil {
+				zap.L().Fatal("Unable to close the broker message", zap.Error(err))
+			}
+
+			return nil
+		}),
 	}
 
 	if app.cfg.MicroSelector == "static" {
@@ -195,13 +214,6 @@ func (app *Application) Run() {
 
 	if err := service.Run(); err != nil {
 		app.fatalFn("Can`t run service", zap.Error(err))
-	}
-
-	startOpt := stan.StartAt(pb.StartPosition_NewOnly)
-	_, err := app.messageBroker.QueueSubscribe(pkg.SubjectRequestReportFileCreate, "", app.execute, startOpt)
-
-	if err != nil {
-		zap.L().Fatal("Unable to subscribe to the broker message", zap.Error(err))
 	}
 }
 
@@ -242,18 +254,11 @@ func (app *Application) execute(msg *stan.Msg) {
 		return
 	}
 
-	data, err := json.Marshal(rawData)
-
-	if err != nil {
-		zap.L().Error("Unable to marshal report", zap.Error(err))
-		return
-	}
-
 	payload := &proto.GeneratorPayload{
 		Template: &proto.GeneratorTemplate{
-			ShortId: reportFile.Template,
+			ShortId: reportFile.TemplateId,
 		},
-		Data: data,
+		Data: rawData,
 	}
 
 	file, err := app.documentGenerator.Render(payload)
@@ -293,6 +298,7 @@ func (app *Application) execute(msg *stan.Msg) {
 
 func (c *appHealthCheck) Status() (interface{}, error) {
 	// INFO: Always is fail on locally if your DB don't have secondary members of the replica set
+	// and use secondary mode of database connection
 	if err := c.db.Ping(); err != nil {
 		return "fail", err
 	}

@@ -2,6 +2,7 @@ package builder
 
 import (
 	"errors"
+	"fmt"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
 )
@@ -21,7 +22,7 @@ func (h *VatTransactions) Validate() error {
 }
 
 func (h *VatTransactions) Build() (interface{}, error) {
-	vat, err := h.vatReportRepository.GetById(h.report.Params[pkg.ParamsFieldId].(string))
+	vat, err := h.vatReportRepository.GetById(fmt.Sprintf("%s", h.report.Params[pkg.ParamsFieldId]))
 
 	if err != nil {
 		return nil, err
