@@ -65,7 +65,8 @@ func (dg DocumentGenerator) Render(payload *proto.GeneratorPayload) (*proto.File
 
 	defer rsp.Body.Close()
 
-	b, err = ioutil.ReadAll(rsp.Body)
+	msg := &proto.File{}
+	msg.File, err = ioutil.ReadAll(rsp.Body)
 
 	if err != nil {
 		return nil, err
@@ -81,13 +82,6 @@ func (dg DocumentGenerator) Render(payload *proto.GeneratorPayload) (*proto.File
 		}
 
 		return nil, errors.New(fmt.Sprintf("%s", rspErr["message"]))
-	}
-
-	msg := &proto.File{}
-	err = json.Unmarshal(b, msg.File)
-
-	if err != nil {
-		return nil, err
 	}
 
 	return msg, nil

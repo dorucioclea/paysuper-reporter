@@ -11,10 +11,9 @@ const (
 )
 
 type ReportFileRepositoryInterface interface {
-	Insert(*proto.ReportFile) error
-	Update(*proto.ReportFile) error
-	GetById(string) (*proto.ReportFile, error)
-	Delete(*proto.ReportFile) error
+	Insert(*proto.MgoReportFile) error
+	Update(*proto.MgoReportFile) error
+	GetById(string) (*proto.MgoReportFile, error)
 }
 
 func NewReportFileRepository(db *database.Source) ReportFileRepositoryInterface {
@@ -22,7 +21,7 @@ func NewReportFileRepository(db *database.Source) ReportFileRepositoryInterface 
 	return s
 }
 
-func (h *ReportFileRepository) Insert(rf *proto.ReportFile) error {
+func (h *ReportFileRepository) Insert(rf *proto.MgoReportFile) error {
 	if err := h.db.Collection(collectionReportFiles).Insert(rf); err != nil {
 		return err
 	}
@@ -30,24 +29,16 @@ func (h *ReportFileRepository) Insert(rf *proto.ReportFile) error {
 	return nil
 }
 
-func (h *ReportFileRepository) Update(rf *proto.ReportFile) error {
-	if err := h.db.Collection(collectionReportFiles).UpdateId(bson.ObjectIdHex(rf.Id), rf); err != nil {
+func (h *ReportFileRepository) Update(rf *proto.MgoReportFile) error {
+	if err := h.db.Collection(collectionReportFiles).UpdateId(rf.Id, rf); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (h *ReportFileRepository) Delete(rf *proto.ReportFile) error {
-	if err := h.db.Collection(collectionReportFiles).RemoveId(bson.ObjectIdHex(rf.Id)); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (h *ReportFileRepository) GetById(id string) (*proto.ReportFile, error) {
-	var file *proto.ReportFile
+func (h *ReportFileRepository) GetById(id string) (*proto.MgoReportFile, error) {
+	var file *proto.MgoReportFile
 
 	if err := h.db.Collection(collectionReportFiles).Find(bson.M{"_id": bson.ObjectIdHex(id)}).One(&file); err != nil {
 		return nil, err

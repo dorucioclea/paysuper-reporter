@@ -15,6 +15,7 @@ require (
 	github.com/elazarl/go-bindata-assetfs v1.0.0 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8
+	github.com/golang-migrate/migrate/v4 v4.3.1
 	github.com/golang/protobuf v1.3.2
 	github.com/hashicorp/go-memdb v0.0.0-20181108192425-032f93b25bec // indirect
 	github.com/hashicorp/go-plugin v0.0.0-20181212150838-f444068e8f5a // indirect
@@ -28,9 +29,8 @@ require (
 	github.com/micro/util v0.2.0 // indirect
 	github.com/nats-io/nats.go v1.8.1
 	github.com/nats-io/stan.go v0.5.0
-	github.com/openzipkin/zipkin-go v0.1.6 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
-	github.com/paysuper/paysuper-aws-manager v0.0.0-20190827071211-4aff35ed4d82
+	github.com/paysuper/paysuper-aws-manager v0.0.0-20190905152900-bd5c04c08c1f
 	github.com/paysuper/paysuper-billing-server v0.0.0-20190817121116-7939d9bb5418
 	github.com/paysuper/paysuper-database-mongo v0.1.1-0.20190820120816-3d23959ac513
 	github.com/paysuper/paysuper-recurring-repository v1.0.123

@@ -33,7 +33,6 @@ type S3Config struct {
 // Centrifugo defines the parameters for connecting to the Centrifugo server.
 type CentrifugoConfig struct {
 	ApiSecret       string `envconfig:"CENTRIFUGO_API_SECRET" required:"true"`
-	Secret          string `envconfig:"CENTRIFUGO_SECRET" required:"true"`
 	URL             string `envconfig:"CENTRIFUGO_URL" required:"false" default:"http://127.0.0.1:8000"`
 	MerchantChannel string `envconfig:"CENTRIFUGO_MERCHANT_CHANNEL" default:"paysuper:merchant#%s"`
 }
@@ -59,7 +58,7 @@ type Config struct {
 	MetricsPort           string `envconfig:"METRICS_PORT" required:"false" default:"8086"`
 	MicroRegistry         string `envconfig:"MICRO_REGISTRY" required:"false"`
 	MicroSelector         string `envconfig:"MICRO_SELECTOR" required:"false" default:"static"`
-	DocumentRetentionTime string `envconfig:"DOCUMENT_RETENTION_TIME" default:"604800"`
+	DocumentRetentionTime int    `envconfig:"DOCUMENT_RETENTION_TIME" default:"604800"`
 }
 
 func NewConfig() (*Config, error) {

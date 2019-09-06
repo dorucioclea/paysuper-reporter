@@ -28,7 +28,6 @@ Consumer NAT Streaming server to generate reporting documents (royalties, vats, 
 | AWS_TOKEN                            | true     |                                                |                                                                         |
 | AWS_BUCKET                           | true     |                                                |                                                                         |
 | AWS_REGION                           | true     |                                                |                                                                         |
-| CENTRIFUGO_SECRET                    | true     | -                                              | Centrifugo secret key                                                   |
 | CENTRIFUGO_API_SECRET                | true     | -                                              | Centrifugo API secret key                                               |
 | CENTRIFUGO_URL                       | -        | http://127.0.0.1:8000                          | Centrifugo API gateway                                                  |
 | CENTRIFUGO_MERCHANT_CHANNEL          | -        | paysuper:merchant#%s                           | Centrifugo channel name to send notifications to merchant               |

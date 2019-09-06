@@ -32,6 +32,7 @@ type MgoReportFile struct {
 	TemplateId string                 `bson:"template_id"`
 	Params     map[string]interface{} `bson:"params"`
 	CreatedAt  time.Time              `bson:"created_at"`
+	ExpireAt   time.Time              `bson:"expire_at"`
 }
 
 func (m *ReportFile) GetBSON() (interface{}, error) {
@@ -60,32 +61,4 @@ func (m *ReportFile) GetBSON() (interface{}, error) {
 	}
 
 	return st, nil
-}
-
-func (m *ReportFile) SetBSON(raw bson.Raw) error {
-	decoded := new(MgoReportFile)
-	err := raw.Unmarshal(decoded)
-
-	if err != nil {
-		return err
-	}
-
-	m.Id = decoded.Id.Hex()
-	m.MerchantId = decoded.MerchantId.Hex()
-	m.Template = decoded.TemplateId
-	m.ReportType = decoded.ReportType
-	m.FileType = decoded.FileType
-
-	if decoded.Params != nil {
-		if m.Params, err = json.Marshal(decoded.Params); err != nil {
-			return err
-		}
-	}
-
-	m.CreatedAt, err = ptypes.TimestampProto(decoded.CreatedAt)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

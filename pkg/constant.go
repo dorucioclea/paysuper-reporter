@@ -25,13 +25,17 @@ const (
 	ReportTypeRoyalty             = "royalty"
 	ReportTypeRoyaltyTransactions = "royalty_transactions"
 
-	OutputXlsxExtension = "xlsx"
-	OutputCsvExtension  = "csv"
-	OutputPdfExtension  = "pdf"
+	OutputExtensionXlsx = "xlsx"
+	OutputExtensionCsv  = "csv"
+	OutputExtensionPdf  = "pdf"
 
-	OutputXlsxContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-	OutputCsvContentType  = "text/csv"
-	OutputPdfContentType  = "application/pdf"
+	OutputContentTypeXlsx = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+	OutputContentTypeCsv  = "text/csv"
+	OutputContentTypePdf  = "application/pdf"
+
+	RecipeXlsx = "xlsx"
+	RecipeCsv  = "text"
+	RecipePdf  = "chrome-pdf"
 
 	ParamsFieldId = "id"
 )

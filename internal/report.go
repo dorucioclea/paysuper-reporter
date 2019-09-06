@@ -13,6 +13,7 @@ import (
 	"io/ioutil"
 	"os"
 	"sort"
+	"time"
 )
 
 var (
@@ -24,10 +25,16 @@ var (
 		pkg.ReportTypeTransactions,
 	}
 
-	reportFileTypes = map[string]string{
-		pkg.OutputXlsxExtension: pkg.OutputXlsxContentType,
-		pkg.OutputCsvExtension:  pkg.OutputCsvContentType,
-		pkg.OutputPdfExtension:  pkg.OutputPdfContentType,
+	reportFileContentTypes = map[string]string{
+		pkg.OutputExtensionXlsx: pkg.OutputContentTypeXlsx,
+		pkg.OutputExtensionCsv:  pkg.OutputContentTypeCsv,
+		pkg.OutputExtensionPdf:  pkg.OutputContentTypePdf,
+	}
+
+	reportFileRecipes = map[string]string{
+		pkg.OutputExtensionXlsx: pkg.RecipeXlsx,
+		pkg.OutputExtensionCsv:  pkg.RecipeCsv,
+		pkg.OutputExtensionPdf:  pkg.RecipePdf,
 	}
 )
 
@@ -40,10 +47,8 @@ type ReportFileTemplate struct {
 }
 
 func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, res *proto.CreateFileResponse) error {
-	fmt.Println(sort.SearchStrings(reportTypes, file.ReportType))
-	fmt.Println(len(reportTypes))
-	fmt.Println(reportTypes)
-	fmt.Println(file.ReportType)
+	sort.Strings(reportTypes)
+
 	if sort.SearchStrings(reportTypes, file.ReportType) == len(reportTypes) {
 		zap.L().Error(errors.ErrorReportTypeNotFound.Message, zap.Any("file", file))
 		res.Status = pkg.ResponseStatusBadData
@@ -52,7 +57,7 @@ func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, 
 		return nil
 	}
 
-	if _, ok := reportFileTypes[file.FileType]; !ok {
+	if _, ok := reportFileContentTypes[file.FileType]; !ok {
 		zap.L().Error(errors.ErrorFileTypeNotFound.Message, zap.Any("file", file))
 		res.Status = pkg.ResponseStatusBadData
 		res.Message = errors.ErrorFileTypeNotFound
@@ -75,10 +80,7 @@ func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, 
 		}
 	}
 
-	if file.Id == "" {
-		file.Id = bson.NewObjectId().Hex()
-	}
-
+	file.Id = bson.NewObjectId().Hex()
 	mgoReport, err := file.GetBSON()
 
 	if err != nil {
@@ -89,8 +91,11 @@ func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, 
 		return nil
 	}
 
+	report := mgoReport.(*proto.MgoReportFile)
+	report.ExpireAt = time.Now().Add(time.Duration(app.cfg.DocumentRetentionTime) * time.Second)
+
 	h := builder.NewBuilder(
-		mgoReport.(*proto.MgoReportFile),
+		report,
 		app.reportFileRepository,
 		app.royaltyRepository,
 		app.vatRepository,
@@ -114,7 +119,7 @@ func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, 
 		return nil
 	}
 
-	if err := app.reportFileRepository.Insert(file); err != nil {
+	if err := app.reportFileRepository.Insert(report); err != nil {
 		zap.L().Error(errors.ErrorUnableToCreate.Message, zap.Error(err), zap.Any("file", file))
 		res.Status = pkg.ResponseStatusSystemError
 		res.Message = errors.ErrorUnableToCreate
@@ -122,7 +127,7 @@ func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, 
 	}
 
 	if err := app.messageBroker.Publish(pkg.SubjectRequestReportFileCreate, mgoReport, false); err != nil {
-		zap.L().Error(errors.ErrorMessageBrokerFailed.Message, zap.Error(err), zap.Any("file", mgoReport))
+		zap.L().Error(errors.ErrorMessageBrokerFailed.Message, zap.Error(err), zap.Any("file", report))
 		res.Status = pkg.ResponseStatusSystemError
 		res.Message = errors.ErrorMessageBrokerFailed
 		return nil
@@ -144,12 +149,13 @@ func (app *Application) LoadFile(ctx context.Context, req *proto.LoadFileRequest
 		return nil
 	}
 
-	filePath := os.TempDir() + string(os.PathSeparator) + file.Id
+	fileName := fmt.Sprintf(pkg.FileMask, file.Id.Hex(), file.FileType)
+	filePath := os.TempDir() + string(os.PathSeparator) + fileName
 
-	if _, err = app.s3.Download(ctx, filePath, &awsWrapper.DownloadInput{FileName: file.Id}); err != nil {
-		zap.L().Error(errors.ErrorNotFound.Message, zap.Error(err), zap.Any("data", req))
+	if _, err = app.s3.Download(ctx, filePath, &awsWrapper.DownloadInput{FileName: file.Id.Hex()}); err != nil {
+		zap.L().Error(errors.ErrorAwsFileNotFound.Message, zap.Error(err), zap.Any("data", req))
 		res.Status = pkg.ResponseStatusNotFound
-		res.Message = errors.ErrorNotFound
+		res.Message = errors.ErrorAwsFileNotFound
 		return nil
 	}
 
@@ -157,17 +163,17 @@ func (app *Application) LoadFile(ctx context.Context, req *proto.LoadFileRequest
 	defer f.Close()
 
 	if err != nil {
-		zap.L().Error(errors.ErrorNotFound.Message, zap.Error(err), zap.Any("data", req))
+		zap.L().Error(errors.ErrorOpenTemporaryFile.Message, zap.Error(err), zap.Any("data", req))
 		res.Status = pkg.ResponseStatusNotFound
-		res.Message = errors.ErrorNotFound
+		res.Message = errors.ErrorOpenTemporaryFile
 		return nil
 	}
 
 	b, err := ioutil.ReadAll(f)
 	if err != nil {
-		zap.L().Error(errors.ErrorNotFound.Message, zap.Error(err), zap.Any("data", req))
+		zap.L().Error(errors.ErrorReadTemporaryFile.Message, zap.Error(err), zap.Any("data", req))
 		res.Status = pkg.ResponseStatusNotFound
-		res.Message = errors.ErrorNotFound
+		res.Message = errors.ErrorReadTemporaryFile
 		return nil
 	}
 

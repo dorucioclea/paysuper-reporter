@@ -257,6 +257,7 @@ func (app *Application) execute(msg *stan.Msg) {
 	payload := &proto.GeneratorPayload{
 		Template: &proto.GeneratorTemplate{
 			ShortId: reportFile.TemplateId,
+			Recipe:  reportFileRecipes[reportFile.FileType],
 		},
 		Data: rawData,
 	}
@@ -267,7 +268,7 @@ func (app *Application) execute(msg *stan.Msg) {
 		return
 	}
 
-	fileName := fmt.Sprintf(pkg.FileMask, reportFile.Id, reportFile.FileType)
+	fileName := fmt.Sprintf(pkg.FileMask, reportFile.Id.Hex(), reportFile.FileType)
 	filePath := os.TempDir() + string(os.PathSeparator) + fileName
 
 	if err = ioutil.WriteFile(filePath, file.File, 0644); err != nil {
@@ -275,7 +276,11 @@ func (app *Application) execute(msg *stan.Msg) {
 		return
 	}
 
-	_, err = app.s3.Upload(context.TODO(), &awsWrapper.UploadInput{Body: bytes.NewReader(file.File), FileName: fileName})
+	_, err = app.s3.Upload(context.TODO(), &awsWrapper.UploadInput{
+		Body:     bytes.NewReader(file.File),
+		FileName: fileName,
+		Expires:  reportFile.ExpireAt,
+	})
 
 	if err != nil {
 		zap.L().Error("Unable to upload report to the S3", zap.Error(err))
