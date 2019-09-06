@@ -25,7 +25,6 @@ Consumer NAT Streaming server to generate reporting documents (royalties, vats, 
 | NATS_CLIENT_ID                       | -        | billing-server-publisher                       | The NATS Streaming client ID to connect with                            |
 | AWS_ACCESS_KEY_ID                    | true     |                                                |                                                                         |
 | AWS_SECRET_ACCESS_KEY                | true     |                                                |                                                                         |
-| AWS_TOKEN                            | true     |                                                |                                                                         |
 | AWS_BUCKET                           | true     |                                                |                                                                         |
 | AWS_REGION                           | true     |                                                |                                                                         |
 | CENTRIFUGO_API_SECRET                | true     | -                                              | Centrifugo API secret key                                               |
