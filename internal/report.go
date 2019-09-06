@@ -152,7 +152,7 @@ func (app *Application) LoadFile(ctx context.Context, req *proto.LoadFileRequest
 	fileName := fmt.Sprintf(pkg.FileMask, file.Id.Hex(), file.FileType)
 	filePath := os.TempDir() + string(os.PathSeparator) + fileName
 
-	if _, err = app.s3.Download(ctx, filePath, &awsWrapper.DownloadInput{FileName: file.Id.Hex()}); err != nil {
+	if _, err = app.s3.Download(ctx, filePath, &awsWrapper.DownloadInput{FileName: fileName}); err != nil {
 		zap.L().Error(errors.ErrorAwsFileNotFound.Message, zap.Error(err), zap.Any("data", req))
 		res.Status = pkg.ResponseStatusNotFound
 		res.Message = errors.ErrorAwsFileNotFound
@@ -178,7 +178,8 @@ func (app *Application) LoadFile(ctx context.Context, req *proto.LoadFileRequest
 	}
 
 	res.Status = pkg.ResponseStatusOk
-	res.File.File = b
+	res.File = &proto.File{File: b}
+	res.ContentType = reportFileContentTypes[file.FileType]
 
 	return nil
 }

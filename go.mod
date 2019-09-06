@@ -28,7 +28,7 @@ require (
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/nats-io/stan.go v0.5.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
-	github.com/paysuper/paysuper-aws-manager v0.0.0-20190827071211-4aff35ed4d82
+	github.com/paysuper/paysuper-aws-manager v0.0.1
 	github.com/paysuper/paysuper-billing-server v0.0.0-20190906113047-ef80dc22ac6b
 	github.com/paysuper/paysuper-database-mongo v0.1.1
 	github.com/paysuper/paysuper-recurring-repository v1.0.123

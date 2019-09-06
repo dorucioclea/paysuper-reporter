@@ -637,6 +637,8 @@ github.com/paysuper/document-signer v0.0.0-20190903140137-c4c12bf31be5 h1:wEad5V
 github.com/paysuper/document-signer v0.0.0-20190903140137-c4c12bf31be5/go.mod h1:HH+6SQ8iJQsXe5gFAzAqRvX8lkowVKMLOy2eDJi1wgA=
 github.com/paysuper/paysuper-aws-manager v0.0.0-20190827071211-4aff35ed4d82 h1:/p8k5EsVivYfSVFeWV9Pb7/EZj6PJt+f3v/OPmH2dr0=
 github.com/paysuper/paysuper-aws-manager v0.0.0-20190827071211-4aff35ed4d82/go.mod h1:TjXLdcbFp4VeSvZK3+sKv61uRS1tH0mtrEEqziaJ/+E=
+github.com/paysuper/paysuper-aws-manager v0.0.1 h1:792ZR+2Pva93ziJbV8zTxjod9gbx4jBlZ1ZUZpN/8Ts=
+github.com/paysuper/paysuper-aws-manager v0.0.1/go.mod h1:TjXLdcbFp4VeSvZK3+sKv61uRS1tH0mtrEEqziaJ/+E=
 github.com/paysuper/paysuper-billing-server v0.0.0-20190903132256-814645b104e6/go.mod h1:0oiTCZU+Qp+Nhgj/kI7vCWJb13qSYkcQ/arq5TFsvgA=
 github.com/paysuper/paysuper-billing-server v0.0.0-20190906113047-ef80dc22ac6b h1:WuxF1tX5xaqKB4lIek0/hLItzhaFwoo3luPHrnkAUX8=
 github.com/paysuper/paysuper-billing-server v0.0.0-20190906113047-ef80dc22ac6b/go.mod h1:SyFhhzzUwO/JD0UXy1YK7qsi6p9+ep3cHFMBIV7lEsU=
@@ -737,6 +739,7 @@ github.com/streadway/amqp v0.0.0-20190404075320-75d898a42a94 h1:0ngsPmuP6XIjiFRN
 github.com/streadway/amqp v0.0.0-20190404075320-75d898a42a94/go.mod h1:AZpEONHx3DKn8O/DFsRAY58/XVQiIPMTMB1SddzLXVw=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
+github.com/stretchr/objx v0.2.0 h1:Hbg2NidpLE8veEBkEZTL3CvlkUIVzuU9jDplZO54c48=
 github.com/stretchr/objx v0.2.0/go.mod h1:qt09Ya8vawLte6SNmTgCsAVtYtaKzEcn8ATUoHMkEqE=
 github.com/stretchr/testify v0.0.0-20151208002404-e3a8ff8ce365/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/stretchr/testify v1.2.1/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
