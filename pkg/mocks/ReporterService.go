@@ -13,7 +13,7 @@ type ReporterService struct {
 }
 
 // CreateFile provides a mock function with given fields: ctx, in, opts
-func (_m *ReporterService) CreateFile(ctx context.Context, in *proto.CreateFileRequest, opts ...client.CallOption) (*proto.CreateFileResponse, error) {
+func (_m *ReporterService) CreateFile(ctx context.Context, in *proto.ReportFile, opts ...client.CallOption) (*proto.CreateFileResponse, error) {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
@@ -24,7 +24,7 @@ func (_m *ReporterService) CreateFile(ctx context.Context, in *proto.CreateFileR
 	ret := _m.Called(_ca...)
 
 	var r0 *proto.CreateFileResponse
-	if rf, ok := ret.Get(0).(func(context.Context, *proto.CreateFileRequest, ...client.CallOption) *proto.CreateFileResponse); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *proto.ReportFile, ...client.CallOption) *proto.CreateFileResponse); ok {
 		r0 = rf(ctx, in, opts...)
 	} else {
 		if ret.Get(0) != nil {
@@ -33,7 +33,7 @@ func (_m *ReporterService) CreateFile(ctx context.Context, in *proto.CreateFileR
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *proto.CreateFileRequest, ...client.CallOption) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *proto.ReportFile, ...client.CallOption) error); ok {
 		r1 = rf(ctx, in, opts...)
 	} else {
 		r1 = ret.Error(1)
