@@ -15,6 +15,7 @@ const (
 )
 
 type TransactionsRepositoryInterface interface {
+	Insert(*billingProto.MgoOrderViewPublic) error
 	GetByRoyalty(*billingProto.MgoRoyaltyReport) ([]*billingProto.MgoOrderViewPublic, error)
 	GetByVat(*billingProto.MgoVatReport) ([]*billingProto.MgoOrderViewPublic, error)
 }
@@ -24,13 +25,17 @@ func NewTransactionsRepository(db *database.Source) TransactionsRepositoryInterf
 	return s
 }
 
+func (h *TransactionsRepository) Insert(order *billingProto.MgoOrderViewPublic) error {
+	return h.db.Collection(collectionOrderView).Insert(order)
+}
+
 func (h *TransactionsRepository) GetByRoyalty(report *billingProto.MgoRoyaltyReport) ([]*billingProto.MgoOrderViewPublic, error) {
 	var result []*billingProto.MgoOrderViewPublic
 
 	match := bson.M{
-		"merchant_id":         report.MerchantId.Hex(),
+		"merchant_id":         report.MerchantId,
 		"pm_order_close_date": bson.M{"$gte": report.PeriodFrom, "$lte": report.PeriodTo},
-		"status":              constant.OrderPublicStatusProcessed,
+		"Status":              constant.OrderPublicStatusProcessed,
 	}
 	err := h.db.Collection(collectionOrderView).Find(match).Sort("created_at").All(&result)
 

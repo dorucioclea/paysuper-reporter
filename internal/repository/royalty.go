@@ -13,12 +13,17 @@ const (
 )
 
 type RoyaltyRepositoryInterface interface {
+	Insert(*billingProto.MgoRoyaltyReport) error
 	GetById(string) (*billingProto.MgoRoyaltyReport, error)
 }
 
 func NewRoyaltyReportRepository(db *database.Source) RoyaltyRepositoryInterface {
 	s := &RoyaltyRepository{db: db}
 	return s
+}
+
+func (h *RoyaltyRepository) Insert(report *billingProto.MgoRoyaltyReport) error {
+	return h.db.Collection(collectionRoyalty).Insert(report)
 }
 
 func (h *RoyaltyRepository) GetById(id string) (*billingProto.MgoRoyaltyReport, error) {

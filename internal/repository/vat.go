@@ -14,6 +14,7 @@ const (
 )
 
 type VatRepositoryInterface interface {
+	Insert(*billingProto.MgoVatReport) error
 	GetById(string) (*billingProto.MgoVatReport, error)
 }
 
@@ -22,10 +23,15 @@ func NewVatRepository(db *database.Source) VatRepositoryInterface {
 	return s
 }
 
+func (h *VatRepository) Insert(report *billingProto.MgoVatReport) error {
+	return h.db.Collection(collectionVat).Insert(report)
+}
+
 func (h *VatRepository) GetById(id string) (*billingProto.MgoVatReport, error) {
 	var report *billingProto.MgoVatReport
 
 	query := bson.M{
+		"_id": bson.ObjectIdHex(id),
 		"status": bson.M{
 			"$in": []string{
 				billingPkg.VatReportStatusThreshold,
@@ -45,5 +51,5 @@ func (h *VatRepository) GetById(id string) (*billingProto.MgoVatReport, error) {
 		)
 	}
 
-	return nil, err
+	return report, err
 }
