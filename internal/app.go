@@ -151,12 +151,7 @@ func (app *Application) initCentrifugo() {
 }
 
 func (app *Application) initDocumentGenerator() {
-	var err error
-
-	app.documentGenerator, err = newDocumentGenerator(&app.cfg.DG)
-	if err != nil {
-		app.fatalFn("Document generator initialization failed", zap.Error(err))
-	}
+	app.documentGenerator = newDocumentGenerator(&app.cfg.DG)
 
 	zap.L().Info("Document generator initialization successfully...")
 }
