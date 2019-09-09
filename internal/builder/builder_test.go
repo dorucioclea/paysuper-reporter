@@ -18,6 +18,18 @@ func Test_Builder(t *testing.T) {
 	suite.Run(t, new(BuilderTestSuite))
 }
 
+func (suite *BuilderTestSuite) TestBuilder_NewBuilder_Ok() {
+	builder := NewBuilder(
+		&proto.MgoReportFile{},
+		&mocks.ReportFileRepositoryInterface{},
+		&mocks.RoyaltyRepositoryInterface{},
+		&mocks.VatRepositoryInterface{},
+		&mocks.TransactionsRepositoryInterface{},
+	)
+
+	assert.IsType(suite.T(), &Handler{}, builder)
+}
+
 func (suite *BuilderTestSuite) TestBuilder_GetBuilder_Error_NotFound() {
 	builder := NewBuilder(
 		&proto.MgoReportFile{ReportType: "unknown"},
