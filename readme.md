@@ -6,7 +6,7 @@ Document reporter
 [![codecov](https://codecov.io/gh/paysuper/paysuper-reporter/branch/master/graph/badge.svg)](https://codecov.io/gh/paysuper/paysuper-reporter)
 [![Go Report Card](https://goreportcard.com/badge/github.com/paysuper/paysuper-reporter)](https://goreportcard.com/report/github.com/paysuper/paysuper-reporter)
 
-Consumer NAT Streaming server to generate reporting documents (royalties, vats, transactions and others).
+DocumentReporter is a GRPS service for creating printable reports (royalties, vats, transactions, etc.).
 
 ## Environment variables:
 
@@ -38,39 +38,6 @@ Consumer NAT Streaming server to generate reporting documents (royalties, vats, 
 | DOCGEN_VAT_TRANSACTIONS_TEMPLATE     | true     |                                                | ID of template in the JSReport for vat transactions report              |
 | DOCGEN_TRANSACTIONS_TEMPLATE         | true     |                                                | ID of template in the JSReport for find transactions report             |
 | DOCUMENT_RETENTION_TIME              | -        | 604800                                         | Time to live the document in the S3 and DB storage                      |
-
-## Usage Example:
-
-```go
-package main
-
-import (
-    reporterPkg "github.com/paysuper/paysuper-reporter/pkg"
-    "github.com/streadway/amqp"
-    "gopkg.in/ProtocolONE/rabbitmq.v1/pkg"
-    "log"
-)
-
-func main()  {
-    broker, err := rabbitmq.NewBroker("amqp://127.0.0.1:5672")
-    
-    if err != nil {
-        log.Fatalf("Creating RabbitMQ publisher failed with error: %s\n", err)
-    }
-    
-    payload := &reporterPkg.Payload{
-        TemplateAlias: "template_name",
-        TemplateModel: map[string]string{"param1": "value1"},
-        To:            "emai@test.com",
-    }
-    
-    err = broker.Publish(reporterPkg.PostmarkSenderTopicName, payload, amqp.Table{})
-    
-    if err != nil {
-        log.Fatalf("Publication message to queue failed with error: %s\n", err)
-    }
-}
-```
 
 ## Contributing
 We feel that a welcoming community is important and we ask that you follow PaySuper's [Open Source Code of Conduct](https://github.com/paysuper/code-of-conduct/blob/master/README.md) in all interactions with the community.
