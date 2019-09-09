@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	errs "errors"
 	"fmt"
 	"github.com/globalsign/mgo/bson"
 	awsWrapper "github.com/paysuper/paysuper-aws-manager"
@@ -47,9 +48,11 @@ type ReportFileTemplate struct {
 }
 
 func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, res *proto.CreateFileResponse) error {
+	var err error
+
 	sort.Strings(reportTypes)
 
-	if sort.SearchStrings(reportTypes, file.ReportType) == len(reportTypes) {
+	if file.ReportType == "" || sort.SearchStrings(reportTypes, file.ReportType) == len(reportTypes) {
 		zap.L().Error(errors.ErrorReportTypeNotFound.Message, zap.Any("file", file))
 		res.Status = pkg.ResponseStatusBadData
 		res.Message = errors.ErrorReportTypeNotFound
@@ -57,27 +60,11 @@ func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, 
 		return nil
 	}
 
-	if _, ok := reportFileContentTypes[file.FileType]; !ok {
-		zap.L().Error(errors.ErrorFileTypeNotFound.Message, zap.Any("file", file))
+	if file.Template, err = app.getTemplate(file); err != nil {
 		res.Status = pkg.ResponseStatusBadData
-		res.Message = errors.ErrorFileTypeNotFound
+		res.Message = errors.ErrorTemplateNotFound
 
 		return nil
-	}
-
-	if file.Template == "" {
-		switch file.ReportType {
-		case pkg.ReportTypeRoyalty:
-			file.Template = app.cfg.DG.RoyaltyTemplate
-		case pkg.ReportTypeRoyaltyTransactions:
-			file.Template = app.cfg.DG.RoyaltyTransactionsTemplate
-		case pkg.ReportTypeVat:
-			file.Template = app.cfg.DG.VatTemplate
-		case pkg.ReportTypeVatTransactions:
-			file.Template = app.cfg.DG.VatTransactionsTemplate
-		case pkg.ReportTypeTransactions:
-			file.Template = app.cfg.DG.TransactionsTemplate
-		}
 	}
 
 	file.Id = bson.NewObjectId().Hex()
@@ -182,4 +169,25 @@ func (app *Application) LoadFile(ctx context.Context, req *proto.LoadFileRequest
 	res.ContentType = reportFileContentTypes[file.FileType]
 
 	return nil
+}
+
+func (app *Application) getTemplate(file *proto.ReportFile) (string, error) {
+	if file.Template != "" {
+		return file.Template, nil
+	}
+
+	switch file.ReportType {
+	case pkg.ReportTypeRoyalty:
+		return app.cfg.DG.RoyaltyTemplate, nil
+	case pkg.ReportTypeRoyaltyTransactions:
+		return app.cfg.DG.RoyaltyTransactionsTemplate, nil
+	case pkg.ReportTypeVat:
+		return app.cfg.DG.VatTemplate, nil
+	case pkg.ReportTypeVatTransactions:
+		return app.cfg.DG.VatTransactionsTemplate, nil
+	case pkg.ReportTypeTransactions:
+		return app.cfg.DG.TransactionsTemplate, nil
+	}
+
+	return file.Template, errs.New(errors.ErrorTemplateNotFound.Message)
 }
