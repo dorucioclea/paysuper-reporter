@@ -22,12 +22,6 @@ func (h *Vat) Validate() error {
 }
 
 func (h *Vat) Build() (interface{}, error) {
-	// TODO: Remove me!
-	return map[string]interface{}{
-		"id":   1,
-		"name": "test",
-	}, nil
-
 	vat, err := h.vatReportRepository.GetById(fmt.Sprintf("%s", h.report.Params[pkg.ParamsFieldId]))
 
 	if err != nil {
