@@ -130,6 +130,7 @@ func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByVat_Ok() {
 	}
 	order := &billingProto.MgoOrderViewPublic{
 		Id:              bson.NewObjectId(),
+		MerchantId:      bson.NewObjectId(),
 		TransactionDate: time.Now(),
 		CountryCode:     report.Country,
 	}
@@ -143,12 +144,13 @@ func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByVat_Ok() {
 func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByVat_Error_RangeDate() {
 	report := &billingProto.MgoVatReport{
 		Id:       bson.NewObjectId(),
-		DateFrom: time.Now().AddDate(0, 0, -1),
-		DateTo:   time.Now().AddDate(0, 0, 1),
+		DateFrom: time.Now().AddDate(0, 0, -2),
+		DateTo:   time.Now().AddDate(0, 0, -1),
 		Country:  "RU",
 	}
 	order := &billingProto.MgoOrderViewPublic{
 		Id:              bson.NewObjectId(),
+		MerchantId:      bson.NewObjectId(),
 		TransactionDate: time.Now(),
 		CountryCode:     report.Country,
 	}
@@ -168,6 +170,7 @@ func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByVat_Error_C
 	}
 	order := &billingProto.MgoOrderViewPublic{
 		Id:              bson.NewObjectId(),
+		MerchantId:      bson.NewObjectId(),
 		TransactionDate: time.Now(),
 		CountryCode:     "UA",
 	}
