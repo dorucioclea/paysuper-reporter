@@ -6,7 +6,7 @@ replace github.com/hashicorp/consul => github.com/hashicorp/consul v1.5.1
 
 require (
 	github.com/InVisionApp/go-health v2.1.0+incompatible
-	github.com/ProtocolONE/nats v0.0.0-20190906105729-a2b90b21ac1f
+	github.com/ProtocolONE/nats v0.0.0-20190909153110-738ec68e5d7c
 	github.com/centrifugal/gocent v2.0.2+incompatible
 	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8
 	github.com/golang/protobuf v1.3.2
