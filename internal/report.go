@@ -167,6 +167,9 @@ func (app *Application) LoadFile(ctx context.Context, req *proto.LoadFileRequest
 	res.Status = pkg.ResponseStatusOk
 	res.File = &proto.File{File: b}
 	res.ContentType = reportFileContentTypes[file.FileType]
+	res.FileType = file.FileType
+
+	_ = os.Remove(filePath)
 
 	return nil
 }

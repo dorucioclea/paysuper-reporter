@@ -36,6 +36,8 @@ message LoadFileResponse {
     File file = 3;
     //@inject_tag: json:"content_type"
     string content_type = 4;
+    //@inject_tag: json:"file_type"
+    string file_type = 5;
 }
 
 message ResponseError {
