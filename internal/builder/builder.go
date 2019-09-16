@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"encoding/json"
 	errs "errors"
 	"github.com/paysuper/paysuper-reporter/internal/repository"
 	"github.com/paysuper/paysuper-reporter/pkg"
@@ -24,8 +25,7 @@ type BuildInterface interface {
 }
 
 type Handler struct {
-	report                  *proto.MgoReportFile
-	reportFileRepository    repository.ReportFileRepositoryInterface
+	report                  *proto.ReportFile
 	royaltyReportRepository repository.RoyaltyRepositoryInterface
 	vatReportRepository     repository.VatRepositoryInterface
 	transactionsRepository  repository.TransactionsRepositoryInterface
@@ -36,15 +36,13 @@ type DefaultHandler struct {
 }
 
 func NewBuilder(
-	report *proto.MgoReportFile,
-	reportFileRepository repository.ReportFileRepositoryInterface,
+	report *proto.ReportFile,
 	royaltyReportRepository repository.RoyaltyRepositoryInterface,
 	vatReportRepository repository.VatRepositoryInterface,
 	transactionsRepository repository.TransactionsRepositoryInterface,
 ) *Handler {
 	return &Handler{
 		report:                  report,
-		reportFileRepository:    reportFileRepository,
 		royaltyReportRepository: royaltyReportRepository,
 		vatReportRepository:     vatReportRepository,
 		transactionsRepository:  transactionsRepository,
@@ -59,4 +57,18 @@ func (h *Handler) GetBuilder() (BuildInterface, error) {
 	}
 
 	return handler(h), nil
+}
+
+func (h *Handler) GetParams() (map[string]interface{}, error) {
+	var params map[string]interface{}
+
+	if h.report.Params == nil {
+		return params, nil
+	}
+
+	if err := json.Unmarshal(h.report.Params, &params); err != nil {
+		return nil, err
+	}
+
+	return params, nil
 }

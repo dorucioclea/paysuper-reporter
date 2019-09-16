@@ -20,8 +20,7 @@ func Test_Builder(t *testing.T) {
 
 func (suite *BuilderTestSuite) TestBuilder_NewBuilder_Ok() {
 	builder := NewBuilder(
-		&proto.MgoReportFile{},
-		&mocks.ReportFileRepositoryInterface{},
+		&proto.ReportFile{},
 		&mocks.RoyaltyRepositoryInterface{},
 		&mocks.VatRepositoryInterface{},
 		&mocks.TransactionsRepositoryInterface{},
@@ -32,8 +31,7 @@ func (suite *BuilderTestSuite) TestBuilder_NewBuilder_Ok() {
 
 func (suite *BuilderTestSuite) TestBuilder_GetBuilder_Error_NotFound() {
 	builder := NewBuilder(
-		&proto.MgoReportFile{ReportType: "unknown"},
-		&mocks.ReportFileRepositoryInterface{},
+		&proto.ReportFile{ReportType: "unknown"},
 		&mocks.RoyaltyRepositoryInterface{},
 		&mocks.VatRepositoryInterface{},
 		&mocks.TransactionsRepositoryInterface{},
@@ -45,8 +43,7 @@ func (suite *BuilderTestSuite) TestBuilder_GetBuilder_Error_NotFound() {
 
 func (suite *BuilderTestSuite) TestBuilder_GetBuilder_Ok() {
 	builder := NewBuilder(
-		&proto.MgoReportFile{ReportType: pkg.ReportTypeVat},
-		&mocks.ReportFileRepositoryInterface{},
+		&proto.ReportFile{ReportType: pkg.ReportTypeVat},
 		&mocks.RoyaltyRepositoryInterface{},
 		&mocks.VatRepositoryInterface{},
 		&mocks.TransactionsRepositoryInterface{},

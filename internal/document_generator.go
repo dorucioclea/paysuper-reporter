@@ -16,7 +16,7 @@ import (
 )
 
 type DocumentGeneratorInterface interface {
-	Render(payload *proto.GeneratorPayload) (*proto.File, error)
+	Render(payload *proto.GeneratorPayload) ([]byte, error)
 }
 
 type DocumentGeneratorRenderRequest struct {
@@ -41,7 +41,7 @@ func newDocumentGenerator(config *config.DocumentGeneratorConfig) DocumentGenera
 	return client
 }
 
-func (dg DocumentGenerator) Render(payload *proto.GeneratorPayload) (*proto.File, error) {
+func (dg DocumentGenerator) Render(payload *proto.GeneratorPayload) ([]byte, error) {
 	b, err := json.Marshal(payload)
 
 	if err != nil {
@@ -56,8 +56,8 @@ func (dg DocumentGenerator) Render(payload *proto.GeneratorPayload) (*proto.File
 
 	defer rsp.Body.Close()
 
-	msg := &proto.File{}
-	msg.File, err = ioutil.ReadAll(rsp.Body)
+	var msg []byte
+	msg, err = ioutil.ReadAll(rsp.Body)
 
 	if err != nil {
 		return nil, err

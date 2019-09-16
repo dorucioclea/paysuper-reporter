@@ -15,11 +15,17 @@ func newVatHandler(h *Handler) BuildInterface {
 }
 
 func (h *Vat) Validate() error {
-	if _, ok := h.report.Params[pkg.ParamsFieldId]; !ok {
+	params, err := h.GetParams()
+
+	if err != nil {
+		return err
+	}
+
+	if _, ok := params[pkg.ParamsFieldId]; !ok {
 		return errors.New(errs.ErrorParamIdNotFound.Message)
 	}
 
-	if !bson.IsObjectIdHex(fmt.Sprintf("%s", h.report.Params[pkg.ParamsFieldId])) {
+	if !bson.IsObjectIdHex(fmt.Sprintf("%s", params[pkg.ParamsFieldId])) {
 		return errors.New(errs.ErrorParamIdNotFound.Message)
 	}
 
@@ -27,9 +33,8 @@ func (h *Vat) Validate() error {
 }
 
 func (h *Vat) Build() (interface{}, error) {
-	return map[string]interface{}{"name": "test", "email": "test@test.com"}, nil
-
-	vat, err := h.vatReportRepository.GetById(fmt.Sprintf("%s", h.report.Params[pkg.ParamsFieldId]))
+	params, _ := h.GetParams()
+	vat, err := h.vatReportRepository.GetById(fmt.Sprintf("%s", params[pkg.ParamsFieldId]))
 
 	if err != nil {
 		return nil, err

@@ -7,8 +7,6 @@ import "google/protobuf/timestamp.proto";
 service ReporterService {
     rpc CreateFile (ReportFile) returns (CreateFileResponse) {
     }
-    rpc LoadFile (LoadFileRequest) returns (LoadFileResponse) {
-    }
 }
 
 message CreateFileResponse {
@@ -18,33 +16,6 @@ message CreateFileResponse {
     ResponseErrorMessage message = 2;
     // @inject_tag: json:"file_id"
     string file_id = 3;
-}
-
-message LoadFileRequest {
-    // @inject_tag: query:"merchant_id" validate:"required,hexadecimal,len=24"
-    string merchant_id = 1;
-    // @inject_tag: query:"id" validate:"required,hexadecimal,len=24"
-    string id = 2;
-}
-
-message LoadFileResponse {
-    // @inject_tag: json:"status"
-    int32 status = 1;
-    // @inject_tag: json:"message,omitempty"
-    ResponseErrorMessage message = 2;
-    //@inject_tag: json:"file"
-    File file = 3;
-    //@inject_tag: json:"content_type"
-    string content_type = 4;
-    //@inject_tag: json:"file_type"
-    string file_type = 5;
-}
-
-message ResponseError {
-    //@inject_tag: json:"status"
-    int32 status = 1;
-    //@inject_tag: json:"message"
-    ResponseErrorMessage message = 2;
 }
 
 message ResponseErrorMessage {
@@ -59,38 +30,18 @@ message ResponseErrorMessage {
 message ReportFile {
     //@inject_tag: json:"id" bson:"_id"
     string id = 1;
+    // @inject_tag: json:"user_id" validate:"required,hexadecimal,len=24"
+    string user_id = 2;
     // @inject_tag: json:"merchant_id" validate:"required,hexadecimal,len=24"
-    string merchant_id = 2;
+    string merchant_id = 3;
     // @inject_tag: json:"report_type" validate:"required,alpha"
-    string report_type = 3;
+    string report_type = 4;
     // @inject_tag: json:"file_type" validate:"required,alpha"
-    string file_type = 4;
+    string file_type = 5;
     // @inject_tag: json:"params"
-    bytes params = 5;
+    bytes params = 6;
     // @inject_tag: json:"template" validate:"required,hexadecimal"
-    string template = 6;
+    string template = 7;
     // @inject_tag: json:"created_at"
-    google.protobuf.Timestamp created_at = 9;
-}
-
-message File {
-    //@inject_tag: json:"file,omitempty"
-    bytes file = 1;
-}
-
-message ReportRequest {
-    //@inject_tag: json:"file_id" validate:"required,hexadecimal,len=24"
-    string file_id = 1;
-    //@inject_tag: json:"template_id" validate:"required,alpha"
-    string template_id = 2;
-    //@inject_tag: json:"template_id" validate:"required,alpha"
-    string output_format = 3;
-    //@inject_tag: json:"table_name" validate:"required,alpha"
-    string table_name = 4;
-    //@inject_tag: json:"fields" validate:"required,dive,alpha"
-    repeated string fields = 5;
-    //@inject_tag: json:"match" validate:"required"
-    bytes match = 6;
-    //@inject_tag: json:"group"
-    bytes group = 7;
+    google.protobuf.Timestamp created_at = 8;
 }

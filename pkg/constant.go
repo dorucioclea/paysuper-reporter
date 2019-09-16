@@ -7,7 +7,7 @@ const (
 	LoggerName = "PAYSUPER_BILLING_REPORTER"
 
 	SubjectRequestReportFileCreate = "report_file_create"
-	FileMask                       = "report_%s.%s"
+	FileMask                       = "report_%s_%s.%s"
 
 	HeaderAccept      = "Accept"
 	HeaderContentType = "Content-Type"

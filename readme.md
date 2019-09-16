@@ -29,7 +29,7 @@ DocumentReporter is a GRPS service for creating printable reports (royalties, va
 | AWS_REGION                           | true     |                                                |                                                                         |
 | CENTRIFUGO_API_SECRET                | true     | -                                              | Centrifugo API secret key                                               |
 | CENTRIFUGO_URL                       | -        | http://127.0.0.1:8000                          | Centrifugo API gateway                                                  |
-| CENTRIFUGO_MERCHANT_CHANNEL          | -        | paysuper:merchant#%s                           | Centrifugo channel name to send notifications to merchant               |
+| CENTRIFUGO_USER_CHANNEL              | -        | paysuper:user#%s                               | Centrifugo channel name to send notifications to user                   |
 | DOCGEN_API_URL                       | -        | http://127.0.0.1:5488                          | URL of document generation service                                      |
 | DOCGEN_API_TIMEOUT                   | -        | 60000                                          | Timeout for waiting for a response from the document generation service |
 | DOCGEN_ROYALTY_TEMPLATE              | true     |                                                | ID of template in the JSReport for royalty report                       |

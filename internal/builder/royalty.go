@@ -15,11 +15,17 @@ func newRoyaltyHandler(h *Handler) BuildInterface {
 }
 
 func (h *Royalty) Validate() error {
-	if _, ok := h.report.Params[pkg.ParamsFieldId]; !ok {
+	params, err := h.GetParams()
+
+	if err != nil {
+		return err
+	}
+
+	if _, ok := params[pkg.ParamsFieldId]; !ok {
 		return errors.New(errs.ErrorParamIdNotFound.Message)
 	}
 
-	if !bson.IsObjectIdHex(fmt.Sprintf("%s", h.report.Params[pkg.ParamsFieldId])) {
+	if !bson.IsObjectIdHex(fmt.Sprintf("%s", params[pkg.ParamsFieldId])) {
 		return errors.New(errs.ErrorParamIdNotFound.Message)
 	}
 
@@ -27,7 +33,8 @@ func (h *Royalty) Validate() error {
 }
 
 func (h *Royalty) Build() (interface{}, error) {
-	royalty, err := h.royaltyReportRepository.GetById(fmt.Sprintf("%s", h.report.Params[pkg.ParamsFieldId]))
+	params, _ := h.GetParams()
+	royalty, err := h.royaltyReportRepository.GetById(fmt.Sprintf("%s", params[pkg.ParamsFieldId]))
 
 	if err != nil {
 		return nil, err
