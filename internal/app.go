@@ -293,6 +293,15 @@ func (app *Application) execute(msg *stan.Msg) {
 		return
 	}
 
+	if err = os.Remove(filePath); err != nil {
+		zap.L().Error(
+			"Unable to delete temporary file",
+			zap.Error(err),
+			zap.String("path", filePath),
+		)
+		return
+	}
+
 	return
 }
 

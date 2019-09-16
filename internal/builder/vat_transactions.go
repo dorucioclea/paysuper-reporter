@@ -3,6 +3,7 @@ package builder
 import (
 	"errors"
 	"fmt"
+	"github.com/globalsign/mgo/bson"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
 )
@@ -15,6 +16,10 @@ func newVatTransactionsHandler(h *Handler) BuildInterface {
 
 func (h *VatTransactions) Validate() error {
 	if _, ok := h.report.Params[pkg.ParamsFieldId]; !ok {
+		return errors.New(errs.ErrorParamIdNotFound.Message)
+	}
+
+	if !bson.IsObjectIdHex(fmt.Sprintf("%s", h.report.Params[pkg.ParamsFieldId])) {
 		return errors.New(errs.ErrorParamIdNotFound.Message)
 	}
 
