@@ -2,10 +2,10 @@ package repository
 
 import (
 	"github.com/globalsign/mgo/bson"
+	"github.com/jinzhu/now"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
 	database "github.com/paysuper/paysuper-database-mongo"
 	"github.com/paysuper/paysuper-recurring-repository/pkg/constant"
-	"github.com/paysuper/paysuper-reporter/internal/helpers"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
 	"go.uber.org/zap"
 )
@@ -15,7 +15,6 @@ const (
 )
 
 type TransactionsRepositoryInterface interface {
-	Insert(*billingProto.MgoOrderViewPublic) error
 	GetByRoyalty(*billingProto.MgoRoyaltyReport) ([]*billingProto.MgoOrderViewPublic, error)
 	GetByVat(*billingProto.MgoVatReport) ([]*billingProto.MgoOrderViewPublic, error)
 }
@@ -23,10 +22,6 @@ type TransactionsRepositoryInterface interface {
 func NewTransactionsRepository(db *database.Source) TransactionsRepositoryInterface {
 	s := &TransactionsRepository{db: db}
 	return s
-}
-
-func (h *TransactionsRepository) Insert(order *billingProto.MgoOrderViewPublic) error {
-	return h.db.Collection(collectionOrderView).Insert(order)
 }
 
 func (h *TransactionsRepository) GetByRoyalty(report *billingProto.MgoRoyaltyReport) ([]*billingProto.MgoOrderViewPublic, error) {
@@ -57,8 +52,8 @@ func (h *TransactionsRepository) GetByVat(report *billingProto.MgoVatReport) ([]
 
 	match := bson.M{
 		"pm_order_close_date": bson.M{
-			"$gte": helpers.BeginOfDay(report.DateFrom),
-			"$lte": helpers.EndOfDay(report.DateTo),
+			"$gte": now.New(report.DateFrom).BeginningOfDay(),
+			"$lte": now.New(report.DateTo).EndOfDay(),
 		},
 		"country_code": report.Country,
 	}

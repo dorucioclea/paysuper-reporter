@@ -3,7 +3,6 @@ package repository
 import (
 	"fmt"
 	"github.com/globalsign/mgo/bson"
-	billingPkg "github.com/paysuper/paysuper-billing-server/pkg"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
 	mongodb "github.com/paysuper/paysuper-database-mongo"
 	"github.com/stretchr/testify/assert"
@@ -49,18 +48,6 @@ func (suite *VatRepositoryTestSuite) TearDownTest() {
 	suite.db.Close()
 }
 
-func (suite *VatRepositoryTestSuite) TestVatRepository_Insert_Error() {
-	report := &billingProto.MgoVatReport{}
-	err := suite.service.Insert(report)
-	assert.Error(suite.T(), err)
-}
-
-func (suite *VatRepositoryTestSuite) TestVatRepository_Insert_Ok() {
-	report := &billingProto.MgoVatReport{Id: bson.NewObjectId()}
-	err := suite.service.Insert(report)
-	assert.NoError(suite.T(), err, "unable to insert the vat report")
-}
-
 func (suite *VatRepositoryTestSuite) TestVatRepository_GetById_Error() {
 	_, err := suite.service.GetById(bson.NewObjectId().Hex())
 	assert.Error(suite.T(), err)
@@ -68,15 +55,15 @@ func (suite *VatRepositoryTestSuite) TestVatRepository_GetById_Error() {
 
 func (suite *VatRepositoryTestSuite) TestVatRepository_GetById_Error_ByStatus() {
 	report := &billingProto.MgoVatReport{Id: bson.NewObjectId()}
-	assert.NoError(suite.T(), suite.service.Insert(report))
 
 	_, err := suite.service.GetById(report.Id.Hex())
 	assert.Error(suite.T(), err)
 }
 
 func (suite *VatRepositoryTestSuite) TestVatRepository_GetById_Ok() {
-	report := &billingProto.MgoVatReport{Id: bson.NewObjectId(), Status: billingPkg.VatReportStatusNeedToPay}
-	assert.NoError(suite.T(), suite.service.Insert(report))
+	report := &billingProto.MgoVatReport{
+		Id: bson.ObjectIdHex("5ced34d689fce60bf4440829"),
+	}
 
 	rep, err := suite.service.GetById(report.Id.Hex())
 	fmt.Println(rep)

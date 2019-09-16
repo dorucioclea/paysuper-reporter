@@ -2,8 +2,11 @@ package repository
 
 import (
 	"github.com/globalsign/mgo/bson"
-	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/mongodb"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	mongodb "github.com/paysuper/paysuper-database-mongo"
+	"github.com/paysuper/paysuper-reporter/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
@@ -22,7 +25,18 @@ func Test_RoyaltyRepository(t *testing.T) {
 }
 
 func (suite *RoyaltyRepositoryTestSuite) SetupTest() {
-	var err error
+	cfg, err := config.NewConfig()
+	if err != nil {
+		suite.FailNow("Config load failed", "%v", err)
+	}
+
+	m, err := migrate.New("file://../../migrations/tests", cfg.Db.Dsn)
+	assert.NoError(suite.T(), err, "Migrate init failed")
+
+	err = m.Up()
+	if err != nil && err.Error() != "no change" {
+		suite.FailNow("Migrations failed", "%v", err)
+	}
 
 	suite.db, err = mongodb.NewDatabase()
 
@@ -47,29 +61,17 @@ func (suite *RoyaltyRepositoryTestSuite) TearDownTest() {
 	suite.db.Close()
 }
 
-func (suite *RoyaltyRepositoryTestSuite) TestRoyaltyRepository_Insert_Error() {
-	report := &billingProto.MgoRoyaltyReport{}
-	err := suite.service.Insert(report)
-	assert.Error(suite.T(), err)
-}
-
-func (suite *RoyaltyRepositoryTestSuite) TestRoyaltyRepository_Insert_Ok() {
-	report := &billingProto.MgoRoyaltyReport{Id: bson.NewObjectId(), MerchantId: bson.NewObjectId()}
-	err := suite.service.Insert(report)
-	assert.NoError(suite.T(), err, "unable to insert the royalty report")
-}
-
 func (suite *RoyaltyRepositoryTestSuite) TestRoyaltyRepository_GetById_Error() {
 	_, err := suite.service.GetById(bson.NewObjectId().Hex())
 	assert.Error(suite.T(), err)
 }
 
 func (suite *RoyaltyRepositoryTestSuite) TestRoyaltyRepository_GetById_Ok() {
-	report := &billingProto.MgoRoyaltyReport{Id: bson.NewObjectId(), MerchantId: bson.NewObjectId()}
-	assert.NoError(suite.T(), suite.service.Insert(report))
+	id := bson.ObjectIdHex("5ced34d689fce60bf4440829")
+	merchantId := bson.ObjectIdHex("5ced34d689fce60bf444082a")
+	rep, err := suite.service.GetById(id.Hex())
 
-	rep, err := suite.service.GetById(report.Id.Hex())
 	assert.NoError(suite.T(), err, "unable to get the royalty report")
-	assert.Equal(suite.T(), report.Id, rep.Id)
-	assert.Equal(suite.T(), report.MerchantId, rep.MerchantId)
+	assert.Equal(suite.T(), id, rep.Id)
+	assert.Equal(suite.T(), merchantId, rep.MerchantId)
 }

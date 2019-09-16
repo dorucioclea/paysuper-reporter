@@ -1,0 +1,11 @@
+[
+  {
+    "insert": "vat_reports",
+    "documents": [
+      {
+        "_id": {"$oid": "5ced34d689fce60bf4440829"},
+        "status": "need_to_pay"
+      }
+    ]
+  }
+]

@@ -1,0 +1,14 @@
+[
+  {
+    "insert": "order_view",
+    "documents": [
+      {
+        "_id": {"$oid": "5ced34d689fce60bf4440829"},
+        "merchant_id": {"$oid": "5ced34d689fce60bf444082a"},
+        "Status": "processed",
+        "pm_order_close_date": {"$date":{"$numberLong":"1562258329000"}},
+        "country_code": "RU"
+      }
+    ]
+  }
+]
