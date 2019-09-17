@@ -26,6 +26,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -158,7 +159,7 @@ func (app *Application) initMessageBroker() {
 	var err error
 
 	opts := []nats.Option{
-		nats.ClientId(app.cfg.Nats.ClientId + string(time.Now().UnixNano())),
+		nats.ClientId(app.cfg.Nats.ClientId + "_" + strconv.FormatInt(time.Now().UnixNano(), 16)),
 	}
 	app.messageBroker, err = nats.NewNatsManager(opts...)
 
