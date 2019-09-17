@@ -157,7 +157,10 @@ func (app *Application) initDocumentGenerator() {
 func (app *Application) initMessageBroker() {
 	var err error
 
-	app.messageBroker, err = nats.NewNatsManager()
+	opts := []nats.Option{
+		nats.ClientId(app.cfg.Nats.ClientId + string(time.Now().UnixNano())),
+	}
+	app.messageBroker, err = nats.NewNatsManager(opts...)
 
 	if err != nil {
 		app.fatalFn("Message broker initialization failed", zap.Error(err))
