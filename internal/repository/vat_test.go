@@ -53,13 +53,6 @@ func (suite *VatRepositoryTestSuite) TestVatRepository_GetById_Error() {
 	assert.Error(suite.T(), err)
 }
 
-func (suite *VatRepositoryTestSuite) TestVatRepository_GetById_Error_ByStatus() {
-	report := &billingProto.MgoVatReport{Id: bson.NewObjectId()}
-
-	_, err := suite.service.GetById(report.Id.Hex())
-	assert.Error(suite.T(), err)
-}
-
 func (suite *VatRepositoryTestSuite) TestVatRepository_GetById_Ok() {
 	report := &billingProto.MgoVatReport{
 		Id: bson.ObjectIdHex("5ced34d689fce60bf4440829"),

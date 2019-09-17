@@ -2,7 +2,6 @@ package repository
 
 import (
 	"github.com/globalsign/mgo/bson"
-	billingPkg "github.com/paysuper/paysuper-billing-server/pkg"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
 	database "github.com/paysuper/paysuper-database-mongo"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
@@ -25,17 +24,7 @@ func NewVatRepository(db *database.Source) VatRepositoryInterface {
 func (h *VatRepository) GetById(id string) (*billingProto.MgoVatReport, error) {
 	var report *billingProto.MgoVatReport
 
-	query := bson.M{
-		"_id": bson.ObjectIdHex(id),
-		"status": bson.M{
-			"$in": []string{
-				billingPkg.VatReportStatusThreshold,
-				billingPkg.VatReportStatusNeedToPay,
-				billingPkg.VatReportStatusOverdue,
-			},
-		},
-	}
-	err := h.db.Collection(collectionVat).Find(query).One(&report)
+	err := h.db.Collection(collectionVat).FindId(bson.ObjectIdHex(id)).One(&report)
 
 	if err != nil {
 		zap.L().Error(
