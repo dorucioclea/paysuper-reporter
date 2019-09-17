@@ -11,15 +11,15 @@ type DocumentGeneratorInterface struct {
 }
 
 // Render provides a mock function with given fields: payload
-func (_m *DocumentGeneratorInterface) Render(payload *proto.GeneratorPayload) (*proto.File, error) {
+func (_m *DocumentGeneratorInterface) Render(payload *proto.GeneratorPayload) ([]byte, error) {
 	ret := _m.Called(payload)
 
-	var r0 *proto.File
-	if rf, ok := ret.Get(0).(func(*proto.GeneratorPayload) *proto.File); ok {
+	var r0 []byte
+	if rf, ok := ret.Get(0).(func(*proto.GeneratorPayload) []byte); ok {
 		r0 = rf(payload)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*proto.File)
+			r0 = ret.Get(0).([]byte)
 		}
 	}
 

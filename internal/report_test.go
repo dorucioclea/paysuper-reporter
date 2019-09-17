@@ -39,21 +39,6 @@ func (suite *ReportTestSuite) TestReport_CreateFile_Error_ReportType() {
 	assert.Equal(suite.T(), "", res.FileId)
 }
 
-func (suite *ReportTestSuite) TestReport_CreateFile_Error_UnableBsonParams() {
-	res := &proto.CreateFileResponse{}
-	report := &proto.ReportFile{
-		ReportType: pkg.ReportTypeVat,
-		MerchantId: bson.NewObjectId().Hex(),
-		Params:     []byte{},
-	}
-	err := suite.service.CreateFile(context.TODO(), report, res)
-
-	assert.NoError(suite.T(), err)
-	assert.Equal(suite.T(), pkg.ResponseStatusBadData, res.Status)
-	assert.Equal(suite.T(), errors.ErrorConvertBson, res.Message)
-	assert.Equal(suite.T(), "", res.FileId)
-}
-
 func (suite *ReportTestSuite) TestReport_CreateFile_Error_BuilderValidate() {
 	res := &proto.CreateFileResponse{}
 	report := &proto.ReportFile{
@@ -70,7 +55,7 @@ func (suite *ReportTestSuite) TestReport_CreateFile_Error_BuilderValidate() {
 
 func (suite *ReportTestSuite) TestReport_CreateFile_Error_Publish() {
 	res := &proto.CreateFileResponse{}
-	params, _ := json.Marshal(map[string]interface{}{pkg.ParamsFieldId: 1})
+	params, _ := json.Marshal(map[string]interface{}{pkg.ParamsFieldId: "5ced34d689fce60bf4440829"})
 	report := &proto.ReportFile{
 		ReportType: pkg.ReportTypeVat,
 		MerchantId: bson.NewObjectId().Hex(),
@@ -91,7 +76,7 @@ func (suite *ReportTestSuite) TestReport_CreateFile_Error_Publish() {
 
 func (suite *ReportTestSuite) TestReport_CreateFile_Ok() {
 	res := &proto.CreateFileResponse{}
-	params, _ := json.Marshal(map[string]interface{}{pkg.ParamsFieldId: 1})
+	params, _ := json.Marshal(map[string]interface{}{pkg.ParamsFieldId: "5ced34d689fce60bf4440829"})
 	report := &proto.ReportFile{
 		ReportType: pkg.ReportTypeVat,
 		MerchantId: bson.NewObjectId().Hex(),

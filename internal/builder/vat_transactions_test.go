@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"encoding/json"
 	errs "errors"
 	"github.com/globalsign/mgo/bson"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
@@ -24,18 +25,20 @@ func Test_VatTransactionsBuilder(t *testing.T) {
 }
 
 func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Validate_Error_IdNotFound() {
+	params, _ := json.Marshal(map[string]interface{}{})
 	h := newVatTransactionsHandler(&Handler{
-		report: &proto.MgoReportFile{Params: map[string]interface{}{}},
+		report: &proto.ReportFile{Params: params},
 	})
 
 	assert.Errorf(suite.T(), h.Validate(), errors.ErrorParamIdNotFound.Message)
 }
 
 func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Validate_Ok() {
+	params, _ := json.Marshal(map[string]interface{}{
+		pkg.ParamsFieldId: "5ced34d689fce60bf4440829",
+	})
 	h := newVatTransactionsHandler(&Handler{
-		report: &proto.MgoReportFile{Params: map[string]interface{}{
-			pkg.ParamsFieldId: 1,
-		}},
+		report: &proto.ReportFile{Params: params},
 	})
 
 	assert.NoError(suite.T(), h.Validate())
@@ -45,9 +48,10 @@ func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_E
 	vatRep := mocks.VatRepositoryInterface{}
 	vatRep.On("GetById", mock2.Anything).Return(nil, errs.New("not found"))
 
+	params, _ := json.Marshal(map[string]interface{}{})
 	h := newVatTransactionsHandler(&Handler{
 		vatReportRepository: &vatRep,
-		report:              &proto.MgoReportFile{Params: map[string]interface{}{}},
+		report:              &proto.ReportFile{Params: params},
 	})
 
 	_, err := h.Build()
@@ -61,10 +65,11 @@ func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_E
 	transRep := mocks.TransactionsRepositoryInterface{}
 	transRep.On("GetByVat", mock2.Anything).Return(nil, errs.New("not found"))
 
+	params, _ := json.Marshal(map[string]interface{}{})
 	h := newVatTransactionsHandler(&Handler{
 		vatReportRepository:    &vatRep,
 		transactionsRepository: &transRep,
-		report:                 &proto.MgoReportFile{Params: map[string]interface{}{}},
+		report:                 &proto.ReportFile{Params: params},
 	})
 
 	_, err := h.Build()
@@ -79,10 +84,11 @@ func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_O
 	transRep := mocks.TransactionsRepositoryInterface{}
 	transRep.On("GetByVat", report).Return(orders, nil)
 
+	params, _ := json.Marshal(map[string]interface{}{})
 	h := newVatTransactionsHandler(&Handler{
 		vatReportRepository:    &vatRep,
 		transactionsRepository: &transRep,
-		report:                 &proto.MgoReportFile{Params: map[string]interface{}{}},
+		report:                 &proto.ReportFile{Params: params},
 	})
 
 	r, err := h.Build()

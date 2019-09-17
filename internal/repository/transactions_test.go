@@ -2,9 +2,13 @@ package repository
 
 import (
 	"github.com/globalsign/mgo/bson"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/mongodb"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
 	mongodb "github.com/paysuper/paysuper-database-mongo"
 	"github.com/paysuper/paysuper-recurring-repository/pkg/constant"
+	"github.com/paysuper/paysuper-reporter/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
@@ -24,7 +28,18 @@ func Test_TransactionsRepository(t *testing.T) {
 }
 
 func (suite *TransactionsRepositoryTestSuite) SetupTest() {
-	var err error
+	cfg, err := config.NewConfig()
+	if err != nil {
+		suite.FailNow("Config load failed", "%v", err)
+	}
+
+	m, err := migrate.New("file://../../migrations/tests", cfg.Db.Dsn)
+	assert.NoError(suite.T(), err, "Migrate init failed")
+
+	err = m.Up()
+	if err != nil && err.Error() != "no change" {
+		suite.FailNow("Migrations failed", "%v", err)
+	}
 
 	suite.db, err = mongodb.NewDatabase()
 
@@ -50,17 +65,11 @@ func (suite *TransactionsRepositoryTestSuite) TearDownTest() {
 }
 
 func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByRoyalty_Ok() {
-	order := &billingProto.MgoOrderViewPublic{
-		Id:              bson.NewObjectId(),
-		MerchantId:      bson.NewObjectId(),
-		TransactionDate: time.Unix(1562258329, 0),
-		Status:          constant.OrderPublicStatusProcessed,
-	}
 	report := &billingProto.MgoRoyaltyReport{
-		Id:         bson.NewObjectId(),
-		MerchantId: order.MerchantId,
-		PeriodFrom: time.Now().AddDate(0, 0, -1),
-		PeriodTo:   time.Now().AddDate(0, 0, 1),
+		Id:         bson.ObjectIdHex("5ced34d689fce60bf4440829"),
+		MerchantId: bson.ObjectIdHex("5ced34d689fce60bf444082a"),
+		PeriodFrom: time.Unix(1562258329, 0).AddDate(0, 0, -1),
+		PeriodTo:   time.Unix(1562258329, 0).AddDate(0, 0, 1),
 	}
 
 	orders, err := suite.service.GetByRoyalty(report)
@@ -107,17 +116,11 @@ func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByRoyalty_Err
 }
 
 func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByVat_Ok() {
-	order := &billingProto.MgoOrderViewPublic{
-		Id:              bson.NewObjectId(),
-		MerchantId:      bson.NewObjectId(),
-		TransactionDate: time.Unix(1562258329, 0),
-		CountryCode:     "RU",
-	}
 	report := &billingProto.MgoVatReport{
-		Id:       bson.NewObjectId(),
-		DateFrom: time.Now(),
-		DateTo:   time.Now(),
-		Country:  order.CountryCode,
+		Id:       bson.ObjectIdHex("5ced34d689fce60bf4440829"),
+		DateFrom: time.Unix(1562258329, 0),
+		DateTo:   time.Unix(1562258329, 0),
+		Country:  "RU",
 	}
 
 	orders, err := suite.service.GetByVat(report)

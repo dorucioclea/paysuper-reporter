@@ -3,8 +3,12 @@ package repository
 import (
 	"fmt"
 	"github.com/globalsign/mgo/bson"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/mongodb"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
 	mongodb "github.com/paysuper/paysuper-database-mongo"
+	"github.com/paysuper/paysuper-reporter/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
@@ -23,7 +27,18 @@ func Test_VatRepository(t *testing.T) {
 }
 
 func (suite *VatRepositoryTestSuite) SetupTest() {
-	var err error
+	cfg, err := config.NewConfig()
+	if err != nil {
+		suite.FailNow("Config load failed", "%v", err)
+	}
+
+	m, err := migrate.New("file://../../migrations/tests", cfg.Db.Dsn)
+	assert.NoError(suite.T(), err, "Migrate init failed")
+
+	err = m.Up()
+	if err != nil && err.Error() != "no change" {
+		suite.FailNow("Migrations failed", "%v", err)
+	}
 
 	suite.db, err = mongodb.NewDatabase()
 

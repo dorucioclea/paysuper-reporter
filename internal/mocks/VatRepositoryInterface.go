@@ -32,17 +32,3 @@ func (_m *VatRepositoryInterface) GetById(_a0 string) (*billing.MgoVatReport, er
 
 	return r0, r1
 }
-
-// Insert provides a mock function with given fields: _a0
-func (_m *VatRepositoryInterface) Insert(_a0 *billing.MgoVatReport) error {
-	ret := _m.Called(_a0)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*billing.MgoVatReport) error); ok {
-		r0 = rf(_a0)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}

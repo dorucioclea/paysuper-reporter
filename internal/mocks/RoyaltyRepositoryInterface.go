@@ -32,17 +32,3 @@ func (_m *RoyaltyRepositoryInterface) GetById(_a0 string) (*billing.MgoRoyaltyRe
 
 	return r0, r1
 }
-
-// Insert provides a mock function with given fields: _a0
-func (_m *RoyaltyRepositoryInterface) Insert(_a0 *billing.MgoRoyaltyReport) error {
-	ret := _m.Called(_a0)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*billing.MgoRoyaltyReport) error); ok {
-		r0 = rf(_a0)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
