@@ -1,0 +1,11 @@
+[
+  {
+    "insert": "royalty_report",
+    "documents": [
+      {
+        "_id": {"$oid": "5ced34d689fce60bf4440829"},
+        "merchant_id": {"$oid": "5ced34d689fce60bf444082a"}
+      }
+    ]
+  }
+]

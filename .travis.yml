@@ -1,39 +1,54 @@
 language: go
 sudo: required
-go:
-- 1.12.x
+
 dist: trusty
 addons:
   sonarcloud:
-    organization: paysuper
+    organization: "paysuper"
 stages:
-- test
-- name: deploy
-  if: branch = master
+  - test
+  - name: deploy
+    if: branch = master
 jobs:
   include:
-  - stage: test
-    services:
-    - rabbitmq
-    install: true
-    script:
-    - go test ./... -coverprofile=coverage.out -covermode=atomic -p=1
-    after_success:
-    - bash <(curl -s https://codecov.io/bash)
-  - stage: deploy
-    services: docker
-    install: true
-    script:
-    - docker run -it -e JENKINS_AUTH_TOKEN=$JENKINS_AUTH_TOKEN -e JENKINS_BUILD_TOKEN=$JENKINS_BUILD_TOKEN
-      -e JENKINS_BUILD_PROJECT=$TRAVIS_REPO_SLUG -e JENKINS_BUILD_BRANCH=$TRAVIS_BRANCH
-      p1hub/p1jenkinstrigger
+    - stage: test
+      services:
+        - mongodb
+      go:
+        - 1.12.x
+      install: true
+      env:
+        - GO111MODULE=on
+        - MONGO_DSN=mongodb://127.0.0.1:27017/paysuper_test
+        - CENTRIFUGO_URL=http://127.0.0.1:8000
+        - CENTRIFUGO_API_SECRET=api_secret
+        - AWS_ACCESS_KEY_ID=key_id
+        - AWS_SECRET_ACCESS_KEY=secret_key
+        - AWS_REGION=eu-west-1
+        - AWS_BUCKET=bucket
+        - DOCGEN_ROYALTY_TEMPLATE=DOCGEN_ROYALTY_TEMPLATE
+        - DOCGEN_ROYALTY_TRANSACTIONS_TEMPLATE=DOCGEN_ROYALTY_TRANSACTIONS_TEMPLATE
+        - DOCGEN_VAT_TEMPLATE=DOCGEN_VAT_TEMPLATE
+        - DOCGEN_VAT_TRANSACTIONS_TEMPLATE=DOCGEN_VAT_TRANSACTIONS_TEMPLATE
+        - DOCGEN_TRANSACTIONS_TEMPLATE=DOCGEN_TRANSACTIONS_TEMPLATE
+      script:
+        - go test ./... -coverprofile=coverage.out -covermode=atomic -p=1
+      after_success:
+        - bash <(curl -s https://codecov.io/bash)
+    - stage: deploy
+      services: docker
+      install: true
+      script:
+        - docker run -it -e JENKINS_AUTH_TOKEN=$JENKINS_AUTH_TOKEN -e JENKINS_BUILD_TOKEN=$JENKINS_BUILD_TOKEN
+          -e JENKINS_BUILD_PROJECT=$TRAVIS_REPO_SLUG -e JENKINS_BUILD_BRANCH=$TRAVIS_BRANCH
+          p1hub/p1jenkinstrigger
 notifications:
   email: false
   slack:
     secure: T3WNYwqLerrA2VPpiM86xNGpPZlmmhOeQlvVjxNzTguQeN7claRUxcSlqTZqSnasBz11sAaWg4kVFDPlRsgbqTMpd4PZkFfgdeGtvj+XECpHj825Vs/KyxJJ7JRtXZ5c6ytXDSOdtrZSAbhDMywSS0cJCczM/zMYg3I96jr6MJmYAboq1rq5YfRiG1F1L4TrwWqZvB5SUonIIRBIr51l/76gDq5eqlBCBWVhnFPmxzRBqECTDpSw9Mxz3Esk1p5IHj1+1VpIidxrb6SKPyqnuV3KvevDCHMg+J2zmaHljR/asd1SSyXTeEPf9B/DPizYhR9tvhD2XWmZ4FcWZTIExQ9uQfmRtmRm85dHSzmxXS2dwevFqddqQsRBkwIHrnEue2Lu5Jl1ag6zkgb1xEJap04j2Qinz1ykSrKKydhdbpyCcRY5j14lwRgvMZ3OnqfE6Dw/TJ5b1LzfglhN7p0N8XCXI8ZM1DQsrUMqHr4W90V4oTLsfzbz/+eIqqSV3neW3h9LTgyp9eEgvRJggAepRn8gE8RQn52IjbxDiFCfoXX2jLBWGAeHcQn2wh0sfPbogO0ZYMPnhWTlOm2aVzM2qhvegqgAfTXzC+GRk6pPn5U1EoDOh7KfIBHcbCkrKQZd7A/pZX0goSseZ/BhR9NzqDsb5CzD1i2kZ4bj3vN0ULg=
 env:
   global:
-  - GO111MODULE=on
-  - secure: tDWVN3enlA5Zmk0arlMmhxWCRC8gfTycqiIhboQR9/LY3H3i5l85J4HG4josJNIQCFeqAIbR66f1PMBdzKuSVIdziGNfH600wUiQEsVYWvtZK8UKa2jFEid/egDreK4vJ5Csv85u/zxw47FEAYvHClkVpGzlCxTogyLK7bbkx5xW15M342pwNDO8fD4ybXKdxwiyzDGNGTa2fEPUM43xWxuHr+i2RxPqZ8GwjZ6LzBrxVSYCXZPpsxlsvjZhDS67w82xxWdvFbqULinB8jayV47XvADlEqMwGkqpBsK817o94yQ8jd8xrgj2V7G+bd5dkHbo1GAELn8kB53sd4hpxEMAWgERQV3iShAV2FK3TjtQLBacDjjUlE2ncHu/05K8ceeUZ6PAhiCPVsu/QAl8xmtSTVCtaZvLLLszxXnTA9Km56FPL1Z6yXmZzt4+xdwgiP/L1TGEsVM9/JkXIFxW98hPjQDkFBACJisAWphOWwwkPSDJI9X9lItu98JyklAJWCqrfyrbFqTM+RE2Df3+heEasXyXKuFDZAqGjgcs0j8R52XJAbf0J2a50VGvQAX2VgfEU+Ku958DSvuSPAnnkaTuq0yzSihNh1eGA8K/O1AK4YxtuVCWvidafEvDTPuuFyP7vrG2hgkNJ5WKnRSaJJwAcyULhtFwmCZ3WizceqM=
-  - secure: FRnbMiwp5EVLN5eBOC7cUjDxNqukalQLhUjaEH3RFMhUbmstJLjjcEtWGfKY4LbsqTcwX9WBNRJ+8825eex1vdtMqnfMsaZ3NY058L0sl2KPkqEaUI1IeMwy9zp2tRByUYqoLQzfXGZElHfKoa+iEx5U/b7CdLW3YvriUmEeQcSpaDE6sYy8wai6D4+6nT/kEc1Ogg6U/czlqzgpown81+igvLedgSCTQbCD5FealM+egdTf7StHaggKfO2KBkI28RoZCTeb8edYArQWm3AkzP6Drqtz7aVT+at2pAGCGuxBj0KNvma/mvZdR4A96BLq8toeyRayEjtH8tDTZffLzkm4/CTESAvQl6ziZXo0OGrGDz8MkAmkqtv4yKA+ZC2/IG4Daka5Cj+6mgkh8ASKo43CKBoB2YnImLtPH723neu0wtDn9Gy/nE8p73cmZiOOw5pb953xPoXHZDaHHg4+FXnYIvxGRGWz8e/jo1pnND2HAwRgxPcbO9NjKDbe1S960ZOkwnUFYsIudQzzXJ0t/gUP21eu1jstiW/zUjF94z/JqyYibUbud50HiVKzzUD+mRph0iriue4COwn0mzLtspe9WB1zuLRYdmXgHIJGAEliR7SdQkna3cBZelpormxUALZFnhvqdttESuJ3uT6iPnsFYLu0ubS/1X9KRpslCuM=
-  - secure: vfobTBO8kk6DQQYApapjjeMRcqI7PVn8t6pFxVCUy4MgJOKUS9dBZSyrouC0b9yPRRuOKQ21gTSx7ck+4YaWP7j1kGO/kjT+ZcxU7q3/fF82aDH1ISRHXBNT/1gHz1hBQLrIzDkCppy2Xl4mZnRZEd4X5YChXyl1u4xDobmEj7sutL01JeM2KA95T8zAdMM2ZxjefWhtJJ0kwCWdbv0vt3s2sW0lnt1JN/hlpeiD1iVaQZ+ceBMIdgJRGMgP5+gIspA3OqCKLqV/oZrkDY3QHPuNAIYakMpsCmimErEfEAKaicPHELVX7W9tJvuZDBS/jy7iX5+VxUouNbK3UdK5FpjsWhgpRdXo/Tjt/vXm0rEAiVaKdXFUHKvAkL07a8YIUmmzEA6lbi6TmCbLOY7ACbQclQRsvHBH39EBJkCb+wpXFGb7fumKW+XuNit3EIoAwqczrooVa40Rvunhid3KUQsBeyY+UbxGTE6KD52iUkv0UlKNKYHHpSSrNuzkO6wQN5BegHsoqOJwS4haN5MB4V5WNRw307HSvM0otDUZH4vqRyzjhpRW2ao9IU4sv98kOX9Jo+Yp/iyncFYT3Paqb1xz9ICVZQKkF1MsA1EaQy6umw4lDuzEjwD7X2oTV8i0g3gk/dePifzbPaBaXP58Uy9Q94vMelKrNFEhbJ7QCps=
+    - GO111MODULE=on
+    - secure: tDWVN3enlA5Zmk0arlMmhxWCRC8gfTycqiIhboQR9/LY3H3i5l85J4HG4josJNIQCFeqAIbR66f1PMBdzKuSVIdziGNfH600wUiQEsVYWvtZK8UKa2jFEid/egDreK4vJ5Csv85u/zxw47FEAYvHClkVpGzlCxTogyLK7bbkx5xW15M342pwNDO8fD4ybXKdxwiyzDGNGTa2fEPUM43xWxuHr+i2RxPqZ8GwjZ6LzBrxVSYCXZPpsxlsvjZhDS67w82xxWdvFbqULinB8jayV47XvADlEqMwGkqpBsK817o94yQ8jd8xrgj2V7G+bd5dkHbo1GAELn8kB53sd4hpxEMAWgERQV3iShAV2FK3TjtQLBacDjjUlE2ncHu/05K8ceeUZ6PAhiCPVsu/QAl8xmtSTVCtaZvLLLszxXnTA9Km56FPL1Z6yXmZzt4+xdwgiP/L1TGEsVM9/JkXIFxW98hPjQDkFBACJisAWphOWwwkPSDJI9X9lItu98JyklAJWCqrfyrbFqTM+RE2Df3+heEasXyXKuFDZAqGjgcs0j8R52XJAbf0J2a50VGvQAX2VgfEU+Ku958DSvuSPAnnkaTuq0yzSihNh1eGA8K/O1AK4YxtuVCWvidafEvDTPuuFyP7vrG2hgkNJ5WKnRSaJJwAcyULhtFwmCZ3WizceqM=
+    - secure: FRnbMiwp5EVLN5eBOC7cUjDxNqukalQLhUjaEH3RFMhUbmstJLjjcEtWGfKY4LbsqTcwX9WBNRJ+8825eex1vdtMqnfMsaZ3NY058L0sl2KPkqEaUI1IeMwy9zp2tRByUYqoLQzfXGZElHfKoa+iEx5U/b7CdLW3YvriUmEeQcSpaDE6sYy8wai6D4+6nT/kEc1Ogg6U/czlqzgpown81+igvLedgSCTQbCD5FealM+egdTf7StHaggKfO2KBkI28RoZCTeb8edYArQWm3AkzP6Drqtz7aVT+at2pAGCGuxBj0KNvma/mvZdR4A96BLq8toeyRayEjtH8tDTZffLzkm4/CTESAvQl6ziZXo0OGrGDz8MkAmkqtv4yKA+ZC2/IG4Daka5Cj+6mgkh8ASKo43CKBoB2YnImLtPH723neu0wtDn9Gy/nE8p73cmZiOOw5pb953xPoXHZDaHHg4+FXnYIvxGRGWz8e/jo1pnND2HAwRgxPcbO9NjKDbe1S960ZOkwnUFYsIudQzzXJ0t/gUP21eu1jstiW/zUjF94z/JqyYibUbud50HiVKzzUD+mRph0iriue4COwn0mzLtspe9WB1zuLRYdmXgHIJGAEliR7SdQkna3cBZelpormxUALZFnhvqdttESuJ3uT6iPnsFYLu0ubS/1X9KRpslCuM=
+    - secure: vfobTBO8kk6DQQYApapjjeMRcqI7PVn8t6pFxVCUy4MgJOKUS9dBZSyrouC0b9yPRRuOKQ21gTSx7ck+4YaWP7j1kGO/kjT+ZcxU7q3/fF82aDH1ISRHXBNT/1gHz1hBQLrIzDkCppy2Xl4mZnRZEd4X5YChXyl1u4xDobmEj7sutL01JeM2KA95T8zAdMM2ZxjefWhtJJ0kwCWdbv0vt3s2sW0lnt1JN/hlpeiD1iVaQZ+ceBMIdgJRGMgP5+gIspA3OqCKLqV/oZrkDY3QHPuNAIYakMpsCmimErEfEAKaicPHELVX7W9tJvuZDBS/jy7iX5+VxUouNbK3UdK5FpjsWhgpRdXo/Tjt/vXm0rEAiVaKdXFUHKvAkL07a8YIUmmzEA6lbi6TmCbLOY7ACbQclQRsvHBH39EBJkCb+wpXFGb7fumKW+XuNit3EIoAwqczrooVa40Rvunhid3KUQsBeyY+UbxGTE6KD52iUkv0UlKNKYHHpSSrNuzkO6wQN5BegHsoqOJwS4haN5MB4V5WNRw307HSvM0otDUZH4vqRyzjhpRW2ao9IU4sv98kOX9Jo+Yp/iyncFYT3Paqb1xz9ICVZQKkF1MsA1EaQy6umw4lDuzEjwD7X2oTV8i0g3gk/dePifzbPaBaXP58Uy9Q94vMelKrNFEhbJ7QCps=

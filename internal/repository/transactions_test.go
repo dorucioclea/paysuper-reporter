@@ -2,9 +2,13 @@ package repository
 
 import (
 	"github.com/globalsign/mgo/bson"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/mongodb"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
 	mongodb "github.com/paysuper/paysuper-database-mongo"
 	"github.com/paysuper/paysuper-recurring-repository/pkg/constant"
+	"github.com/paysuper/paysuper-reporter/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
@@ -24,7 +28,18 @@ func Test_TransactionsRepository(t *testing.T) {
 }
 
 func (suite *TransactionsRepositoryTestSuite) SetupTest() {
-	var err error
+	cfg, err := config.NewConfig()
+	if err != nil {
+		suite.FailNow("Config load failed", "%v", err)
+	}
+
+	m, err := migrate.New("file://../../migrations/tests", cfg.Db.Dsn)
+	assert.NoError(suite.T(), err, "Migrate init failed")
+
+	err = m.Up()
+	if err != nil && err.Error() != "no change" {
+		suite.FailNow("Migrations failed", "%v", err)
+	}
 
 	suite.db, err = mongodb.NewDatabase()
 
@@ -49,32 +64,13 @@ func (suite *TransactionsRepositoryTestSuite) TearDownTest() {
 	suite.db.Close()
 }
 
-func (suite *TransactionsRepositoryTestSuite) TestTransactionsRepository_Insert_Error() {
-	report := &billingProto.MgoOrderViewPublic{}
-	err := suite.service.Insert(report)
-	assert.Error(suite.T(), err)
-}
-
-func (suite *TransactionsRepositoryTestSuite) TestTransactionsRepository_Insert_Ok() {
-	report := &billingProto.MgoOrderViewPublic{Id: bson.NewObjectId(), MerchantId: bson.NewObjectId()}
-	err := suite.service.Insert(report)
-	assert.NoError(suite.T(), err, "unable to insert the transaction")
-}
-
 func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByRoyalty_Ok() {
 	report := &billingProto.MgoRoyaltyReport{
-		Id:         bson.NewObjectId(),
-		MerchantId: bson.NewObjectId(),
-		PeriodFrom: time.Now().AddDate(0, 0, -1),
-		PeriodTo:   time.Now().AddDate(0, 0, 1),
+		Id:         bson.ObjectIdHex("5ced34d689fce60bf4440829"),
+		MerchantId: bson.ObjectIdHex("5ced34d689fce60bf444082a"),
+		PeriodFrom: time.Unix(1562258329, 0).AddDate(0, 0, -1),
+		PeriodTo:   time.Unix(1562258329, 0).AddDate(0, 0, 1),
 	}
-	order := &billingProto.MgoOrderViewPublic{
-		Id:              bson.NewObjectId(),
-		MerchantId:      report.MerchantId,
-		TransactionDate: time.Now(),
-		Status:          constant.OrderPublicStatusProcessed,
-	}
-	assert.NoError(suite.T(), suite.service.Insert(order))
 
 	orders, err := suite.service.GetByRoyalty(report)
 	assert.NoError(suite.T(), err, "unable to get the orders")
@@ -82,19 +78,18 @@ func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByRoyalty_Ok(
 }
 
 func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByRoyalty_Error_RangeDates() {
+	order := &billingProto.MgoOrderViewPublic{
+		Id:              bson.NewObjectId(),
+		MerchantId:      bson.NewObjectId(),
+		TransactionDate: time.Unix(1562258329, 0),
+		Status:          constant.OrderPublicStatusProcessed,
+	}
 	report := &billingProto.MgoRoyaltyReport{
 		Id:         bson.NewObjectId(),
-		MerchantId: bson.NewObjectId(),
+		MerchantId: order.MerchantId,
 		PeriodFrom: time.Now().AddDate(0, -1, -1),
 		PeriodTo:   time.Now().AddDate(0, 0, -1),
 	}
-	order := &billingProto.MgoOrderViewPublic{
-		Id:              bson.NewObjectId(),
-		MerchantId:      report.MerchantId,
-		TransactionDate: time.Now(),
-		Status:          constant.OrderPublicStatusProcessed,
-	}
-	assert.NoError(suite.T(), suite.service.Insert(order))
 
 	orders, err := suite.service.GetByRoyalty(report)
 	assert.NoError(suite.T(), err, "unable to get the orders")
@@ -102,19 +97,18 @@ func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByRoyalty_Err
 }
 
 func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByRoyalty_Error_UnexistsStatus() {
+	order := &billingProto.MgoOrderViewPublic{
+		Id:              bson.NewObjectId(),
+		MerchantId:      bson.NewObjectId(),
+		TransactionDate: time.Unix(1562258329, 0),
+		Status:          constant.OrderPublicStatusCreated,
+	}
 	report := &billingProto.MgoRoyaltyReport{
 		Id:         bson.NewObjectId(),
-		MerchantId: bson.NewObjectId(),
+		MerchantId: order.MerchantId,
 		PeriodFrom: time.Now().AddDate(0, 0, -1),
 		PeriodTo:   time.Now().AddDate(0, 0, 1),
 	}
-	order := &billingProto.MgoOrderViewPublic{
-		Id:              bson.NewObjectId(),
-		MerchantId:      report.MerchantId,
-		TransactionDate: time.Now(),
-		Status:          constant.OrderPublicStatusCreated,
-	}
-	assert.NoError(suite.T(), suite.service.Insert(order))
 
 	orders, err := suite.service.GetByRoyalty(report)
 	assert.NoError(suite.T(), err, "unable to get the orders")
@@ -123,17 +117,11 @@ func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByRoyalty_Err
 
 func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByVat_Ok() {
 	report := &billingProto.MgoVatReport{
-		Id:       bson.NewObjectId(),
-		DateFrom: time.Now(),
-		DateTo:   time.Now(),
+		Id:       bson.ObjectIdHex("5ced34d689fce60bf4440829"),
+		DateFrom: time.Unix(1562258329, 0),
+		DateTo:   time.Unix(1562258329, 0),
 		Country:  "RU",
 	}
-	order := &billingProto.MgoOrderViewPublic{
-		Id:              bson.NewObjectId(),
-		TransactionDate: time.Now(),
-		CountryCode:     report.Country,
-	}
-	assert.NoError(suite.T(), suite.service.Insert(order))
 
 	orders, err := suite.service.GetByVat(report)
 	assert.NoError(suite.T(), err, "unable to get the orders")
@@ -143,16 +131,10 @@ func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByVat_Ok() {
 func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByVat_Error_RangeDate() {
 	report := &billingProto.MgoVatReport{
 		Id:       bson.NewObjectId(),
-		DateFrom: time.Now().AddDate(0, 0, -1),
-		DateTo:   time.Now().AddDate(0, 0, 1),
+		DateFrom: time.Now().AddDate(0, 0, -2),
+		DateTo:   time.Now().AddDate(0, 0, -1),
 		Country:  "RU",
 	}
-	order := &billingProto.MgoOrderViewPublic{
-		Id:              bson.NewObjectId(),
-		TransactionDate: time.Now(),
-		CountryCode:     report.Country,
-	}
-	assert.NoError(suite.T(), suite.service.Insert(order))
 
 	orders, err := suite.service.GetByVat(report)
 	assert.NoError(suite.T(), err, "unable to get the orders")
@@ -166,12 +148,6 @@ func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByVat_Error_C
 		DateTo:   time.Now(),
 		Country:  "RU",
 	}
-	order := &billingProto.MgoOrderViewPublic{
-		Id:              bson.NewObjectId(),
-		TransactionDate: time.Now(),
-		CountryCode:     "UA",
-	}
-	assert.NoError(suite.T(), suite.service.Insert(order))
 
 	orders, err := suite.service.GetByVat(report)
 	assert.NoError(suite.T(), err, "unable to get the orders")

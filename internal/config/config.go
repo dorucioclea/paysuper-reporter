@@ -32,9 +32,9 @@ type S3Config struct {
 
 // Centrifugo defines the parameters for connecting to the Centrifugo server.
 type CentrifugoConfig struct {
-	ApiSecret       string `envconfig:"CENTRIFUGO_API_SECRET" required:"true"`
-	URL             string `envconfig:"CENTRIFUGO_URL" required:"false" default:"http://127.0.0.1:8000"`
-	MerchantChannel string `envconfig:"CENTRIFUGO_MERCHANT_CHANNEL" default:"paysuper:merchant#%s"`
+	ApiSecret   string `envconfig:"CENTRIFUGO_API_SECRET" required:"true"`
+	URL         string `envconfig:"CENTRIFUGO_URL" required:"false" default:"http://127.0.0.1:8000"`
+	UserChannel string `envconfig:"CENTRIFUGO_USER_CHANNEL" default:"paysuper:user#%s"`
 }
 
 // DocumentGeneratorConfig defines the parameters for connecting to the document generator service.

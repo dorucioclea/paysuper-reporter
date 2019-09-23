@@ -26,6 +26,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -37,7 +38,6 @@ type Application struct {
 	s3                     awsWrapper.AwsManagerInterface
 	centrifugo             CentrifugoInterface
 	documentGenerator      DocumentGeneratorInterface
-	reportFileRepository   repository.ReportFileRepositoryInterface
 	royaltyRepository      repository.RoyaltyRepositoryInterface
 	vatRepository          repository.VatRepositoryInterface
 	transactionsRepository repository.TransactionsRepositoryInterface
@@ -60,7 +60,6 @@ func NewApplication() *Application {
 	app.initMessageBroker()
 	app.initHealth()
 
-	app.reportFileRepository = repository.NewReportFileRepository(app.database)
 	app.royaltyRepository = repository.NewRoyaltyReportRepository(app.database)
 	app.vatRepository = repository.NewVatRepository(app.database)
 	app.transactionsRepository = repository.NewTransactionsRepository(app.database)
@@ -151,12 +150,7 @@ func (app *Application) initCentrifugo() {
 }
 
 func (app *Application) initDocumentGenerator() {
-	var err error
-
-	app.documentGenerator, err = newDocumentGenerator(&app.cfg.DG)
-	if err != nil {
-		app.fatalFn("Document generator initialization failed", zap.Error(err))
-	}
+	app.documentGenerator = newDocumentGenerator(&app.cfg.DG)
 
 	zap.L().Info("Document generator initialization successfully...")
 }
@@ -164,7 +158,10 @@ func (app *Application) initDocumentGenerator() {
 func (app *Application) initMessageBroker() {
 	var err error
 
-	app.messageBroker, err = nats.NewNatsManager()
+	opts := []nats.Option{
+		nats.ClientId(app.cfg.Nats.ClientId + "_" + strconv.FormatInt(time.Now().UnixNano(), 16)),
+	}
+	app.messageBroker, err = nats.NewNatsManager(opts...)
 
 	if err != nil {
 		app.fatalFn("Message broker initialization failed", zap.Error(err))
@@ -226,7 +223,7 @@ func (app *Application) Stop() {
 }
 
 func (app *Application) execute(msg *stan.Msg) {
-	reportFile := &proto.MgoReportFile{}
+	reportFile := &proto.ReportFile{}
 
 	if err := json.Unmarshal(msg.Data, reportFile); err != nil {
 		zap.L().Error("Invalid message data", zap.Error(err))
@@ -235,7 +232,6 @@ func (app *Application) execute(msg *stan.Msg) {
 
 	h := builder.NewBuilder(
 		reportFile,
-		app.reportFileRepository,
 		app.royaltyRepository,
 		app.vatRepository,
 		app.transactionsRepository,
@@ -256,7 +252,7 @@ func (app *Application) execute(msg *stan.Msg) {
 
 	payload := &proto.GeneratorPayload{
 		Template: &proto.GeneratorTemplate{
-			ShortId: reportFile.TemplateId,
+			ShortId: reportFile.Template,
 			Recipe:  reportFileRecipes[reportFile.FileType],
 		},
 		Data: rawData,
@@ -268,18 +264,18 @@ func (app *Application) execute(msg *stan.Msg) {
 		return
 	}
 
-	fileName := fmt.Sprintf(pkg.FileMask, reportFile.Id.Hex(), reportFile.FileType)
+	fileName := fmt.Sprintf(pkg.FileMask, reportFile.UserId, reportFile.Id, reportFile.FileType)
 	filePath := os.TempDir() + string(os.PathSeparator) + fileName
 
-	if err = ioutil.WriteFile(filePath, file.File, 0644); err != nil {
+	if err = ioutil.WriteFile(filePath, file, 0644); err != nil {
 		zap.L().Error("internal error", zap.Error(err))
 		return
 	}
 
 	_, err = app.s3.Upload(context.TODO(), &awsWrapper.UploadInput{
-		Body:     bytes.NewReader(file.File),
+		Body:     bytes.NewReader(file),
 		FileName: fileName,
-		Expires:  reportFile.ExpireAt,
+		Expires:  time.Now().Add(time.Duration(app.cfg.DocumentRetentionTime) * time.Second),
 	})
 
 	if err != nil {
@@ -287,13 +283,22 @@ func (app *Application) execute(msg *stan.Msg) {
 		return
 	}
 
-	err = app.centrifugo.Publish(fmt.Sprintf(app.cfg.CentrifugoConfig.MerchantChannel, reportFile.MerchantId), file)
+	err = app.centrifugo.Publish(fmt.Sprintf(app.cfg.CentrifugoConfig.UserChannel, reportFile.MerchantId), file)
 
 	if err != nil {
 		zap.L().Error(
 			errors.ErrorCentrifugoNotificationFailed.Message,
 			zap.Error(err),
 			zap.Any("report_file", reportFile),
+		)
+		return
+	}
+
+	if err = os.Remove(filePath); err != nil {
+		zap.L().Error(
+			"Unable to delete temporary file",
+			zap.Error(err),
+			zap.String("path", filePath),
 		)
 		return
 	}

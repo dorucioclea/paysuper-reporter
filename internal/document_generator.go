@@ -16,7 +16,7 @@ import (
 )
 
 type DocumentGeneratorInterface interface {
-	Render(payload *proto.GeneratorPayload) (*proto.File, error)
+	Render(payload *proto.GeneratorPayload) ([]byte, error)
 }
 
 type DocumentGeneratorRenderRequest struct {
@@ -31,33 +31,24 @@ type DocumentGenerator struct {
 	httpClient *http.Client
 }
 
-func newDocumentGenerator(config *config.DocumentGeneratorConfig) (DocumentGeneratorInterface, error) {
-	client := DocumentGenerator{
+func newDocumentGenerator(config *config.DocumentGeneratorConfig) DocumentGeneratorInterface {
+	client := &DocumentGenerator{
 		apiUrl:     config.ApiUrl,
 		timeout:    config.Timeout,
 		httpClient: tools.NewLoggedHttpClient(zap.S()),
 	}
 
-	return client, nil
+	return client
 }
 
-func (dg DocumentGenerator) Render(payload *proto.GeneratorPayload) (*proto.File, error) {
+func (dg DocumentGenerator) Render(payload *proto.GeneratorPayload) ([]byte, error) {
 	b, err := json.Marshal(payload)
 
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, dg.apiUrl+"/api/report", bytes.NewBuffer(b))
-
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add(pkg.HeaderContentType, pkg.MIMEApplicationJSON)
-	req.Header.Add(pkg.HeaderAccept, pkg.MIMEApplicationJSON)
-
-	rsp, err := dg.httpClient.Do(req)
+	rsp, err := dg.httpClient.Post(dg.apiUrl+"/api/report", pkg.MIMEApplicationJSON, bytes.NewBuffer(b))
 
 	if err != nil {
 		return nil, err
@@ -65,14 +56,12 @@ func (dg DocumentGenerator) Render(payload *proto.GeneratorPayload) (*proto.File
 
 	defer rsp.Body.Close()
 
-	msg := &proto.File{}
-	msg.File, err = ioutil.ReadAll(rsp.Body)
+	var msg []byte
+	msg, err = ioutil.ReadAll(rsp.Body)
 
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println("response Body:", string(b))
 
 	if rsp.StatusCode != 200 {
 		var rspErr map[string]interface{}
