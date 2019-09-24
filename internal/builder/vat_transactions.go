@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/globalsign/mgo/bson"
@@ -34,7 +35,7 @@ func (h *VatTransactions) Validate() error {
 
 func (h *VatTransactions) Build() (interface{}, error) {
 	params, _ := h.GetParams()
-	vat, err := h.vatReportRepository.GetById(fmt.Sprintf("%s", params[pkg.ParamsFieldId]))
+	vat, err := h.vatRepository.GetById(fmt.Sprintf("%s", params[pkg.ParamsFieldId]))
 
 	if err != nil {
 		return nil, err
@@ -47,4 +48,8 @@ func (h *VatTransactions) Build() (interface{}, error) {
 	}
 
 	return orders, nil
+}
+
+func (h *VatTransactions) PostProcess(ctx context.Context, id string, fileName string, retentionTime int) error {
+	return nil
 }

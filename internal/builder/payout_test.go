@@ -15,16 +15,16 @@ import (
 	"testing"
 )
 
-type VatBuilderTestSuite struct {
+type PayoutBuilderTestSuite struct {
 	suite.Suite
 	service BuildInterface
 }
 
-func Test_VatBuilder(t *testing.T) {
-	suite.Run(t, new(VatBuilderTestSuite))
+func Test_PayoutBuilder(t *testing.T) {
+	suite.Run(t, new(PayoutBuilderTestSuite))
 }
 
-func (suite *VatBuilderTestSuite) TestVatBuilder_Validate_Error_IdNotFound() {
+func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Validate_Error_IdNotFound() {
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newVatHandler(&Handler{
 		report: &proto.ReportFile{Params: params},
@@ -33,7 +33,7 @@ func (suite *VatBuilderTestSuite) TestVatBuilder_Validate_Error_IdNotFound() {
 	assert.Errorf(suite.T(), h.Validate(), errors.ErrorParamIdNotFound.Message)
 }
 
-func (suite *VatBuilderTestSuite) TestVatBuilder_Validate_Ok() {
+func (suite *VatBuilderTestSuite) TestPayoutBuilder_Validate_Ok() {
 	params, _ := json.Marshal(map[string]interface{}{
 		pkg.ParamsFieldId: "5ced34d689fce60bf4440829",
 	})
@@ -44,7 +44,7 @@ func (suite *VatBuilderTestSuite) TestVatBuilder_Validate_Ok() {
 	assert.NoError(suite.T(), h.Validate())
 }
 
-func (suite *VatBuilderTestSuite) TestVatBuilder_Build_Error_GetById() {
+func (suite *VatBuilderTestSuite) TestPayoutBuilder_Build_Error_GetById() {
 	vatRep := mocks.VatRepositoryInterface{}
 	vatRep.On("GetById", mock2.Anything).Return(nil, errs.New("not found"))
 
@@ -58,7 +58,7 @@ func (suite *VatBuilderTestSuite) TestVatBuilder_Build_Error_GetById() {
 	assert.Error(suite.T(), err)
 }
 
-func (suite *VatBuilderTestSuite) TestVatBuilder_Build_Ok() {
+func (suite *VatBuilderTestSuite) TestPayoutBuilder_Build_Ok() {
 	report := &billingProto.MgoVatReport{Id: bson.NewObjectId()}
 	vatRep := mocks.VatRepositoryInterface{}
 	vatRep.On("GetById", mock2.Anything).Return(report, nil)

@@ -31,6 +31,7 @@ jobs:
         - DOCGEN_VAT_TEMPLATE=DOCGEN_VAT_TEMPLATE
         - DOCGEN_VAT_TRANSACTIONS_TEMPLATE=DOCGEN_VAT_TRANSACTIONS_TEMPLATE
         - DOCGEN_TRANSACTIONS_TEMPLATE=DOCGEN_TRANSACTIONS_TEMPLATE
+        - DOCGEN_PAYOUT_TEMPLATE=DOCGEN_PAYOUT_TEMPLATE
       script:
         - go test ./... -coverprofile=coverage.out -covermode=atomic -p=1
       after_success:

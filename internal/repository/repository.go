@@ -11,3 +11,4 @@ type Repository struct {
 type RoyaltyRepository Repository
 type VatRepository Repository
 type TransactionsRepository Repository
+type PayoutRepository Repository

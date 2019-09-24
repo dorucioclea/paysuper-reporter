@@ -1,9 +1,5 @@
 module github.com/paysuper/paysuper-reporter
 
-go 1.13
-
-replace github.com/hashicorp/consul => github.com/hashicorp/consul v1.5.1
-
 require (
 	github.com/InVisionApp/go-health v2.1.0+incompatible
 	github.com/ProtocolONE/nats v0.0.0-20190909153110-738ec68e5d7c
@@ -17,10 +13,16 @@ require (
 	github.com/micro/go-plugins v1.2.0
 	github.com/nats-io/stan.go v0.5.0
 	github.com/paysuper/paysuper-aws-manager v0.0.1
-	github.com/paysuper/paysuper-billing-server v0.0.0-20190917131248-b22922882d02
+	github.com/paysuper/paysuper-billing-server v0.0.0-20190923092220-95f1023fb794
 	github.com/paysuper/paysuper-database-mongo v0.1.1
 	github.com/paysuper/paysuper-recurring-repository v1.0.123
 	github.com/stretchr/testify v1.4.0
 	go.uber.org/zap v1.10.0
-	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 )
+
+replace (
+	github.com/gogo/protobuf v0.0.0-20190410021324-65acae22fc9 => github.com/gogo/protobuf v1.2.2-0.20190723190241-65acae22fc9d
+	github.com/hashicorp/consul => github.com/hashicorp/consul v1.5.1
+)
+
+go 1.13

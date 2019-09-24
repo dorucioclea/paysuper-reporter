@@ -50,8 +50,8 @@ func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_E
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newVatTransactionsHandler(&Handler{
-		vatReportRepository: &vatRep,
-		report:              &proto.ReportFile{Params: params},
+		vatRepository: &vatRep,
+		report:        &proto.ReportFile{Params: params},
 	})
 
 	_, err := h.Build()
@@ -67,7 +67,7 @@ func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_E
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newVatTransactionsHandler(&Handler{
-		vatReportRepository:    &vatRep,
+		vatRepository:          &vatRep,
 		transactionsRepository: &transRep,
 		report:                 &proto.ReportFile{Params: params},
 	})
@@ -86,7 +86,7 @@ func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_O
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newVatTransactionsHandler(&Handler{
-		vatReportRepository:    &vatRep,
+		vatRepository:          &vatRep,
 		transactionsRepository: &transRep,
 		report:                 &proto.ReportFile{Params: params},
 	})

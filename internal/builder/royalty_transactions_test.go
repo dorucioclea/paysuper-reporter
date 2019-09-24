@@ -50,8 +50,8 @@ func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newRoyaltyHandler(&Handler{
-		royaltyReportRepository: &royaltyRep,
-		report:                  &proto.ReportFile{Params: params},
+		royaltyRepository: &royaltyRep,
+		report:            &proto.ReportFile{Params: params},
 	})
 
 	_, err := h.Build()
@@ -67,9 +67,9 @@ func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newRoyaltyTransactionsHandler(&Handler{
-		royaltyReportRepository: &royaltyRep,
-		transactionsRepository:  &transRep,
-		report:                  &proto.ReportFile{Params: params},
+		royaltyRepository:      &royaltyRep,
+		transactionsRepository: &transRep,
+		report:                 &proto.ReportFile{Params: params},
 	})
 
 	_, err := h.Build()
@@ -86,9 +86,9 @@ func (suite *RoyaltyTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Bui
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newRoyaltyTransactionsHandler(&Handler{
-		royaltyReportRepository: &royaltyRep,
-		transactionsRepository:  &transRep,
-		report:                  &proto.ReportFile{Params: params},
+		royaltyRepository:      &royaltyRep,
+		transactionsRepository: &transRep,
+		report:                 &proto.ReportFile{Params: params},
 	})
 
 	r, err := h.Build()

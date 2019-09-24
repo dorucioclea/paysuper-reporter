@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/globalsign/mgo/bson"
@@ -34,11 +35,15 @@ func (h *Royalty) Validate() error {
 
 func (h *Royalty) Build() (interface{}, error) {
 	params, _ := h.GetParams()
-	royalty, err := h.royaltyReportRepository.GetById(fmt.Sprintf("%s", params[pkg.ParamsFieldId]))
+	royalty, err := h.royaltyRepository.GetById(fmt.Sprintf("%s", params[pkg.ParamsFieldId]))
 
 	if err != nil {
 		return nil, err
 	}
 
 	return royalty, nil
+}
+
+func (h *Royalty) PostProcess(ctx context.Context, id string, fileName string, retentionTime int) error {
+	return nil
 }

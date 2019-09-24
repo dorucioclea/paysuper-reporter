@@ -24,6 +24,7 @@ const (
 	ReportTypeVatTransactions     = "vat_transactions"
 	ReportTypeRoyalty             = "royalty"
 	ReportTypeRoyaltyTransactions = "royalty_transactions"
+	ReportTypePayout              = "payout"
 
 	OutputExtensionXlsx = "html-to-xlsx"
 	OutputExtensionCsv  = "csv"

@@ -20,10 +20,12 @@ func Test_Builder(t *testing.T) {
 
 func (suite *BuilderTestSuite) TestBuilder_NewBuilder_Ok() {
 	builder := NewBuilder(
+		nil,
 		&proto.ReportFile{},
 		&mocks.RoyaltyRepositoryInterface{},
 		&mocks.VatRepositoryInterface{},
 		&mocks.TransactionsRepositoryInterface{},
+		&mocks.PayoutRepositoryInterface{},
 	)
 
 	assert.IsType(suite.T(), &Handler{}, builder)
@@ -31,10 +33,12 @@ func (suite *BuilderTestSuite) TestBuilder_NewBuilder_Ok() {
 
 func (suite *BuilderTestSuite) TestBuilder_GetBuilder_Error_NotFound() {
 	builder := NewBuilder(
+		nil,
 		&proto.ReportFile{ReportType: "unknown"},
 		&mocks.RoyaltyRepositoryInterface{},
 		&mocks.VatRepositoryInterface{},
 		&mocks.TransactionsRepositoryInterface{},
+		&mocks.PayoutRepositoryInterface{},
 	)
 	_, err := builder.GetBuilder()
 
@@ -43,10 +47,12 @@ func (suite *BuilderTestSuite) TestBuilder_GetBuilder_Error_NotFound() {
 
 func (suite *BuilderTestSuite) TestBuilder_GetBuilder_Ok() {
 	builder := NewBuilder(
+		nil,
 		&proto.ReportFile{ReportType: pkg.ReportTypeVat},
 		&mocks.RoyaltyRepositoryInterface{},
 		&mocks.VatRepositoryInterface{},
 		&mocks.TransactionsRepositoryInterface{},
+		&mocks.PayoutRepositoryInterface{},
 	)
 	bldr, err := builder.GetBuilder()
 

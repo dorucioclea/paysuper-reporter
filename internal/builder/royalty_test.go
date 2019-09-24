@@ -50,8 +50,8 @@ func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Build_Error_GetById() {
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newRoyaltyHandler(&Handler{
-		royaltyReportRepository: &royaltyRep,
-		report:                  &proto.ReportFile{Params: params},
+		royaltyRepository: &royaltyRep,
+		report:            &proto.ReportFile{Params: params},
 	})
 
 	_, err := h.Build()
@@ -65,8 +65,8 @@ func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Build_Ok() {
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newRoyaltyHandler(&Handler{
-		royaltyReportRepository: &royaltyRep,
-		report:                  &proto.ReportFile{Params: params},
+		royaltyRepository: &royaltyRep,
+		report:            &proto.ReportFile{Params: params},
 	})
 
 	r, err := h.Build()
