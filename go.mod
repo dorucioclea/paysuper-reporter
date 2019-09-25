@@ -2,7 +2,10 @@ module github.com/paysuper/paysuper-reporter
 
 go 1.13
 
-replace github.com/hashicorp/consul => github.com/hashicorp/consul v1.5.1
+replace (
+	github.com/gogo/protobuf v0.0.0-20190410021324-65acae22fc9 => github.com/gogo/protobuf v1.2.2-0.20190723190241-65acae22fc9d
+	github.com/hashicorp/consul => github.com/hashicorp/consul v1.5.1
+)
 
 require (
 	github.com/InVisionApp/go-health v2.1.0+incompatible
