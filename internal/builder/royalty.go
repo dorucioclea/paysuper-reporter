@@ -43,19 +43,17 @@ func (h *Royalty) Build() (interface{}, error) {
 
 	result := map[string]interface{}{
 		"id":                         royalty.Id.Hex(),
-		"payout_id":                  royalty.PayoutId,
-		"correction":                 royalty.Correction.Amount,
 		"period_from":                royalty.PeriodFrom.Format("2006-01-02T15:04:05"),
 		"period_to":                  royalty.PeriodTo.Format("2006-01-02T15:04:05"),
 		"payout_date":                royalty.PayoutDate.Format("2006-01-02T15:04:05"),
 		"created_at":                 royalty.CreatedAt.Format("2006-01-02T15:04:05"),
 		"accepted_at":                royalty.AcceptedAt.Format("2006-01-02T15:04:05"),
-		"amounts_vat":                royalty.Amounts.VatAmount,
-		"amounts_transactions_count": royalty.Amounts.TransactionsCount,
-		"amounts_currency":           royalty.Amounts.Currency,
-		"amounts_fee":                royalty.Amounts.FeeAmount,
-		"amounts_gross":              royalty.Amounts.GrossAmount,
-		"amounts_payout":             royalty.Amounts.PayoutAmount,
+		"amounts_vat":                royalty.Totals.VatAmount,
+		"amounts_transactions_count": royalty.Totals.TransactionsCount,
+		"amounts_rolling_reserve":    royalty.Totals.RollingReserveAmount,
+		"amounts_fee":                royalty.Totals.FeeAmount,
+		"amounts_correction":         royalty.Totals.CorrectionAmount,
+		"amounts_payout":             royalty.Totals.PayoutAmount,
 	}
 
 	return result, nil
