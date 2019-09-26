@@ -46,6 +46,7 @@ type DocumentGeneratorConfig struct {
 	VatTemplate                 string `envconfig:"DOCGEN_VAT_TEMPLATE" required:"true"`
 	VatTransactionsTemplate     string `envconfig:"DOCGEN_VAT_TRANSACTIONS_TEMPLATE" required:"true"`
 	TransactionsTemplate        string `envconfig:"DOCGEN_TRANSACTIONS_TEMPLATE" required:"true"`
+	PayoutTemplate              string `envconfig:"DOCGEN_PAYOUT_TEMPLATE" required:"true"`
 }
 
 type Config struct {
