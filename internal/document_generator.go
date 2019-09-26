@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/paysuper/paysuper-recurring-repository/tools"
 	"github.com/paysuper/paysuper-reporter/internal/config"
+	"github.com/paysuper/paysuper-reporter/pkg"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
 	"github.com/paysuper/paysuper-reporter/pkg/proto"
 	"go.uber.org/zap"
@@ -61,6 +62,7 @@ func (dg DocumentGenerator) Render(payload *proto.GeneratorPayload) ([]byte, err
 		req.SetBasicAuth(dg.username, dg.password)
 	}
 
+	req.Header.Set("Content-Type", pkg.MIMEApplicationJSON)
 	rsp, err := dg.httpClient.Do(req)
 
 	if err != nil {
