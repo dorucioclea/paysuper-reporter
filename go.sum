@@ -657,6 +657,8 @@ github.com/paysuper/paysuper-billing-server v0.0.0-20190923092220-95f1023fb794 h
 github.com/paysuper/paysuper-billing-server v0.0.0-20190923092220-95f1023fb794/go.mod h1:NKY+7+Xlj6cwOnbGhXzpUfIvdk30aDpTfOKLwPR/YSQ=
 github.com/paysuper/paysuper-billing-server v0.0.0-20190926065953-0100f748197d h1:eAiDhubtRITCIKSwFGRh8wyKZ8BuASFjRaMuUom/VAA=
 github.com/paysuper/paysuper-billing-server v0.0.0-20190926065953-0100f748197d/go.mod h1:ChLhAFJpJGTteJfAimwFvwmkCYdAkJDicecSCO5pLdE=
+github.com/paysuper/paysuper-billing-server v0.0.0-20190926100841-ae41a61c4745 h1:GlGdStKwToODoaTXptEPBIS/vQ6j4zRnc58GAiIBXBM=
+github.com/paysuper/paysuper-billing-server v0.0.0-20190926100841-ae41a61c4745/go.mod h1:ejy2ffHoEEQMtmvo6Dt38a9hzYSPBiW6C1KSEOL9d+k=
 github.com/paysuper/paysuper-currencies v0.0.0-20190903083641-668b8b2b997d h1:hoMkfdq4qEGOONvxajsZO0Mf6np++pGnrKVxegvplaw=
 github.com/paysuper/paysuper-currencies v0.0.0-20190903083641-668b8b2b997d/go.mod h1:C+QHdgbjIlAPxHD93/08yi+xWfUgk8maLY8FKFqNzMQ=
 github.com/paysuper/paysuper-database-mongo v0.1.0/go.mod h1:IZu996j//Qoq+uzzCBL5GEYisfF4di/fwedWHlLz7sc=
@@ -665,6 +667,7 @@ github.com/paysuper/paysuper-database-mongo v0.1.1/go.mod h1:IZu996j//Qoq+uzzCBL
 github.com/paysuper/paysuper-recurring-repository v1.0.123 h1:24cPUNrJTUXwFPI93fvqW30nA1omEwMxWY2YueiUnnc=
 github.com/paysuper/paysuper-recurring-repository v1.0.123/go.mod h1:J5qs2I+QNL09dzJeCOGT++zrOXMbJNrzGP62/B6ZaEg=
 github.com/paysuper/paysuper-reporter v0.0.0-20190923193057-f9fbc0ddd67c/go.mod h1:Jp1cfxAkeC9e9x6kylvm3m7aIEYbRF4/G39Y0VEg/+g=
+github.com/paysuper/paysuper-reporter v0.0.0-20190926070334-68df87eeae2b/go.mod h1:ZSS1+yQ52jJjwJaSgvaARQpPxx+8bL5cFAzPu4MZZAc=
 github.com/paysuper/paysuper-tax-service v0.0.0-20190903084038-7849f394f122 h1:46e+iUwsIwyRqININIIQNooTU8KCwcQw7AVnaTpTizg=
 github.com/paysuper/paysuper-tax-service v0.0.0-20190903084038-7849f394f122/go.mod h1:QK6czJ8ge3pF/QbFlRXuYfPRrm/90qubdWQ9OWKfeUs=
 github.com/paysuper/postmark-sender v0.0.0-20190903075212-a210e35789fc h1:LPZzsbFRq04SkYik74jOvu9pVpHWsjoELbxXkSx18D0=

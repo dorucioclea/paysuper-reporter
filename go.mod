@@ -13,7 +13,7 @@ require (
 	github.com/micro/go-plugins v1.2.0
 	github.com/nats-io/stan.go v0.5.0
 	github.com/paysuper/paysuper-aws-manager v0.0.1
-	github.com/paysuper/paysuper-billing-server v0.0.0-20190926065953-0100f748197d
+	github.com/paysuper/paysuper-billing-server v0.0.0-20190926100841-ae41a61c4745
 	github.com/paysuper/paysuper-database-mongo v0.1.1
 	github.com/paysuper/paysuper-recurring-repository v1.0.123
 	github.com/stretchr/testify v1.4.0
