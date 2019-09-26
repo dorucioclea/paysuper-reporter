@@ -65,8 +65,9 @@ func (dg DocumentGenerator) Render(payload *proto.GeneratorPayload) ([]byte, err
 
 	if rsp.StatusCode != 200 {
 		var rspErr map[string]interface{}
+		return nil, errors.New(string(msg))
 
-		if err = json.Unmarshal(b, &rspErr); err != nil {
+		if err = json.Unmarshal(msg, &rspErr); err != nil {
 			return nil, errors.New(errs.ErrorDocumentGeneratorRender.Message)
 		}
 
