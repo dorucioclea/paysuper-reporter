@@ -264,7 +264,7 @@ func (app *Application) execute(msg *stan.Msg) {
 
 	file, err := app.documentGenerator.Render(payload)
 	if err != nil {
-		zap.L().Error("Unable to render report", zap.Error(err))
+		zap.L().Error("Unable to render report", zap.Error(err), zap.Any("payload", payload))
 		return
 	}
 
