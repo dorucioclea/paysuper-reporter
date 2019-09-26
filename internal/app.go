@@ -41,6 +41,8 @@ type Application struct {
 	royaltyRepository      repository.RoyaltyRepositoryInterface
 	vatRepository          repository.VatRepositoryInterface
 	transactionsRepository repository.TransactionsRepositoryInterface
+	payoutRepository       repository.PayoutRepositoryInterface
+	service                micro.Service
 
 	fatalFn func(msg string, fields ...zap.Field)
 }
@@ -63,6 +65,7 @@ func NewApplication() *Application {
 	app.royaltyRepository = repository.NewRoyaltyReportRepository(app.database)
 	app.vatRepository = repository.NewVatRepository(app.database)
 	app.transactionsRepository = repository.NewTransactionsRepository(app.database)
+	app.payoutRepository = repository.NewPayoutRepository(app.database)
 
 	return app
 }
@@ -171,7 +174,6 @@ func (app *Application) initMessageBroker() {
 }
 
 func (app *Application) Run() {
-	var service micro.Service
 	options := []micro.Option{
 		micro.Name(pkg.ServiceName),
 		micro.Version(pkg.ServiceVersion),
@@ -202,14 +204,14 @@ func (app *Application) Run() {
 		options = append(options, micro.Selector(static.NewSelector()))
 	}
 
-	service = micro.NewService(options...)
-	service.Init()
+	app.service = micro.NewService(options...)
+	app.service.Init()
 
-	if err := proto.RegisterReporterServiceHandler(service.Server(), app); err != nil {
+	if err := proto.RegisterReporterServiceHandler(app.service.Server(), app); err != nil {
 		app.fatalFn("Can`t register service in micro", zap.Error(err))
 	}
 
-	if err := service.Run(); err != nil {
+	if err := app.service.Run(); err != nil {
 		app.fatalFn("Can`t run service", zap.Error(err))
 	}
 }
@@ -231,10 +233,12 @@ func (app *Application) execute(msg *stan.Msg) {
 	}
 
 	h := builder.NewBuilder(
+		app.service,
 		reportFile,
 		app.royaltyRepository,
 		app.vatRepository,
 		app.transactionsRepository,
+		app.payoutRepository,
 	)
 	bldr, err := h.GetBuilder()
 
@@ -272,10 +276,16 @@ func (app *Application) execute(msg *stan.Msg) {
 		return
 	}
 
-	_, err = app.s3.Upload(context.TODO(), &awsWrapper.UploadInput{
+	retentionTime := app.cfg.DocumentRetentionTime
+	if reportFile.RetentionTime > 0 {
+		retentionTime = int(reportFile.RetentionTime)
+	}
+
+	ctx := context.TODO()
+	_, err = app.s3.Upload(ctx, &awsWrapper.UploadInput{
 		Body:     bytes.NewReader(file),
 		FileName: fileName,
-		Expires:  time.Now().Add(time.Duration(app.cfg.DocumentRetentionTime) * time.Second),
+		Expires:  time.Now().Add(time.Duration(retentionTime) * time.Second),
 	})
 
 	if err != nil {
@@ -283,20 +293,31 @@ func (app *Application) execute(msg *stan.Msg) {
 		return
 	}
 
-	err = app.centrifugo.Publish(fmt.Sprintf(app.cfg.CentrifugoConfig.UserChannel, reportFile.MerchantId), file)
+	if reportFile.SendNotification {
+		err = app.centrifugo.Publish(fmt.Sprintf(app.cfg.CentrifugoConfig.UserChannel, reportFile.MerchantId), file)
 
-	if err != nil {
-		zap.L().Error(
-			errors.ErrorCentrifugoNotificationFailed.Message,
-			zap.Error(err),
-			zap.Any("report_file", reportFile),
-		)
-		return
+		if err != nil {
+			zap.L().Error(
+				errors.ErrorCentrifugoNotificationFailed.Message,
+				zap.Error(err),
+				zap.Any("report_file", reportFile),
+			)
+			return
+		}
 	}
 
 	if err = os.Remove(filePath); err != nil {
 		zap.L().Error(
 			"Unable to delete temporary file",
+			zap.Error(err),
+			zap.String("path", filePath),
+		)
+		return
+	}
+
+	if err = bldr.PostProcess(ctx, reportFile.Id, fileName, retentionTime); err != nil {
+		zap.L().Error(
+			"PostProcess execution error",
 			zap.Error(err),
 			zap.String("path", filePath),
 		)

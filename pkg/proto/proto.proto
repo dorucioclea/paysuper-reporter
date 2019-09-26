@@ -42,6 +42,10 @@ message ReportFile {
     bytes params = 6;
     // @inject_tag: json:"template" validate:"required,hexadecimal"
     string template = 7;
+    // @inject_tag: json:"retention_time"
+    int32 retention_time = 8;
+    // @inject_tag: json:"send_notification"
+    bool send_notification = 9;
     // @inject_tag: json:"created_at"
-    google.protobuf.Timestamp created_at = 8;
+    google.protobuf.Timestamp created_at = 10;
 }

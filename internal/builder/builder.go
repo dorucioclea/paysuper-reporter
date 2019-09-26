@@ -1,8 +1,10 @@
 package builder
 
 import (
+	"context"
 	"encoding/json"
 	errs "errors"
+	"github.com/micro/go-micro"
 	"github.com/paysuper/paysuper-reporter/internal/repository"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
@@ -16,19 +18,23 @@ var (
 		pkg.ReportTypeRoyalty:             newRoyaltyHandler,
 		pkg.ReportTypeRoyaltyTransactions: newRoyaltyTransactionsHandler,
 		pkg.ReportTypeTransactions:        newTransactionsHandler,
+		pkg.ReportTypePayout:              newPayoutHandler,
 	}
 )
 
 type BuildInterface interface {
 	Validate() error
 	Build() (interface{}, error)
+	PostProcess(context.Context, string, string, int) error
 }
 
 type Handler struct {
-	report                  *proto.ReportFile
-	royaltyReportRepository repository.RoyaltyRepositoryInterface
-	vatReportRepository     repository.VatRepositoryInterface
-	transactionsRepository  repository.TransactionsRepositoryInterface
+	service                micro.Service
+	report                 *proto.ReportFile
+	royaltyRepository      repository.RoyaltyRepositoryInterface
+	vatRepository          repository.VatRepositoryInterface
+	transactionsRepository repository.TransactionsRepositoryInterface
+	payoutRepository       repository.PayoutRepositoryInterface
 }
 
 type DefaultHandler struct {
@@ -36,16 +42,20 @@ type DefaultHandler struct {
 }
 
 func NewBuilder(
+	service micro.Service,
 	report *proto.ReportFile,
-	royaltyReportRepository repository.RoyaltyRepositoryInterface,
-	vatReportRepository repository.VatRepositoryInterface,
+	royaltyRepository repository.RoyaltyRepositoryInterface,
+	vatRepository repository.VatRepositoryInterface,
 	transactionsRepository repository.TransactionsRepositoryInterface,
+	payoutRepository repository.PayoutRepositoryInterface,
 ) *Handler {
 	return &Handler{
-		report:                  report,
-		royaltyReportRepository: royaltyReportRepository,
-		vatReportRepository:     vatReportRepository,
-		transactionsRepository:  transactionsRepository,
+		service:                service,
+		report:                 report,
+		royaltyRepository:      royaltyRepository,
+		vatRepository:          vatRepository,
+		transactionsRepository: transactionsRepository,
+		payoutRepository:       payoutRepository,
 	}
 }
 

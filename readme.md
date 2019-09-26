@@ -37,6 +37,7 @@ DocumentReporter is a GRPS service for creating printable reports (royalties, va
 | DOCGEN_VAT_TEMPLATE                  | true     |                                                | ID of template in the JSReport for vat report                           |
 | DOCGEN_VAT_TRANSACTIONS_TEMPLATE     | true     |                                                | ID of template in the JSReport for vat transactions report              |
 | DOCGEN_TRANSACTIONS_TEMPLATE         | true     |                                                | ID of template in the JSReport for find transactions report             |
+| DOCGEN_PAYOUT_TEMPLATE               | true     |                                                | ID of template in the JSReport for payout report                        |
 | DOCUMENT_RETENTION_TIME              | -        | 604800                                         | Time to live the document in the S3 and DB storage                      |
 
 ## Contributing

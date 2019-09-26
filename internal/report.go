@@ -65,10 +65,12 @@ func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, 
 	file.Id = bson.NewObjectId().Hex()
 
 	h := builder.NewBuilder(
+		app.service,
 		file,
 		app.royaltyRepository,
 		app.vatRepository,
 		app.transactionsRepository,
+		app.payoutRepository,
 	)
 	bldr, err := h.GetBuilder()
 
