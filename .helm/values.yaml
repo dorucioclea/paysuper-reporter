@@ -40,7 +40,6 @@ backend:
     - DOCGEN_TRANSACTIONS_TEMPLATE
     - DOCGEN_PAYOUT_TEMPLATE
     - DOCUMENT_RETENTION_TIME
-    - DOCGEN_PAYOUT_TEMPLATE
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
