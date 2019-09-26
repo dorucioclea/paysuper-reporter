@@ -13,6 +13,7 @@ import (
 	mock2 "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"testing"
+	"time"
 )
 
 type VatTransactionsBuilderTestSuite struct {
@@ -78,7 +79,50 @@ func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_E
 
 func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_Ok() {
 	report := &billingProto.MgoVatReport{Id: bson.NewObjectId()}
-	orders := []*billingProto.MgoOrderViewPublic{{Id: bson.NewObjectId()}}
+	orders := []*billingProto.MgoOrderViewPublic{{
+		Id:                 bson.NewObjectId(),
+		Transaction:        "1",
+		CountryCode:        "RU",
+		TotalPaymentAmount: 1,
+		Currency:           "RUB",
+		PaymentMethod: &billingProto.MgoOrderPaymentMethod{
+			Name: "card",
+		},
+		CreatedAt: time.Now(),
+		GrossRevenue: &billingProto.OrderViewMoney{
+			Amount: 1,
+		},
+		TaxFee: &billingProto.OrderViewMoney{
+			Amount: 1,
+		},
+		TaxFeeCurrencyExchangeFee: &billingProto.OrderViewMoney{
+			Amount: 1,
+		},
+		TaxFeeTotal: &billingProto.OrderViewMoney{
+			Amount: 1,
+		},
+		MethodFeeTotal: &billingProto.OrderViewMoney{
+			Amount: 1,
+		},
+		MethodFeeTariff: &billingProto.OrderViewMoney{
+			Amount: 1,
+		},
+		MethodFixedFeeTariff: &billingProto.OrderViewMoney{
+			Amount: 1,
+		},
+		PaysuperFixedFee: &billingProto.OrderViewMoney{
+			Amount: 1,
+		},
+		FeesTotal: &billingProto.OrderViewMoney{
+			Amount: 1,
+		},
+		FeesTotalLocal: &billingProto.OrderViewMoney{
+			Amount: 1,
+		},
+		NetRevenue: &billingProto.OrderViewMoney{
+			Amount: 1,
+		},
+	}}
 	vatRep := mocks.VatRepositoryInterface{}
 	vatRep.On("GetById", mock2.Anything).Return(report, nil)
 	transRep := mocks.TransactionsRepositoryInterface{}
@@ -93,5 +137,5 @@ func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_O
 
 	r, err := h.Build()
 	assert.NoError(suite.T(), err)
-	assert.Len(suite.T(), r, 1)
+	assert.Len(suite.T(), r, 2)
 }

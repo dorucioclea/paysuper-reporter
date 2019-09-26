@@ -13,6 +13,7 @@ import (
 	mock2 "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"testing"
+	"time"
 )
 
 type RoyaltyBuilderTestSuite struct {
@@ -59,7 +60,23 @@ func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Build_Error_GetById() {
 }
 
 func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Build_Ok() {
-	report := &billingProto.MgoRoyaltyReport{Id: bson.NewObjectId()}
+	datetime := time.Now()
+	report := &billingProto.MgoRoyaltyReport{
+		Id:         bson.NewObjectId(),
+		PeriodFrom: datetime,
+		PeriodTo:   datetime,
+		PayoutDate: datetime,
+		CreatedAt:  datetime,
+		AcceptedAt: datetime,
+		Totals: &billingProto.RoyaltyReportTotals{
+			VatAmount:            1,
+			TransactionsCount:    1,
+			RollingReserveAmount: 1,
+			FeeAmount:            1,
+			CorrectionAmount:     1,
+			PayoutAmount:         1,
+		},
+	}
 	royaltyRep := mocks.RoyaltyRepositoryInterface{}
 	royaltyRep.On("GetById", mock2.Anything).Return(report, nil)
 
