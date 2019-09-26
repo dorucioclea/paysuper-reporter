@@ -32,6 +32,8 @@ DocumentReporter is a GRPS service for creating printable reports (royalties, va
 | CENTRIFUGO_USER_CHANNEL              | -        | paysuper:user#%s                               | Centrifugo channel name to send notifications to user                   |
 | DOCGEN_API_URL                       | -        | http://127.0.0.1:5488                          | URL of document generation service                                      |
 | DOCGEN_API_TIMEOUT                   | -        | 60000                                          | Timeout for waiting for a response from the document generation service |
+| DOCGEN_USERNAME                      | -        |                                                | Username for authenticate                                               |
+| DOCGEN_PASSWORD                      | -        |                                                | Password for authenticate                                               |
 | DOCGEN_ROYALTY_TEMPLATE              | true     |                                                | ID of template in the JSReport for royalty report                       |
 | DOCGEN_ROYALTY_TRANSACTIONS_TEMPLATE | true     |                                                | ID of template in the JSReport for royalty transactions report          |
 | DOCGEN_VAT_TEMPLATE                  | true     |                                                | ID of template in the JSReport for vat report                           |

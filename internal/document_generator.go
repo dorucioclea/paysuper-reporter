@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/paysuper/paysuper-recurring-repository/tools"
 	"github.com/paysuper/paysuper-reporter/internal/config"
-	"github.com/paysuper/paysuper-reporter/pkg"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
 	"github.com/paysuper/paysuper-reporter/pkg/proto"
 	"go.uber.org/zap"
@@ -28,6 +27,8 @@ type DocumentGeneratorRenderRequest struct {
 type DocumentGenerator struct {
 	apiUrl     string
 	timeout    int
+	username   string
+	password   string
 	httpClient *http.Client
 }
 
@@ -35,6 +36,8 @@ func newDocumentGenerator(config *config.DocumentGeneratorConfig) DocumentGenera
 	client := &DocumentGenerator{
 		apiUrl:     config.ApiUrl,
 		timeout:    config.Timeout,
+		username:   config.Username,
+		password:   config.Password,
 		httpClient: tools.NewLoggedHttpClient(zap.S()),
 	}
 
@@ -48,7 +51,17 @@ func (dg DocumentGenerator) Render(payload *proto.GeneratorPayload) ([]byte, err
 		return nil, err
 	}
 
-	rsp, err := dg.httpClient.Post(dg.apiUrl+"/api/report", pkg.MIMEApplicationJSON, bytes.NewBuffer(b))
+	req, err := http.NewRequest("POST", dg.apiUrl+"/api/report", bytes.NewBuffer(b))
+
+	if err != nil {
+		return nil, err
+	}
+
+	if dg.username != "" && dg.password != "" {
+		req.SetBasicAuth(dg.username, dg.password)
+	}
+
+	rsp, err := dg.httpClient.Do(req)
 
 	if err != nil {
 		return nil, err
