@@ -12,3 +12,4 @@ type RoyaltyRepository Repository
 type VatRepository Repository
 type TransactionsRepository Repository
 type PayoutRepository Repository
+type MerchantRepository Repository
