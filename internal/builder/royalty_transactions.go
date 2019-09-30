@@ -50,6 +50,61 @@ func (h *RoyaltyTransactions) Build() (interface{}, error) {
 	var transactions []map[string]interface{}
 
 	for _, order := range orders {
+		grossRevenue := float64(0)
+		if order.GrossRevenue != nil {
+			grossRevenue = order.GrossRevenue.Amount
+		}
+
+		taxFee := float64(0)
+		if order.TaxFee != nil {
+			taxFee = order.TaxFee.Amount
+		}
+
+		taxFeeCurrencyExchangeFee := float64(0)
+		if order.TaxFeeCurrencyExchangeFee != nil {
+			taxFeeCurrencyExchangeFee = order.TaxFeeCurrencyExchangeFee.Amount
+		}
+
+		taxFeeTotal := float64(0)
+		if order.TaxFeeTotal != nil {
+			taxFeeTotal = order.TaxFeeTotal.Amount
+		}
+
+		methodFeeTotal := float64(0)
+		if order.MethodFeeTotal != nil {
+			methodFeeTotal = order.MethodFeeTotal.Amount
+		}
+
+		methodFeeTariff := float64(0)
+		if order.MethodFeeTariff != nil {
+			methodFeeTariff = order.MethodFeeTariff.Amount
+		}
+
+		methodFixedFeeTariff := float64(0)
+		if order.MethodFixedFeeTariff != nil {
+			methodFixedFeeTariff = order.MethodFixedFeeTariff.Amount
+		}
+
+		paysuperFixedFee := float64(0)
+		if order.PaysuperFixedFee != nil {
+			paysuperFixedFee = order.PaysuperFixedFee.Amount
+		}
+
+		feesTotal := float64(0)
+		if order.FeesTotal != nil {
+			feesTotal = order.FeesTotal.Amount
+		}
+
+		feesTotalLocal := float64(0)
+		if order.FeesTotalLocal != nil {
+			feesTotalLocal = order.FeesTotalLocal.Amount
+		}
+
+		netRevenue := float64(0)
+		if order.NetRevenue != nil {
+			netRevenue = order.NetRevenue.Amount
+		}
+
 		transactions = append(transactions, map[string]interface{}{
 			"transaction":                   order.Transaction,
 			"country_code":                  order.CountryCode,
@@ -57,17 +112,17 @@ func (h *RoyaltyTransactions) Build() (interface{}, error) {
 			"currency":                      order.Currency,
 			"payment_method":                order.PaymentMethod.Name,
 			"created_at":                    order.CreatedAt.Format("2006-01-02T15:04:05"),
-			"gross_revenue":                 order.GrossRevenue.Amount,
-			"tax_fee":                       order.TaxFee.Amount,
-			"tax_fee_currency_exchange_fee": order.TaxFeeCurrencyExchangeFee.Amount,
-			"tax_fee_total":                 order.TaxFeeTotal.Amount,
-			"method_fee_total":              order.MethodFeeTotal.Amount,
-			"method_fee_tariff":             order.MethodFeeTariff.Amount,
-			"method_fixed_fee_tariff":       order.MethodFixedFeeTariff.Amount,
-			"paysuper_fixed_fee":            order.PaysuperFixedFee.Amount,
-			"fees_total":                    order.FeesTotal.Amount,
-			"fees_total_local":              order.FeesTotalLocal.Amount,
-			"net_revenue":                   order.NetRevenue.Amount,
+			"gross_revenue":                 grossRevenue,
+			"tax_fee":                       taxFee,
+			"tax_fee_currency_exchange_fee": taxFeeCurrencyExchangeFee,
+			"tax_fee_total":                 taxFeeTotal,
+			"method_fee_total":              methodFeeTotal,
+			"method_fee_tariff":             methodFeeTariff,
+			"method_fixed_fee_tariff":       methodFixedFeeTariff,
+			"paysuper_fixed_fee":            paysuperFixedFee,
+			"fees_total":                    feesTotal,
+			"fees_total_local":              feesTotalLocal,
+			"net_revenue":                   netRevenue,
 		})
 	}
 
