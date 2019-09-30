@@ -33,7 +33,13 @@ func (h *TransactionsRepository) GetByRoyalty(report *billingProto.MgoRoyaltyRep
 		"Status":              constant.OrderPublicStatusProcessed,
 	}
 	err := h.db.Collection(collectionOrderView).Find(match).Sort("created_at").All(&result)
-
+	zap.L().Error(
+		"royalty transactions query",
+		zap.Any("MerchantId", report.MerchantId),
+		zap.Any("PeriodFrom", report.PeriodFrom),
+		zap.Any("PeriodTo", report.PeriodTo),
+		zap.Any("OrderPublicStatusProcessed", constant.OrderPublicStatusProcessed),
+	)
 	if err != nil {
 		zap.L().Error(
 			errors.ErrorDatabaseQueryFailed.Message,
