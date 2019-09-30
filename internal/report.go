@@ -119,6 +119,8 @@ func (app *Application) getTemplate(file *proto.ReportFile) (string, error) {
 		return app.cfg.DG.VatTransactionsTemplate, nil
 	case pkg.ReportTypeTransactions:
 		return app.cfg.DG.TransactionsTemplate, nil
+	case pkg.ReportTypePayout:
+		return app.cfg.DG.PayoutTemplate, nil
 	}
 
 	return file.Template, errs.New(errors.ErrorTemplateNotFound.Message)
