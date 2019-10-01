@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"fmt"
 	"github.com/globalsign/mgo/bson"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/mongodb"
@@ -74,7 +73,6 @@ func (suite *VatRepositoryTestSuite) TestVatRepository_GetById_Ok() {
 	}
 
 	rep, err := suite.service.GetById(report.Id.Hex())
-	fmt.Println(rep)
 	assert.NoError(suite.T(), err, "unable to get the vat report")
 	assert.Equal(suite.T(), report.Id, rep.Id)
 }
