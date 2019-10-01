@@ -51,36 +51,69 @@ func (h *VatTransactions) Build() (interface{}, error) {
 	var transactions []map[string]interface{}
 
 	for _, order := range orders {
-		taxFeeTotal := float64(0)
-		if order.TaxFeeTotal != nil {
-			taxFeeTotal = order.TaxFeeTotal.Amount
+		amount := float64(0)
+		amountCurrency := ""
+
+		if order.PaymentGrossRevenueOrigin != nil {
+			amount = order.PaymentGrossRevenueOrigin.Amount
+			amountCurrency = order.PaymentGrossRevenueOrigin.Currency
 		}
 
-		feesTotal := float64(0)
-		if order.FeesTotal != nil {
-			feesTotal = order.FeesTotal.Amount
+		vat := float64(0)
+		vatCurrency := ""
+
+		if order.PaymentTaxFeeLocal != nil {
+			vat = order.PaymentTaxFeeLocal.Amount
+			vatCurrency = order.PaymentTaxFeeLocal.Currency
 		}
 
-		grossRevenue := float64(0)
-		if order.GrossRevenue != nil {
-			grossRevenue = order.GrossRevenue.Amount
+		fee := float64(0)
+		feeCurrency := ""
+
+		if order.FeesTotalLocal != nil {
+			fee = order.FeesTotalLocal.Amount
+			feeCurrency = order.FeesTotalLocal.Currency
+		}
+
+		payout := float64(0)
+		payoutCurrency := ""
+
+		if order.NetRevenue != nil {
+			payout = -1 * order.NetRevenue.Amount
+			payoutCurrency = order.NetRevenue.Currency
+		}
+
+		isVatDeduction := "Yes"
+		if !order.IsVatDeduction {
+			isVatDeduction = "No"
 		}
 
 		transactions = append(transactions, map[string]interface{}{
-			"date":           order.TransactionDate.Format("2006-01-02T15:04:05"),
-			"country":        order.CountryCode,
-			"id":             order.Id.Hex(),
-			"payment_method": order.PaymentMethod.Name,
-			"amount":         math.Round(order.TotalPaymentAmount*100) / 100,
-			"vat":            math.Round(taxFeeTotal*100) / 100,
-			"fee":            math.Round(feesTotal*100) / 100,
-			"payout":         math.Round(grossRevenue*100) / 100,
+			"date":             order.TransactionDate.Format("2006-01-02T15:04:05"),
+			"country":          order.CountryCode,
+			"id":               order.Id.Hex(),
+			"payment_method":   order.PaymentMethod.Name,
+			"amount":           math.Round(amount*100) / 100,
+			"amountCurrency":   amountCurrency,
+			"vat":              math.Round(vat*100) / 100,
+			"vatCurrency":      vatCurrency,
+			"fee":              math.Round(fee*100) / 100,
+			"feeCurrency":      feeCurrency,
+			"payout":           math.Round(payout*100) / 100,
+			"payoutCurrency":   payoutCurrency,
+			"is_vat_deduction": isVatDeduction,
 		})
 	}
 
 	result := map[string]interface{}{
 		"id":                       params[pkg.ParamsFieldId],
 		"country":                  vat.Country,
+		"currency":                 vat.Currency,
+		"vat_rate":                 vat.VatRate,
+		"status":                   vat.Status,
+		"pay_until_date":           vat.PayUntilDate,
+		"country_annual_turnover":  vat.CountryAnnualTurnover,
+		"world_annual_turnover":    vat.WorldAnnualTurnover,
 		"created_at":               vat.CreatedAt.Format("2006-01-02T15:04:05"),
 		"start_date":               vat.DateFrom.Format("2006-01-02T15:04:05"),
 		"end_date":                 vat.DateTo.Format("2006-01-02T15:04:05"),

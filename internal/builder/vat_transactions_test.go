@@ -78,7 +78,7 @@ func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_E
 
 func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_Ok() {
 	report := &billingProto.MgoVatReport{Id: bson.NewObjectId()}
-	orders := []*billingProto.MgoOrderViewPublic{{
+	orders := []*billingProto.MgoOrderViewPrivate{{
 		Id: bson.NewObjectId(),
 		PaymentMethod: &billingProto.MgoOrderPaymentMethod{
 			Name: "card",

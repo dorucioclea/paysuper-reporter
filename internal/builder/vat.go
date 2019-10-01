@@ -35,6 +35,8 @@ func (h *Vat) Validate() error {
 }
 
 func (h *Vat) Build() (interface{}, error) {
+	var reports []map[string]interface{}
+
 	params, _ := h.GetParams()
 	country := fmt.Sprintf("%s", params[pkg.ParamsFieldCountry])
 	vats, err := h.vatRepository.GetByCountry(country)
@@ -43,14 +45,16 @@ func (h *Vat) Build() (interface{}, error) {
 		return nil, err
 	}
 
+	if len(vats) < 1 {
+		return reports, nil
+	}
+
 	grossRevenue := float64(0)
 	correction := float64(0)
 	totalTransactionsCount := int32(0)
 	deduction := float64(0)
 	ratesAndFees := float64(0)
 	taxAmount := float64(0)
-
-	var reports []map[string]interface{}
 
 	for _, vat := range vats {
 		grossRevenue += math.Round(vat.GrossRevenue*100) / 100
@@ -61,18 +65,25 @@ func (h *Vat) Build() (interface{}, error) {
 		taxAmount += math.Round(vat.VatAmount*100) / 100
 
 		reports = append(reports, map[string]interface{}{
-			"period_from":  vat.DateFrom.Format("2006-01-02T15:04:05"),
-			"period_to":    vat.DateTo.Format("2006-01-02T15:04:05"),
-			"report_date":  vat.CreatedAt.Format("2006-01-02T15:04:05"),
-			"vat_id":       vat.Id.Hex(),
-			"status":       vat.Status,
-			"payment_date": vat.PayUntilDate.Format("2006-01-02T15:04:05"),
-			"tax_amount":   math.Round(vat.VatAmount*100) / 100,
+			"period_from":             vat.DateFrom.Format("2006-01-02T15:04:05"),
+			"period_to":               vat.DateTo.Format("2006-01-02T15:04:05"),
+			"vat_id":                  vat.Id.Hex(),
+			"status":                  vat.Status,
+			"payment_date":            vat.PayUntilDate.Format("2006-01-02T15:04:05"),
+			"tax_amount":              math.Round(vat.VatAmount*100) / 100,
+			"transactions_count":      vat.TransactionsCount,
+			"gross_amount":            math.Round(vat.GrossRevenue*100) / 100,
+			"deduction_amount":        math.Round(vat.DeductionAmount*100) / 100,
+			"correction_amount":       math.Round(vat.CorrectionAmount*100) / 100,
+			"country_annual_turnover": math.Round(vat.CountryAnnualTurnover*100) / 100,
+			"world_annual_turnover":   math.Round(vat.WorldAnnualTurnover*100) / 100,
 		})
 	}
 
 	result := map[string]interface{}{
 		"country":                  country,
+		"currency":                 vats[0].Currency,
+		"vat_rate":                 vats[0].VatRate,
 		"start_date":               "2019-10-01T00:00:00",
 		"end_date":                 time.Now().Format("2006-01-02T15:04:05"),
 		"gross_revenue":            grossRevenue,

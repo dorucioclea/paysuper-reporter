@@ -96,7 +96,7 @@ func (suite *TransactionsRepositoryTestSuite) TestTransactionsRepository_GetByRo
 }
 
 func (suite *TransactionsRepositoryTestSuite) TestTransactionsRepository_GetByRoyalty_Error_UnexistsStatus() {
-	order := &billingProto.MgoOrderViewPublic{
+	order := &billingProto.MgoOrderViewPrivate{
 		Id:              bson.NewObjectId(),
 		MerchantId:      bson.NewObjectId(),
 		TransactionDate: time.Unix(1562258329, 0),

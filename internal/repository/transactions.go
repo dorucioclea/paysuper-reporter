@@ -16,7 +16,7 @@ const (
 
 type TransactionsRepositoryInterface interface {
 	GetByRoyalty(*billingProto.MgoRoyaltyReport) ([]*billingProto.MgoOrderViewPublic, error)
-	GetByVat(*billingProto.MgoVatReport) ([]*billingProto.MgoOrderViewPublic, error)
+	GetByVat(*billingProto.MgoVatReport) ([]*billingProto.MgoOrderViewPrivate, error)
 }
 
 func NewTransactionsRepository(db *database.Source) TransactionsRepositoryInterface {
@@ -47,8 +47,8 @@ func (h *TransactionsRepository) GetByRoyalty(report *billingProto.MgoRoyaltyRep
 	return result, nil
 }
 
-func (h *TransactionsRepository) GetByVat(report *billingProto.MgoVatReport) ([]*billingProto.MgoOrderViewPublic, error) {
-	var result []*billingProto.MgoOrderViewPublic
+func (h *TransactionsRepository) GetByVat(report *billingProto.MgoVatReport) ([]*billingProto.MgoOrderViewPrivate, error) {
+	var result []*billingProto.MgoOrderViewPrivate
 
 	match := bson.M{
 		"pm_order_close_date": bson.M{
