@@ -28,7 +28,7 @@ func (h *TransactionsRepository) GetByRoyalty(report *billingProto.MgoRoyaltyRep
 	var result []*billingProto.MgoOrderViewPublic
 
 	match := bson.M{
-		"merchant_id":         report.MerchantId,
+		"merchant_id":         report.MerchantId.Hex(),
 		"pm_order_close_date": bson.M{"$gte": report.PeriodFrom, "$lte": report.PeriodTo},
 		"Status":              constant.OrderPublicStatusProcessed,
 	}
