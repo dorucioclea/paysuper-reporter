@@ -51,15 +51,30 @@ func (h *VatTransactions) Build() (interface{}, error) {
 	var transactions []map[string]interface{}
 
 	for _, order := range orders {
+		taxFeeTotal := float64(0)
+		if order.TaxFeeTotal != nil {
+			taxFeeTotal = order.TaxFeeTotal.Amount
+		}
+
+		feesTotal := float64(0)
+		if order.FeesTotal != nil {
+			feesTotal = order.FeesTotal.Amount
+		}
+
+		grossRevenue := float64(0)
+		if order.GrossRevenue != nil {
+			grossRevenue = order.GrossRevenue.Amount
+		}
+
 		transactions = append(transactions, map[string]interface{}{
 			"date":           order.TransactionDate.Format("2006-01-02T15:04:05"),
 			"country":        order.CountryCode,
 			"id":             order.Id.Hex(),
 			"payment_method": order.PaymentMethod.Name,
 			"amount":         math.Round(order.TotalPaymentAmount*100) / 100,
-			"vat":            math.Round(order.TaxFeeTotal.Amount*100) / 100,
-			"fee":            math.Round(order.FeesTotal.Amount*100) / 100,
-			"payout":         math.Round(order.GrossRevenue.Amount*100) / 100,
+			"vat":            math.Round(taxFeeTotal*100) / 100,
+			"fee":            math.Round(feesTotal*100) / 100,
+			"payout":         math.Round(grossRevenue*100) / 100,
 		})
 	}
 
