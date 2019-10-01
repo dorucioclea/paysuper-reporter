@@ -38,5 +38,6 @@ const (
 	RecipeCsv  = "text"
 	RecipePdf  = "chrome-pdf"
 
-	ParamsFieldId = "id"
+	ParamsFieldId      = "id"
+	ParamsFieldCountry = "country"
 )

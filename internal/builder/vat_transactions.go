@@ -7,6 +7,7 @@ import (
 	"github.com/globalsign/mgo/bson"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
+	"math"
 )
 
 type VatTransactions DefaultHandler
@@ -50,85 +51,31 @@ func (h *VatTransactions) Build() (interface{}, error) {
 	var transactions []map[string]interface{}
 
 	for _, order := range orders {
-		grossRevenue := float64(0)
-		if order.GrossRevenue != nil {
-			grossRevenue = order.GrossRevenue.Amount
-		}
-
-		taxFee := float64(0)
-		if order.TaxFee != nil {
-			taxFee = order.TaxFee.Amount
-		}
-
-		taxFeeCurrencyExchangeFee := float64(0)
-		if order.TaxFeeCurrencyExchangeFee != nil {
-			taxFeeCurrencyExchangeFee = order.TaxFeeCurrencyExchangeFee.Amount
-		}
-
-		taxFeeTotal := float64(0)
-		if order.TaxFeeTotal != nil {
-			taxFeeTotal = order.TaxFeeTotal.Amount
-		}
-
-		methodFeeTotal := float64(0)
-		if order.MethodFeeTotal != nil {
-			methodFeeTotal = order.MethodFeeTotal.Amount
-		}
-
-		methodFeeTariff := float64(0)
-		if order.MethodFeeTariff != nil {
-			methodFeeTariff = order.MethodFeeTariff.Amount
-		}
-
-		methodFixedFeeTariff := float64(0)
-		if order.MethodFixedFeeTariff != nil {
-			methodFixedFeeTariff = order.MethodFixedFeeTariff.Amount
-		}
-
-		paysuperFixedFee := float64(0)
-		if order.PaysuperFixedFee != nil {
-			paysuperFixedFee = order.PaysuperFixedFee.Amount
-		}
-
-		feesTotal := float64(0)
-		if order.FeesTotal != nil {
-			feesTotal = order.FeesTotal.Amount
-		}
-
-		feesTotalLocal := float64(0)
-		if order.FeesTotalLocal != nil {
-			feesTotalLocal = order.FeesTotalLocal.Amount
-		}
-
-		netRevenue := float64(0)
-		if order.NetRevenue != nil {
-			netRevenue = order.NetRevenue.Amount
-		}
-
 		transactions = append(transactions, map[string]interface{}{
-			"transaction":                   order.Transaction,
-			"country_code":                  order.CountryCode,
-			"total_payment_amount":          order.TotalPaymentAmount,
-			"currency":                      order.Currency,
-			"payment_method":                order.PaymentMethod.Name,
-			"created_at":                    order.CreatedAt.Format("2006-01-02T15:04:05"),
-			"gross_revenue":                 grossRevenue,
-			"tax_fee":                       taxFee,
-			"tax_fee_currency_exchange_fee": taxFeeCurrencyExchangeFee,
-			"tax_fee_total":                 taxFeeTotal,
-			"method_fee_total":              methodFeeTotal,
-			"method_fee_tariff":             methodFeeTariff,
-			"method_fixed_fee_tariff":       methodFixedFeeTariff,
-			"paysuper_fixed_fee":            paysuperFixedFee,
-			"fees_total":                    feesTotal,
-			"fees_total_local":              feesTotalLocal,
-			"net_revenue":                   netRevenue,
+			"date":           order.TransactionDate.Format("2006-01-02T15:04:05"),
+			"country":        order.CountryCode,
+			"id":             order.Id.Hex(),
+			"payment_method": order.PaymentMethod.Name,
+			"amount":         math.Round(order.TotalPaymentAmount*100) / 100,
+			"vat":            math.Round(order.TaxFeeTotal.Amount*100) / 100,
+			"fee":            math.Round(order.FeesTotal.Amount*100) / 100,
+			"payout":         math.Round(order.GrossRevenue.Amount*100) / 100,
 		})
 	}
 
 	result := map[string]interface{}{
-		"id":           params[pkg.ParamsFieldId],
-		"transactions": transactions,
+		"id":                       params[pkg.ParamsFieldId],
+		"country":                  vat.Country,
+		"created_at":               vat.CreatedAt.Format("2006-01-02T15:04:05"),
+		"start_date":               vat.DateFrom.Format("2006-01-02T15:04:05"),
+		"end_date":                 vat.DateTo.Format("2006-01-02T15:04:05"),
+		"gross_revenue":            math.Round(vat.GrossRevenue*100) / 100,
+		"correction":               math.Round(vat.CorrectionAmount*100) / 100,
+		"total_transactions_count": vat.TransactionsCount,
+		"deduction":                math.Round(vat.DeductionAmount*100) / 100,
+		"rates_and_fees":           math.Round(vat.FeesAmount*100) / 100,
+		"tax_amount":               math.Round(vat.VatAmount*100) / 100,
+		"transactions":             transactions,
 	}
 
 	return result, nil
