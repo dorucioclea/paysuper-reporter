@@ -64,9 +64,8 @@ func (suite *TransactionsRepositoryTestSuite) TearDownTest() {
 	suite.db.Close()
 }
 
-func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByRoyalty_Ok() {
+func (suite *TransactionsRepositoryTestSuite) TestTransactionsRepository_GetByRoyalty_Ok() {
 	report := &billingProto.MgoRoyaltyReport{
-		Id:         bson.ObjectIdHex("5ced34d689fce60bf4440829"),
 		MerchantId: bson.ObjectIdHex("5ced34d689fce60bf444082a"),
 		PeriodFrom: time.Unix(1562258329, 0).AddDate(0, 0, -1),
 		PeriodTo:   time.Unix(1562258329, 0).AddDate(0, 0, 1),
@@ -77,7 +76,7 @@ func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByRoyalty_Ok(
 	assert.Len(suite.T(), orders, 1)
 }
 
-func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByRoyalty_Error_RangeDates() {
+func (suite *TransactionsRepositoryTestSuite) TestTransactionsRepository_GetByRoyalty_Error_RangeDates() {
 	order := &billingProto.MgoOrderViewPublic{
 		Id:              bson.NewObjectId(),
 		MerchantId:      bson.NewObjectId(),
@@ -96,7 +95,7 @@ func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByRoyalty_Err
 	assert.Len(suite.T(), orders, 0)
 }
 
-func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByRoyalty_Error_UnexistsStatus() {
+func (suite *TransactionsRepositoryTestSuite) TestTransactionsRepository_GetByRoyalty_Error_UnexistsStatus() {
 	order := &billingProto.MgoOrderViewPublic{
 		Id:              bson.NewObjectId(),
 		MerchantId:      bson.NewObjectId(),
@@ -115,7 +114,7 @@ func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByRoyalty_Err
 	assert.Len(suite.T(), orders, 0)
 }
 
-func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByVat_Ok() {
+func (suite *TransactionsRepositoryTestSuite) TestTransactionsRepository_GetByVat_Ok() {
 	report := &billingProto.MgoVatReport{
 		Id:       bson.ObjectIdHex("5ced34d689fce60bf4440829"),
 		DateFrom: time.Unix(1562258329, 0),
@@ -128,7 +127,7 @@ func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByVat_Ok() {
 	assert.Len(suite.T(), orders, 1)
 }
 
-func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByVat_Error_RangeDate() {
+func (suite *TransactionsRepositoryTestSuite) TestTransactionsRepository_GetByVat_Error_RangeDate() {
 	report := &billingProto.MgoVatReport{
 		Id:       bson.NewObjectId(),
 		DateFrom: time.Now().AddDate(0, 0, -2),
@@ -141,7 +140,7 @@ func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByVat_Error_R
 	assert.Len(suite.T(), orders, 0)
 }
 
-func (suite *TransactionsRepositoryTestSuite) TestVatRepository_GetByVat_Error_Country() {
+func (suite *TransactionsRepositoryTestSuite) TestTransactionsRepository_GetByVat_Error_Country() {
 	report := &billingProto.MgoVatReport{
 		Id:       bson.NewObjectId(),
 		DateFrom: time.Now(),
