@@ -65,11 +65,11 @@ func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Build_Ok() {
 			Address: "",
 			Details: "",
 		},
-		Summary: &billingProto.PayoutDocumentSummary{
+		/*Summary: &billingProto.PayoutDocumentSummary{
 			Orders: &billingProto.PayoutDocumentOrders{
 				Count: 0,
 			},
-		},
+		},*/
 	}
 	payoutRep := mocks.PayoutRepositoryInterface{}
 	payoutRep.On("GetById", mock2.Anything).Return(report, nil)
