@@ -19,6 +19,7 @@ var (
 		pkg.ReportTypeRoyaltyTransactions: newRoyaltyTransactionsHandler,
 		pkg.ReportTypeTransactions:        newTransactionsHandler,
 		pkg.ReportTypePayout:              newPayoutHandler,
+		pkg.ReportTypeAgreement:           newAgreementHandler,
 	}
 )
 

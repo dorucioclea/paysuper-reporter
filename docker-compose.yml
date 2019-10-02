@@ -1,0 +1,16 @@
+version: "3.6"
+
+services:
+  nats-streaming:
+    image: nats-streaming:latest
+    container_name: nats-streaming
+    restart: unless-stopped
+    networks:
+      - subnet
+    ports:
+      - "4222:4222"
+      - "6222:6222"
+
+networks:
+  subnet:
+    external: true
