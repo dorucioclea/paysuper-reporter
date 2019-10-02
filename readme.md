@@ -27,6 +27,10 @@ DocumentReporter is a GRPS service for creating printable reports (royalties, va
 | AWS_SECRET_ACCESS_KEY                | true     |                                                |                                                                         |
 | AWS_BUCKET                           | true     |                                                |                                                                         |
 | AWS_REGION                           | true     |                                                |                                                                         |
+| AWS_ACCESS_KEY_ID_AGREEMENT          | true     | -                                              | AWS access key identifier for agreements storage                        |
+| AWS_SECRET_ACCESS_KEY_AGREEMENT      | true     | -                                              | AWS access secret key for agreements storage                            |
+| AWS_BUCKET_AGREEMENT                 | true     | -                                              | AWS bucket name for agreements storage                                  |
+| AWS_REGION_AGREEMENT                 | -        | eu-west-1                                      | AWS region for agreements storage                                       |
 | CENTRIFUGO_API_SECRET                | true     | -                                              | Centrifugo API secret key                                               |
 | CENTRIFUGO_URL                       | -        | http://127.0.0.1:8000                          | Centrifugo API gateway                                                  |
 | CENTRIFUGO_USER_CHANNEL              | -        | paysuper:user#%s                               | Centrifugo channel name to send notifications to user                   |
@@ -40,6 +44,7 @@ DocumentReporter is a GRPS service for creating printable reports (royalties, va
 | DOCGEN_VAT_TRANSACTIONS_TEMPLATE     | true     |                                                | ID of template in the JSReport for vat transactions report              |
 | DOCGEN_TRANSACTIONS_TEMPLATE         | true     |                                                | ID of template in the JSReport for find transactions report             |
 | DOCGEN_PAYOUT_TEMPLATE               | true     |                                                | ID of template in the JSReport for payout report                        |
+| DOCGEN_AGREEMENT_TEMPLATE            | true     |                                                | ID of template in the JSReport for merchant agreement license           |
 | DOCUMENT_RETENTION_TIME              | -        | 604800                                         | Time to live the document in the S3 and DB storage                      |
 
 ## Contributing
