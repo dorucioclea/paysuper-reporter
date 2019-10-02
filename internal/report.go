@@ -72,6 +72,7 @@ func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, 
 		app.vatRepository,
 		app.transactionsRepository,
 		app.payoutRepository,
+		app.merchantRepository,
 	)
 	bldr, err := h.GetBuilder()
 
@@ -122,6 +123,8 @@ func (app *Application) getTemplate(file *proto.ReportFile) (string, error) {
 		return app.cfg.DG.TransactionsTemplate, nil
 	case pkg.ReportTypeAgreement:
 		return app.cfg.DG.AgreementTemplate, nil
+	case pkg.ReportTypePayout:
+		return app.cfg.DG.PayoutTemplate, nil
 	}
 
 	return file.Template, errs.New(errors.ErrorTemplateNotFound.Message)

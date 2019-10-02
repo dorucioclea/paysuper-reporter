@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"fmt"
 	"github.com/globalsign/mgo/bson"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/mongodb"
@@ -74,7 +73,23 @@ func (suite *VatRepositoryTestSuite) TestVatRepository_GetById_Ok() {
 	}
 
 	rep, err := suite.service.GetById(report.Id.Hex())
-	fmt.Println(rep)
 	assert.NoError(suite.T(), err, "unable to get the vat report")
 	assert.Equal(suite.T(), report.Id, rep.Id)
+}
+
+func (suite *VatRepositoryTestSuite) TestVatRepository_GetByCountry_Error() {
+	report, err := suite.service.GetByCountry("UA")
+	assert.NoError(suite.T(), err)
+	assert.Len(suite.T(), report, 0)
+}
+
+func (suite *VatRepositoryTestSuite) TestVatRepository_GetByCountry_Ok() {
+	report := &billingProto.MgoVatReport{
+		Country: "RU",
+	}
+
+	rep, err := suite.service.GetByCountry(report.Country)
+	assert.NoError(suite.T(), err, "unable to get the vat report")
+	assert.Len(suite.T(), rep, 1)
+	assert.Equal(suite.T(), report.Country, rep[0].Country)
 }

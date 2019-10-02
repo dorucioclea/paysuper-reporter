@@ -7,6 +7,7 @@ import (
 	"github.com/globalsign/mgo/bson"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
+	"math"
 )
 
 type RoyaltyTransactions DefaultHandler
@@ -41,6 +42,12 @@ func (h *RoyaltyTransactions) Build() (interface{}, error) {
 		return nil, err
 	}
 
+	merchant, err := h.merchantRepository.GetById(royalty.MerchantId.Hex())
+
+	if err != nil {
+		return nil, err
+	}
+
 	orders, err := h.transactionsRepository.GetByRoyalty(royalty)
 
 	if err != nil {
@@ -50,85 +57,31 @@ func (h *RoyaltyTransactions) Build() (interface{}, error) {
 	var transactions []map[string]interface{}
 
 	for _, order := range orders {
-		grossRevenue := float64(0)
-		if order.GrossRevenue != nil {
-			grossRevenue = order.GrossRevenue.Amount
-		}
-
-		taxFee := float64(0)
-		if order.TaxFee != nil {
-			taxFee = order.TaxFee.Amount
-		}
-
-		taxFeeCurrencyExchangeFee := float64(0)
-		if order.TaxFeeCurrencyExchangeFee != nil {
-			taxFeeCurrencyExchangeFee = order.TaxFeeCurrencyExchangeFee.Amount
-		}
-
-		taxFeeTotal := float64(0)
-		if order.TaxFeeTotal != nil {
-			taxFeeTotal = order.TaxFeeTotal.Amount
-		}
-
-		methodFeeTotal := float64(0)
-		if order.MethodFeeTotal != nil {
-			methodFeeTotal = order.MethodFeeTotal.Amount
-		}
-
-		methodFeeTariff := float64(0)
-		if order.MethodFeeTariff != nil {
-			methodFeeTariff = order.MethodFeeTariff.Amount
-		}
-
-		methodFixedFeeTariff := float64(0)
-		if order.MethodFixedFeeTariff != nil {
-			methodFixedFeeTariff = order.MethodFixedFeeTariff.Amount
-		}
-
-		paysuperFixedFee := float64(0)
-		if order.PaysuperFixedFee != nil {
-			paysuperFixedFee = order.PaysuperFixedFee.Amount
-		}
-
-		feesTotal := float64(0)
-		if order.FeesTotal != nil {
-			feesTotal = order.FeesTotal.Amount
-		}
-
-		feesTotalLocal := float64(0)
-		if order.FeesTotalLocal != nil {
-			feesTotalLocal = order.FeesTotalLocal.Amount
-		}
-
 		netRevenue := float64(0)
 		if order.NetRevenue != nil {
 			netRevenue = order.NetRevenue.Amount
 		}
 
 		transactions = append(transactions, map[string]interface{}{
-			"transaction":                   order.Transaction,
-			"country_code":                  order.CountryCode,
-			"total_payment_amount":          order.TotalPaymentAmount,
-			"currency":                      order.Currency,
-			"payment_method":                order.PaymentMethod.Name,
-			"created_at":                    order.CreatedAt.Format("2006-01-02T15:04:05"),
-			"gross_revenue":                 grossRevenue,
-			"tax_fee":                       taxFee,
-			"tax_fee_currency_exchange_fee": taxFeeCurrencyExchangeFee,
-			"tax_fee_total":                 taxFeeTotal,
-			"method_fee_total":              methodFeeTotal,
-			"method_fee_tariff":             methodFeeTariff,
-			"method_fixed_fee_tariff":       methodFixedFeeTariff,
-			"paysuper_fixed_fee":            paysuperFixedFee,
-			"fees_total":                    feesTotal,
-			"fees_total_local":              feesTotalLocal,
-			"net_revenue":                   netRevenue,
+			"status":     order.Transaction,
+			"project":    order.Project.Name[0].Value,
+			"datetime":   order.TransactionDate.Format("2006-01-02T15:04:05"),
+			"country":    order.Currency,
+			"method":     order.PaymentMethod.Name,
+			"id":         order.Id.Hex(),
+			"net_amount": math.Round(netRevenue*100) / 100,
 		})
 	}
 
 	result := map[string]interface{}{
-		"id":           params[pkg.ParamsFieldId],
-		"transactions": transactions,
+		"id":                       royalty.Id.Hex(),
+		"report_date":              royalty.CreatedAt.Format("2006-01-02T15:04:05"),
+		"merchant_legal_name":      merchant.Company.Name,
+		"merchant_company_address": merchant.Company.Address,
+		"start_date":               royalty.PeriodFrom.Format("2006-01-02T15:04:05"),
+		"end_date":                 royalty.PeriodTo.Format("2006-01-02T15:04:05"),
+		"currency":                 royalty.Currency,
+		"transactions":             transactions,
 	}
 
 	return result, nil

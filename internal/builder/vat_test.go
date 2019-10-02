@@ -24,8 +24,19 @@ func Test_VatBuilder(t *testing.T) {
 	suite.Run(t, new(VatBuilderTestSuite))
 }
 
-func (suite *VatBuilderTestSuite) TestVatBuilder_Validate_Error_IdNotFound() {
+func (suite *VatBuilderTestSuite) TestVatBuilder_Validate_Error_CountryEmpty() {
 	params, _ := json.Marshal(map[string]interface{}{})
+	h := newVatHandler(&Handler{
+		report: &proto.ReportFile{Params: params},
+	})
+
+	assert.Errorf(suite.T(), h.Validate(), errors.ErrorParamIdNotFound.Message)
+}
+
+func (suite *VatBuilderTestSuite) TestVatBuilder_Validate_Error_CountryInvalid() {
+	params, _ := json.Marshal(map[string]interface{}{
+		pkg.ParamsFieldCountry: "ABC",
+	})
 	h := newVatHandler(&Handler{
 		report: &proto.ReportFile{Params: params},
 	})
@@ -35,7 +46,7 @@ func (suite *VatBuilderTestSuite) TestVatBuilder_Validate_Error_IdNotFound() {
 
 func (suite *VatBuilderTestSuite) TestVatBuilder_Validate_Ok() {
 	params, _ := json.Marshal(map[string]interface{}{
-		pkg.ParamsFieldId: "5ced34d689fce60bf4440829",
+		pkg.ParamsFieldCountry: "RU",
 	})
 	h := newVatHandler(&Handler{
 		report: &proto.ReportFile{Params: params},
@@ -46,9 +57,11 @@ func (suite *VatBuilderTestSuite) TestVatBuilder_Validate_Ok() {
 
 func (suite *VatBuilderTestSuite) TestVatBuilder_Build_Error_GetById() {
 	vatRep := mocks.VatRepositoryInterface{}
-	vatRep.On("GetById", mock2.Anything).Return(nil, errs.New("not found"))
+	vatRep.On("GetByCountry", mock2.Anything).Return(nil, errs.New("not found"))
 
-	params, _ := json.Marshal(map[string]interface{}{})
+	params, _ := json.Marshal(map[string]interface{}{
+		pkg.ParamsFieldCountry: "RU",
+	})
 	h := newVatHandler(&Handler{
 		vatRepository: &vatRep,
 		report:        &proto.ReportFile{Params: params},
@@ -59,11 +72,13 @@ func (suite *VatBuilderTestSuite) TestVatBuilder_Build_Error_GetById() {
 }
 
 func (suite *VatBuilderTestSuite) TestVatBuilder_Build_Ok() {
-	report := &billingProto.MgoVatReport{Id: bson.NewObjectId()}
+	report := []*billingProto.MgoVatReport{{Id: bson.NewObjectId()}}
 	vatRep := mocks.VatRepositoryInterface{}
-	vatRep.On("GetById", mock2.Anything).Return(report, nil)
+	vatRep.On("GetByCountry", mock2.Anything).Return(report, nil)
 
-	params, _ := json.Marshal(map[string]interface{}{})
+	params, _ := json.Marshal(map[string]interface{}{
+		pkg.ParamsFieldCountry: "RU",
+	})
 	h := newVatHandler(&Handler{
 		vatRepository: &vatRep,
 		report:        &proto.ReportFile{Params: params},
@@ -71,5 +86,6 @@ func (suite *VatBuilderTestSuite) TestVatBuilder_Build_Ok() {
 
 	r, err := h.Build()
 	assert.NoError(suite.T(), err)
-	assert.NotEmpty(suite.T(), report.Id, r)
+	assert.Len(suite.T(), report, 1)
+	assert.NotEmpty(suite.T(), report[0].Id, r)
 }

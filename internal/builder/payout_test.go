@@ -26,47 +26,58 @@ func Test_PayoutBuilder(t *testing.T) {
 
 func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Validate_Error_IdNotFound() {
 	params, _ := json.Marshal(map[string]interface{}{})
-	h := newVatHandler(&Handler{
+	h := newPayoutHandler(&Handler{
 		report: &proto.ReportFile{Params: params},
 	})
 
 	assert.Errorf(suite.T(), h.Validate(), errors.ErrorParamIdNotFound.Message)
 }
 
-func (suite *VatBuilderTestSuite) TestPayoutBuilder_Validate_Ok() {
+func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Validate_Ok() {
 	params, _ := json.Marshal(map[string]interface{}{
 		pkg.ParamsFieldId: "5ced34d689fce60bf4440829",
 	})
-	h := newVatHandler(&Handler{
+	h := newPayoutHandler(&Handler{
 		report: &proto.ReportFile{Params: params},
 	})
 
 	assert.NoError(suite.T(), h.Validate())
 }
 
-func (suite *VatBuilderTestSuite) TestPayoutBuilder_Build_Error_GetById() {
-	vatRep := mocks.VatRepositoryInterface{}
-	vatRep.On("GetById", mock2.Anything).Return(nil, errs.New("not found"))
+func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Build_Error_GetById() {
+	payoutRep := mocks.PayoutRepositoryInterface{}
+	payoutRep.On("GetById", mock2.Anything).Return(nil, errs.New("not found"))
 
 	params, _ := json.Marshal(map[string]interface{}{})
-	h := newVatHandler(&Handler{
-		vatRepository: &vatRep,
-		report:        &proto.ReportFile{Params: params},
+	h := newPayoutHandler(&Handler{
+		payoutRepository: &payoutRep,
+		report:           &proto.ReportFile{Params: params},
 	})
 
 	_, err := h.Build()
 	assert.Error(suite.T(), err)
 }
 
-func (suite *VatBuilderTestSuite) TestPayoutBuilder_Build_Ok() {
-	report := &billingProto.MgoVatReport{Id: bson.NewObjectId()}
-	vatRep := mocks.VatRepositoryInterface{}
-	vatRep.On("GetById", mock2.Anything).Return(report, nil)
+func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Build_Ok() {
+	report := &billingProto.MgoPayoutDocument{
+		Id: bson.NewObjectId(),
+		Destination: &billingProto.MerchantBanking{
+			Address: "",
+			Details: "",
+		},
+		Summary: &billingProto.PayoutDocumentSummary{
+			Orders: &billingProto.PayoutDocumentOrders{
+				Count: 0,
+			},
+		},
+	}
+	payoutRep := mocks.PayoutRepositoryInterface{}
+	payoutRep.On("GetById", mock2.Anything).Return(report, nil)
 
 	params, _ := json.Marshal(map[string]interface{}{})
-	h := newVatHandler(&Handler{
-		vatRepository: &vatRep,
-		report:        &proto.ReportFile{Params: params},
+	h := newPayoutHandler(&Handler{
+		payoutRepository: &payoutRep,
+		report:           &proto.ReportFile{Params: params},
 	})
 
 	r, err := h.Build()

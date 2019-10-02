@@ -4,7 +4,7 @@ const (
 	ServiceName    = "p1payreporter"
 	ServiceVersion = "latest"
 
-	LoggerName = "PAYSUPER_BILLING_REPORTER"
+	LoggerName = "PAYSUPER_REPORTER"
 
 	SubjectRequestReportFileCreate = "report_file_create"
 	FileMask                       = "report_%s_%s.%s"
@@ -40,6 +40,7 @@ const (
 	RecipePdf  = "chrome-pdf"
 
 	ParamsFieldId = "id"
+    ParamsFieldCountry = "country"
 
 	RequestParameterAgreementNumber                     = "number"
 	RequestParameterAgreementLegalName                  = "legal_name"

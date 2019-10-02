@@ -43,6 +43,7 @@ type Application struct {
 	vatRepository          repository.VatRepositoryInterface
 	transactionsRepository repository.TransactionsRepositoryInterface
 	payoutRepository       repository.PayoutRepositoryInterface
+	merchantRepository     repository.MerchantRepositoryInterface
 	service                micro.Service
 
 	fatalFn func(msg string, fields ...zap.Field)
@@ -67,6 +68,7 @@ func NewApplication() *Application {
 	app.vatRepository = repository.NewVatRepository(app.database)
 	app.transactionsRepository = repository.NewTransactionsRepository(app.database)
 	app.payoutRepository = repository.NewPayoutRepository(app.database)
+	app.merchantRepository = repository.NewMerchantRepository(app.database)
 
 	return app
 }
@@ -254,6 +256,7 @@ func (app *Application) execute(msg *stan.Msg) {
 		app.vatRepository,
 		app.transactionsRepository,
 		app.payoutRepository,
+		app.merchantRepository,
 	)
 	bldr, err := h.GetBuilder()
 

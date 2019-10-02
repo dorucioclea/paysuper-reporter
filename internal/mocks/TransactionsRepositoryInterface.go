@@ -34,15 +34,15 @@ func (_m *TransactionsRepositoryInterface) GetByRoyalty(_a0 *billing.MgoRoyaltyR
 }
 
 // GetByVat provides a mock function with given fields: _a0
-func (_m *TransactionsRepositoryInterface) GetByVat(_a0 *billing.MgoVatReport) ([]*billing.MgoOrderViewPublic, error) {
+func (_m *TransactionsRepositoryInterface) GetByVat(_a0 *billing.MgoVatReport) ([]*billing.MgoOrderViewPrivate, error) {
 	ret := _m.Called(_a0)
 
-	var r0 []*billing.MgoOrderViewPublic
-	if rf, ok := ret.Get(0).(func(*billing.MgoVatReport) []*billing.MgoOrderViewPublic); ok {
+	var r0 []*billing.MgoOrderViewPrivate
+	if rf, ok := ret.Get(0).(func(*billing.MgoVatReport) []*billing.MgoOrderViewPrivate); ok {
 		r0 = rf(_a0)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*billing.MgoOrderViewPublic)
+			r0 = ret.Get(0).([]*billing.MgoOrderViewPrivate)
 		}
 	}
 

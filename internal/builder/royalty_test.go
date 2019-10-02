@@ -69,21 +69,45 @@ func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Build_Ok() {
 		CreatedAt:  datetime,
 		AcceptedAt: datetime,
 		Totals: &billingProto.RoyaltyReportTotals{
-			VatAmount:            1,
-			TransactionsCount:    1,
 			RollingReserveAmount: 1,
-			FeeAmount:            1,
 			CorrectionAmount:     1,
-			PayoutAmount:         1,
+		},
+		Summary: &billingProto.RoyaltyReportSummary{
+			ProductsItems: []*billingProto.RoyaltyReportProductSummaryItem{{
+				Product:            "",
+				Region:             "",
+				TotalTransactions:  1,
+				ReturnsCount:       1,
+				SalesCount:         1,
+				GrossSalesAmount:   1,
+				GrossReturnsAmount: 1,
+				GrossTotalAmount:   1,
+				TotalVat:           1,
+				TotalFees:          1,
+				PayoutAmount:       1,
+			}},
+			Corrections: nil,
 		},
 	}
 	royaltyRep := mocks.RoyaltyRepositoryInterface{}
 	royaltyRep.On("GetById", mock2.Anything).Return(report, nil)
 
+	merchantRep := mocks.MerchantRepositoryInterface{}
+	merchantRep.
+		On("GetById", mock2.Anything).
+		Return(
+			&billingProto.MgoMerchant{
+				Id:      bson.NewObjectId(),
+				Company: &billingProto.MerchantCompanyInfo{Name: "", Address: ""},
+			},
+			nil,
+		)
+
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newRoyaltyHandler(&Handler{
-		royaltyRepository: &royaltyRep,
-		report:            &proto.ReportFile{Params: params},
+		royaltyRepository:  &royaltyRep,
+		merchantRepository: &merchantRep,
+		report:             &proto.ReportFile{Params: params},
 	})
 
 	r, err := h.Build()

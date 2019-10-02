@@ -4,6 +4,7 @@
     "documents": [
       {
         "_id": {"$oid": "5ced34d689fce60bf4440829"},
+        "country": "RU",
         "status": "need_to_pay"
       }
     ]

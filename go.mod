@@ -27,7 +27,7 @@ require (
 	github.com/nats-io/stan.go v0.5.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/paysuper/paysuper-aws-manager v0.0.1
-	github.com/paysuper/paysuper-billing-server v0.0.0-20190926100841-ae41a61c4745
+	github.com/paysuper/paysuper-billing-server v0.0.0-20190927123432-893bab0748f1
 	github.com/paysuper/paysuper-database-mongo v0.1.1
 	github.com/paysuper/paysuper-recurring-repository v1.0.123
 	github.com/stretchr/testify v1.4.0
@@ -37,6 +37,7 @@ require (
 replace (
 	github.com/gogo/protobuf v0.0.0-20190410021324-65acae22fc9 => github.com/gogo/protobuf v1.2.2-0.20190723190241-65acae22fc9d
 	github.com/hashicorp/consul => github.com/hashicorp/consul v1.5.1
+	golang.org/x/sys => golang.org/x/sys v0.0.0-20190927073244-c990c680b611
 )
 
 go 1.13
