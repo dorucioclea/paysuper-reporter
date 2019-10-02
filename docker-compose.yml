@@ -10,6 +10,14 @@ services:
     ports:
       - "4222:4222"
       - "6222:6222"
+  jsreport:
+    image: jsreport/jsreport:2.6.0-full
+    container_name: jsreport
+    restart: unless-stopped
+    networks:
+      - subnet
+    ports:
+      - "5488:5488"
 
 networks:
   subnet:

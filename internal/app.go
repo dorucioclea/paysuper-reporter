@@ -287,6 +287,11 @@ func (app *Application) execute(msg *stan.Msg) {
 	}
 
 	fileName := fmt.Sprintf(pkg.FileMask, reportFile.UserId, reportFile.Id, reportFile.FileType)
+
+	if reportFile.ReportType == pkg.ReportTypeAgreement {
+		fileName = fmt.Sprintf(pkg.FileMaskAgreement, reportFile.MerchantId, reportFile.FileType)
+	}
+
 	filePath := os.TempDir() + string(os.PathSeparator) + fileName
 
 	if err = ioutil.WriteFile(filePath, file, 0644); err != nil {

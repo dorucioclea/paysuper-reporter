@@ -8,6 +8,7 @@ const (
 
 	SubjectRequestReportFileCreate = "report_file_create"
 	FileMask                       = "report_%s_%s.%s"
+	FileMaskAgreement              = "agreement_%s.%s"
 
 	HeaderAccept      = "Accept"
 	HeaderContentType = "Content-Type"
@@ -39,8 +40,8 @@ const (
 	RecipeCsv  = "text"
 	RecipePdf  = "chrome-pdf"
 
-	ParamsFieldId = "id"
-    ParamsFieldCountry = "country"
+	ParamsFieldId      = "id"
+	ParamsFieldCountry = "country"
 
 	RequestParameterAgreementNumber                     = "number"
 	RequestParameterAgreementLegalName                  = "legal_name"
