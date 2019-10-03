@@ -79,7 +79,7 @@ func (h *VatTransactions) Build() (interface{}, error) {
 		payoutCurrency := ""
 
 		if order.NetRevenue != nil {
-			payout = -1 * order.NetRevenue.Amount
+			payout = order.NetRevenue.Amount
 			payoutCurrency = order.NetRevenue.Currency
 		}
 
