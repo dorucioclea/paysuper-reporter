@@ -306,16 +306,15 @@ func (app *Application) execute(msg *stan.Msg) {
 
 	ctx := context.TODO()
 	awsManager := app.s3
+	in := &awsWrapper.UploadInput{Body: bytes.NewReader(file), FileName: fileName}
 
 	if reportFile.ReportType == pkg.ReportTypeAgreement {
 		awsManager = app.s3Agreement
+	} else {
+		in.Expires = time.Now().Add(time.Duration(retentionTime) * time.Second)
 	}
 
-	_, err = awsManager.Upload(ctx, &awsWrapper.UploadInput{
-		Body:     bytes.NewReader(file),
-		FileName: fileName,
-		Expires:  time.Now().Add(time.Duration(retentionTime) * time.Second),
-	})
+	_, err = awsManager.Upload(ctx, in)
 
 	if err != nil {
 		zap.L().Error("Unable to upload report to the S3", zap.Error(err))
