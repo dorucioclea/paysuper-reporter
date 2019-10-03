@@ -57,6 +57,7 @@ func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, 
 	}
 
 	if file.Template, err = app.getTemplate(file); err != nil {
+		zap.L().Info("Debug message1", zap.Any("file", file))
 		res.Status = pkg.ResponseStatusBadData
 		res.Message = errors.ErrorTemplateNotFound
 
