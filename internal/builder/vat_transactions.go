@@ -7,6 +7,7 @@ import (
 	"github.com/globalsign/mgo/bson"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
+	"math"
 )
 
 type VatTransactions DefaultHandler
@@ -50,85 +51,79 @@ func (h *VatTransactions) Build() (interface{}, error) {
 	var transactions []map[string]interface{}
 
 	for _, order := range orders {
-		grossRevenue := float64(0)
-		if order.GrossRevenue != nil {
-			grossRevenue = order.GrossRevenue.Amount
+		amount := float64(0)
+		amountCurrency := ""
+
+		if order.PaymentGrossRevenueOrigin != nil {
+			amount = order.PaymentGrossRevenueOrigin.Amount
+			amountCurrency = order.PaymentGrossRevenueOrigin.Currency
 		}
 
-		taxFee := float64(0)
-		if order.TaxFee != nil {
-			taxFee = order.TaxFee.Amount
+		vat := float64(0)
+		vatCurrency := ""
+
+		if order.PaymentTaxFeeLocal != nil {
+			vat = order.PaymentTaxFeeLocal.Amount
+			vatCurrency = order.PaymentTaxFeeLocal.Currency
 		}
 
-		taxFeeCurrencyExchangeFee := float64(0)
-		if order.TaxFeeCurrencyExchangeFee != nil {
-			taxFeeCurrencyExchangeFee = order.TaxFeeCurrencyExchangeFee.Amount
-		}
+		fee := float64(0)
+		feeCurrency := ""
 
-		taxFeeTotal := float64(0)
-		if order.TaxFeeTotal != nil {
-			taxFeeTotal = order.TaxFeeTotal.Amount
-		}
-
-		methodFeeTotal := float64(0)
-		if order.MethodFeeTotal != nil {
-			methodFeeTotal = order.MethodFeeTotal.Amount
-		}
-
-		methodFeeTariff := float64(0)
-		if order.MethodFeeTariff != nil {
-			methodFeeTariff = order.MethodFeeTariff.Amount
-		}
-
-		methodFixedFeeTariff := float64(0)
-		if order.MethodFixedFeeTariff != nil {
-			methodFixedFeeTariff = order.MethodFixedFeeTariff.Amount
-		}
-
-		paysuperFixedFee := float64(0)
-		if order.PaysuperFixedFee != nil {
-			paysuperFixedFee = order.PaysuperFixedFee.Amount
-		}
-
-		feesTotal := float64(0)
-		if order.FeesTotal != nil {
-			feesTotal = order.FeesTotal.Amount
-		}
-
-		feesTotalLocal := float64(0)
 		if order.FeesTotalLocal != nil {
-			feesTotalLocal = order.FeesTotalLocal.Amount
+			fee = order.FeesTotalLocal.Amount
+			feeCurrency = order.FeesTotalLocal.Currency
 		}
 
-		netRevenue := float64(0)
+		payout := float64(0)
+		payoutCurrency := ""
+
 		if order.NetRevenue != nil {
-			netRevenue = order.NetRevenue.Amount
+			payout = -1 * order.NetRevenue.Amount
+			payoutCurrency = order.NetRevenue.Currency
+		}
+
+		isVatDeduction := "Yes"
+		if !order.IsVatDeduction {
+			isVatDeduction = "No"
 		}
 
 		transactions = append(transactions, map[string]interface{}{
-			"transaction":                   order.Transaction,
-			"country_code":                  order.CountryCode,
-			"total_payment_amount":          order.TotalPaymentAmount,
-			"currency":                      order.Currency,
-			"payment_method":                order.PaymentMethod.Name,
-			"created_at":                    order.CreatedAt.Format("2006-01-02T15:04:05"),
-			"gross_revenue":                 grossRevenue,
-			"tax_fee":                       taxFee,
-			"tax_fee_currency_exchange_fee": taxFeeCurrencyExchangeFee,
-			"tax_fee_total":                 taxFeeTotal,
-			"method_fee_total":              methodFeeTotal,
-			"method_fee_tariff":             methodFeeTariff,
-			"method_fixed_fee_tariff":       methodFixedFeeTariff,
-			"paysuper_fixed_fee":            paysuperFixedFee,
-			"fees_total":                    feesTotal,
-			"fees_total_local":              feesTotalLocal,
-			"net_revenue":                   netRevenue,
+			"date":             order.TransactionDate.Format("2006-01-02T15:04:05"),
+			"country":          order.CountryCode,
+			"id":               order.Id.Hex(),
+			"payment_method":   order.PaymentMethod.Name,
+			"amount":           math.Round(amount*100) / 100,
+			"amountCurrency":   amountCurrency,
+			"vat":              math.Round(vat*100) / 100,
+			"vatCurrency":      vatCurrency,
+			"fee":              math.Round(fee*100) / 100,
+			"feeCurrency":      feeCurrency,
+			"payout":           math.Round(payout*100) / 100,
+			"payoutCurrency":   payoutCurrency,
+			"is_vat_deduction": isVatDeduction,
 		})
 	}
 
 	result := map[string]interface{}{
-		"id":           params[pkg.ParamsFieldId],
-		"transactions": transactions,
+		"id":                       params[pkg.ParamsFieldId],
+		"country":                  vat.Country,
+		"currency":                 vat.Currency,
+		"vat_rate":                 vat.VatRate,
+		"status":                   vat.Status,
+		"pay_until_date":           vat.PayUntilDate,
+		"country_annual_turnover":  vat.CountryAnnualTurnover,
+		"world_annual_turnover":    vat.WorldAnnualTurnover,
+		"created_at":               vat.CreatedAt.Format("2006-01-02T15:04:05"),
+		"start_date":               vat.DateFrom.Format("2006-01-02T15:04:05"),
+		"end_date":                 vat.DateTo.Format("2006-01-02T15:04:05"),
+		"gross_revenue":            math.Round(vat.GrossRevenue*100) / 100,
+		"correction":               math.Round(vat.CorrectionAmount*100) / 100,
+		"total_transactions_count": vat.TransactionsCount,
+		"deduction":                math.Round(vat.DeductionAmount*100) / 100,
+		"rates_and_fees":           math.Round(vat.FeesAmount*100) / 100,
+		"tax_amount":               math.Round(vat.VatAmount*100) / 100,
+		"transactions":             transactions,
 	}
 
 	return result, nil

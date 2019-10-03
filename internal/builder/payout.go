@@ -44,18 +44,18 @@ func (h *Payout) Build() (interface{}, error) {
 	}
 
 	result := map[string]interface{}{
-		"id":                      payout.Id.Hex(),
-		"date":                    payout.CreatedAt.Format("2006-01-02T15:04:05"),
-		"merchant_legal_name":     payout.MerchantId,
-		"merchant_address":        payout.Destination.Address,
-		"merchant_eu_vat_number":  "REPLACE_ME!!!",
-		"merchant_bank_details":   payout.Destination.Details,
-		"period_from":             payout.PeriodFrom.Format("2006-01-02T15:04:05"),
-		"period_to":               payout.PeriodTo.Format("2006-01-02T15:04:05"),
-		"transactions_for_period": payout.Summary.Orders.Count,
-		"agreement_number":        "REPLACE_ME!!!",
-		"total_fees":              "REPLACE_ME!!!",
-		"balance":                 "REPLACE_ME!!!",
+		"id":                     payout.Id.Hex(),
+		"date":                   payout.CreatedAt.Format("2006-01-02T15:04:05"),
+		"merchant_legal_name":    payout.MerchantId,
+		"merchant_address":       payout.Destination.Address,
+		"merchant_eu_vat_number": "REPLACE_ME!!!",
+		"merchant_bank_details":  payout.Destination.Details,
+		"period_from":            payout.PeriodFrom.Format("2006-01-02T15:04:05"),
+		"period_to":              payout.PeriodTo.Format("2006-01-02T15:04:05"),
+		//"transactions_for_period": payout.Summary.Orders.Count,
+		"agreement_number": "REPLACE_ME!!!",
+		"total_fees":       "REPLACE_ME!!!",
+		"balance":          "REPLACE_ME!!!",
 	}
 
 	return result, nil

@@ -63,13 +63,26 @@ func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder
 	report := &billingProto.MgoRoyaltyReport{Id: bson.NewObjectId()}
 	royaltyRep := mocks.RoyaltyRepositoryInterface{}
 	royaltyRep.On("GetById", mock2.Anything).Return(report, nil)
+
 	transRep := mocks.TransactionsRepositoryInterface{}
 	transRep.On("GetByRoyalty", mock2.Anything).Return(nil, errs.New("not found"))
+
+	merchantRep := mocks.MerchantRepositoryInterface{}
+	merchantRep.
+		On("GetById", mock2.Anything).
+		Return(
+			&billingProto.MgoMerchant{
+				Id:      bson.NewObjectId(),
+				Company: &billingProto.MerchantCompanyInfo{Name: "", Address: ""},
+			},
+			nil,
+		)
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newRoyaltyTransactionsHandler(&Handler{
 		royaltyRepository:      &royaltyRep,
 		transactionsRepository: &transRep,
+		merchantRepository:     &merchantRep,
 		report:                 &proto.ReportFile{Params: params},
 	})
 
@@ -77,65 +90,47 @@ func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder
 	assert.Error(suite.T(), err)
 }
 
-func (suite *RoyaltyTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_Ok() {
+func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder_Build_Ok() {
 	report := &billingProto.MgoRoyaltyReport{Id: bson.NewObjectId()}
 	orders := []*billingProto.MgoOrderViewPublic{{
-		Id:                 bson.NewObjectId(),
-		Transaction:        "1",
-		CountryCode:        "RU",
-		TotalPaymentAmount: 1,
-		Currency:           "RUB",
+		Id:          bson.NewObjectId(),
+		Transaction: "1",
+		CountryCode: "RU",
+		Currency:    "RUB",
+		Project:     &billingProto.MgoOrderProject{Name: []*billingProto.MgoMultiLang{{Value: ""}}},
 		PaymentMethod: &billingProto.MgoOrderPaymentMethod{
 			Name: "card",
 		},
 		CreatedAt: time.Now(),
-		GrossRevenue: &billingProto.OrderViewMoney{
-			Amount: 1,
-		},
-		TaxFee: &billingProto.OrderViewMoney{
-			Amount: 1,
-		},
-		TaxFeeCurrencyExchangeFee: &billingProto.OrderViewMoney{
-			Amount: 1,
-		},
-		TaxFeeTotal: &billingProto.OrderViewMoney{
-			Amount: 1,
-		},
-		MethodFeeTotal: &billingProto.OrderViewMoney{
-			Amount: 1,
-		},
-		MethodFeeTariff: &billingProto.OrderViewMoney{
-			Amount: 1,
-		},
-		MethodFixedFeeTariff: &billingProto.OrderViewMoney{
-			Amount: 1,
-		},
-		PaysuperFixedFee: &billingProto.OrderViewMoney{
-			Amount: 1,
-		},
-		FeesTotal: &billingProto.OrderViewMoney{
-			Amount: 1,
-		},
-		FeesTotalLocal: &billingProto.OrderViewMoney{
-			Amount: 1,
-		},
 		NetRevenue: &billingProto.OrderViewMoney{
 			Amount: 1,
 		},
 	}}
 	royaltyRep := mocks.RoyaltyRepositoryInterface{}
 	royaltyRep.On("GetById", mock2.Anything).Return(report, nil)
+
 	transRep := mocks.TransactionsRepositoryInterface{}
 	transRep.On("GetByRoyalty", report).Return(orders, nil)
+
+	merchantRep := mocks.MerchantRepositoryInterface{}
+	merchantRep.
+		On("GetById", mock2.Anything).
+		Return(
+			&billingProto.MgoMerchant{
+				Id:      bson.NewObjectId(),
+				Company: &billingProto.MerchantCompanyInfo{Name: "", Address: ""},
+			},
+			nil,
+		)
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newRoyaltyTransactionsHandler(&Handler{
 		royaltyRepository:      &royaltyRep,
 		transactionsRepository: &transRep,
+		merchantRepository:     &merchantRep,
 		report:                 &proto.ReportFile{Params: params},
 	})
 
-	r, err := h.Build()
+	_, err := h.Build()
 	assert.NoError(suite.T(), err)
-	assert.Len(suite.T(), r, 2)
 }

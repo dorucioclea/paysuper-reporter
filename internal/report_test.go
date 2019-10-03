@@ -55,7 +55,7 @@ func (suite *ReportTestSuite) TestReport_CreateFile_Error_BuilderValidate() {
 
 func (suite *ReportTestSuite) TestReport_CreateFile_Error_Publish() {
 	res := &proto.CreateFileResponse{}
-	params, _ := json.Marshal(map[string]interface{}{pkg.ParamsFieldId: "5ced34d689fce60bf4440829"})
+	params, _ := json.Marshal(map[string]interface{}{pkg.ParamsFieldCountry: "RU"})
 	report := &proto.ReportFile{
 		ReportType: pkg.ReportTypeVat,
 		MerchantId: bson.NewObjectId().Hex(),
@@ -76,7 +76,7 @@ func (suite *ReportTestSuite) TestReport_CreateFile_Error_Publish() {
 
 func (suite *ReportTestSuite) TestReport_CreateFile_Ok() {
 	res := &proto.CreateFileResponse{}
-	params, _ := json.Marshal(map[string]interface{}{pkg.ParamsFieldId: "5ced34d689fce60bf4440829"})
+	params, _ := json.Marshal(map[string]interface{}{pkg.ParamsFieldCountry: "RU"})
 	report := &proto.ReportFile{
 		ReportType: pkg.ReportTypeVat,
 		MerchantId: bson.NewObjectId().Hex(),

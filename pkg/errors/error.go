@@ -14,12 +14,9 @@ var (
 	ErrorDocumentGeneratorRender      = newErrorMsg("rf000008", "document generator api return not success http status.")
 	ErrorHandlerNotFound              = newErrorMsg("rf000009", "handler not found.")
 	ErrorHandlerValidation            = newErrorMsg("rf000010", "handler validation error.")
-	ErrorConvertBson                  = newErrorMsg("rf000011", "unable to convert report to bson.")
-	ErrorParamIdNotFound              = newErrorMsg("rf000012", "report ID is not found.")
+	ErrorParamCountryNotFound         = newErrorMsg("rf000011", "unable to find the param <country>.")
+	ErrorParamIdNotFound              = newErrorMsg("rf000012", "unable to find the param <id>.")
 	ErrorDatabaseQueryFailed          = newErrorMsg("rf000013", "query to database collection failed")
-	ErrorAwsFileNotFound              = newErrorMsg("rf000014", "unable to download file from AWS")
-	ErrorOpenTemporaryFile            = newErrorMsg("rf000015", "unable to open temporary file")
-	ErrorReadTemporaryFile            = newErrorMsg("rf000016", "unable to read temporary file")
 )
 
 func newErrorMsg(code, msg string, details ...string) *proto.ResponseErrorMessage {

@@ -26,6 +26,7 @@ func (suite *BuilderTestSuite) TestBuilder_NewBuilder_Ok() {
 		&mocks.VatRepositoryInterface{},
 		&mocks.TransactionsRepositoryInterface{},
 		&mocks.PayoutRepositoryInterface{},
+		&mocks.MerchantRepositoryInterface{},
 	)
 
 	assert.IsType(suite.T(), &Handler{}, builder)
@@ -39,6 +40,7 @@ func (suite *BuilderTestSuite) TestBuilder_GetBuilder_Error_NotFound() {
 		&mocks.VatRepositoryInterface{},
 		&mocks.TransactionsRepositoryInterface{},
 		&mocks.PayoutRepositoryInterface{},
+		&mocks.MerchantRepositoryInterface{},
 	)
 	_, err := builder.GetBuilder()
 
@@ -53,6 +55,7 @@ func (suite *BuilderTestSuite) TestBuilder_GetBuilder_Ok() {
 		&mocks.VatRepositoryInterface{},
 		&mocks.TransactionsRepositoryInterface{},
 		&mocks.PayoutRepositoryInterface{},
+		&mocks.MerchantRepositoryInterface{},
 	)
 	bldr, err := builder.GetBuilder()
 

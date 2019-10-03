@@ -19,6 +19,7 @@ var (
 		pkg.ReportTypeRoyaltyTransactions: newRoyaltyTransactionsHandler,
 		pkg.ReportTypeTransactions:        newTransactionsHandler,
 		pkg.ReportTypePayout:              newPayoutHandler,
+		pkg.ReportTypeAgreement:           newAgreementHandler,
 	}
 )
 
@@ -35,6 +36,7 @@ type Handler struct {
 	vatRepository          repository.VatRepositoryInterface
 	transactionsRepository repository.TransactionsRepositoryInterface
 	payoutRepository       repository.PayoutRepositoryInterface
+	merchantRepository     repository.MerchantRepositoryInterface
 }
 
 type DefaultHandler struct {
@@ -48,6 +50,7 @@ func NewBuilder(
 	vatRepository repository.VatRepositoryInterface,
 	transactionsRepository repository.TransactionsRepositoryInterface,
 	payoutRepository repository.PayoutRepositoryInterface,
+	merchantRepository repository.MerchantRepositoryInterface,
 ) *Handler {
 	return &Handler{
 		service:                service,
@@ -56,6 +59,7 @@ func NewBuilder(
 		vatRepository:          vatRepository,
 		transactionsRepository: transactionsRepository,
 		payoutRepository:       payoutRepository,
+		merchantRepository:     merchantRepository,
 	}
 }
 

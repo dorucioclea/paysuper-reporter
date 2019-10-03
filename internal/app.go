@@ -36,12 +36,14 @@ type Application struct {
 	database               *mongodb.Source
 	messageBroker          nats.NatsManagerInterface
 	s3                     awsWrapper.AwsManagerInterface
+	s3Agreement            awsWrapper.AwsManagerInterface
 	centrifugo             CentrifugoInterface
 	documentGenerator      DocumentGeneratorInterface
 	royaltyRepository      repository.RoyaltyRepositoryInterface
 	vatRepository          repository.VatRepositoryInterface
 	transactionsRepository repository.TransactionsRepositoryInterface
 	payoutRepository       repository.PayoutRepositoryInterface
+	merchantRepository     repository.MerchantRepositoryInterface
 	service                micro.Service
 
 	fatalFn func(msg string, fields ...zap.Field)
@@ -66,6 +68,7 @@ func NewApplication() *Application {
 	app.vatRepository = repository.NewVatRepository(app.database)
 	app.transactionsRepository = repository.NewTransactionsRepository(app.database)
 	app.payoutRepository = repository.NewPayoutRepository(app.database)
+	app.merchantRepository = repository.NewMerchantRepository(app.database)
 
 	return app
 }
@@ -140,10 +143,24 @@ func (app *Application) initS3() {
 
 	app.s3, err = awsWrapper.New()
 	if err != nil {
-		app.fatalFn("S3 initialization failed", zap.Error(err))
+		app.fatalFn("reports S3 initialization failed", zap.Error(err))
 	}
 
-	zap.L().Info("S3 initialization successfully...")
+	zap.L().Info("reports S3 initialization successfully...")
+
+	awsOptions := []awsWrapper.Option{
+		awsWrapper.AccessKeyId(app.cfg.S3.AwsAccessKeyIdAgreement),
+		awsWrapper.SecretAccessKey(app.cfg.S3.AwsSecretAccessKeyAgreement),
+		awsWrapper.Region(app.cfg.S3.AwsRegionAgreement),
+		awsWrapper.Bucket(app.cfg.S3.AwsBucketAgreement),
+	}
+	app.s3Agreement, err = awsWrapper.New(awsOptions...)
+
+	if err != nil {
+		app.fatalFn("agreement S3 initialization failed", zap.Error(err))
+	}
+
+	zap.L().Info("agreement S3 initialization successfully...")
 }
 
 func (app *Application) initCentrifugo() {
@@ -239,6 +256,7 @@ func (app *Application) execute(msg *stan.Msg) {
 		app.vatRepository,
 		app.transactionsRepository,
 		app.payoutRepository,
+		app.merchantRepository,
 	)
 	bldr, err := h.GetBuilder()
 
@@ -269,6 +287,11 @@ func (app *Application) execute(msg *stan.Msg) {
 	}
 
 	fileName := fmt.Sprintf(pkg.FileMask, reportFile.UserId, reportFile.Id, reportFile.FileType)
+
+	if reportFile.ReportType == pkg.ReportTypeAgreement {
+		fileName = fmt.Sprintf(pkg.FileMaskAgreement, reportFile.MerchantId, reportFile.FileType)
+	}
+
 	filePath := os.TempDir() + string(os.PathSeparator) + fileName
 
 	if err = ioutil.WriteFile(filePath, file, 0644); err != nil {
@@ -282,7 +305,13 @@ func (app *Application) execute(msg *stan.Msg) {
 	}
 
 	ctx := context.TODO()
-	_, err = app.s3.Upload(ctx, &awsWrapper.UploadInput{
+	awsManager := app.s3
+
+	if reportFile.ReportType == pkg.ReportTypeAgreement {
+		awsManager = app.s3Agreement
+	}
+
+	_, err = awsManager.Upload(ctx, &awsWrapper.UploadInput{
 		Body:     bytes.NewReader(file),
 		FileName: fileName,
 		Expires:  time.Now().Add(time.Duration(retentionTime) * time.Second),
