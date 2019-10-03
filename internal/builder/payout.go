@@ -62,10 +62,12 @@ func (h *Payout) Build() (interface{}, error) {
 }
 
 func (h *Payout) PostProcess(ctx context.Context, id string, fileName string, retentionTime int) error {
+	params, _ := h.GetParams()
 	billingService := billingGrpc.NewBillingService(billingProto.ServiceName, h.service.Client())
 
 	req := &billingGrpc.PayoutDocumentPdfUploadedRequest{
 		Id:            id,
+		PayoutId:      fmt.Sprintf("%s", params[pkg.ParamsFieldId]),
 		Filename:      fileName,
 		RetentionTime: int32(retentionTime),
 	}
