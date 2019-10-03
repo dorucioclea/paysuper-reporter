@@ -19,6 +19,7 @@ var (
 		pkg.ReportTypeRoyalty,
 		pkg.ReportTypeRoyaltyTransactions,
 		pkg.ReportTypeTransactions,
+		pkg.ReportTypeAgreement,
 	}
 
 	reportFileContentTypes = map[string]string{
@@ -120,6 +121,8 @@ func (app *Application) getTemplate(file *proto.ReportFile) (string, error) {
 		return app.cfg.DG.VatTransactionsTemplate, nil
 	case pkg.ReportTypeTransactions:
 		return app.cfg.DG.TransactionsTemplate, nil
+	case pkg.ReportTypeAgreement:
+		return app.cfg.DG.AgreementTemplate, nil
 	case pkg.ReportTypePayout:
 		return app.cfg.DG.PayoutTemplate, nil
 	}

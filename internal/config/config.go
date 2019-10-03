@@ -28,6 +28,11 @@ type S3Config struct {
 	SecretKey   string `envconfig:"AWS_SECRET_ACCESS_KEY" required:"true"`
 	Region      string `envconfig:"AWS_REGION" required:"true"`
 	BucketName  string `envconfig:"AWS_BUCKET" required:"true"`
+
+	AwsAccessKeyIdAgreement     string `envconfig:"AWS_ACCESS_KEY_ID_AGREEMENT" required:"true"`
+	AwsSecretAccessKeyAgreement string `envconfig:"AWS_SECRET_ACCESS_KEY_AGREEMENT" required:"true"`
+	AwsRegionAgreement          string `envconfig:"AWS_REGION_AGREEMENT" default:"eu-west-1"`
+	AwsBucketAgreement          string `envconfig:"AWS_BUCKET_AGREEMENT" required:"true"`
 }
 
 // Centrifugo defines the parameters for connecting to the Centrifugo server.
@@ -49,6 +54,7 @@ type DocumentGeneratorConfig struct {
 	VatTransactionsTemplate     string `envconfig:"DOCGEN_VAT_TRANSACTIONS_TEMPLATE" required:"true"`
 	TransactionsTemplate        string `envconfig:"DOCGEN_TRANSACTIONS_TEMPLATE" required:"true"`
 	PayoutTemplate              string `envconfig:"DOCGEN_PAYOUT_TEMPLATE" required:"true"`
+	AgreementTemplate           string `envconfig:"DOCGEN_AGREEMENT_TEMPLATE" required:"true"`
 }
 
 type Config struct {

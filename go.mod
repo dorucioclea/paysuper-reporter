@@ -13,11 +13,12 @@ require (
 	github.com/micro/go-plugins v1.2.0
 	github.com/nats-io/stan.go v0.5.0
 	github.com/paysuper/paysuper-aws-manager v0.0.1
-	github.com/paysuper/paysuper-billing-server v0.0.0-20190927123432-893bab0748f1
+	github.com/paysuper/paysuper-billing-server v0.0.0-20191002130927-fb4dc5d0cb2c
 	github.com/paysuper/paysuper-database-mongo v0.1.1
 	github.com/paysuper/paysuper-recurring-repository v1.0.123
 	github.com/stretchr/testify v1.4.0
 	go.uber.org/zap v1.10.0
+	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 )
 
 replace (
@@ -26,4 +27,4 @@ replace (
 	golang.org/x/sys => golang.org/x/sys v0.0.0-20190927073244-c990c680b611
 )
 
-go 1.13
+go 1.12
