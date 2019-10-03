@@ -92,6 +92,8 @@ func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, 
 		return nil
 	}
 
+	zap.L().Info("Debug message", zap.Any("file", file))
+
 	if err := app.messageBroker.Publish(pkg.SubjectRequestReportFileCreate, file, false); err != nil {
 		zap.L().Error(errors.ErrorMessageBrokerFailed.Message, zap.Error(err), zap.Any("file", file))
 		res.Status = pkg.ResponseStatusSystemError
