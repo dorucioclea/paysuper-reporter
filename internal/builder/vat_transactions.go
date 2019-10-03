@@ -94,13 +94,13 @@ func (h *VatTransactions) Build() (interface{}, error) {
 			"id":               order.Id.Hex(),
 			"payment_method":   order.PaymentMethod.Name,
 			"amount":           math.Round(amount*100) / 100,
-			"amountCurrency":   amountCurrency,
+			"amount_currency":  amountCurrency,
 			"vat":              math.Round(vat*100) / 100,
-			"vatCurrency":      vatCurrency,
+			"vat_currency":     vatCurrency,
 			"fee":              math.Round(fee*100) / 100,
-			"feeCurrency":      feeCurrency,
+			"fee_currency":     feeCurrency,
 			"payout":           math.Round(payout*100) / 100,
-			"payoutCurrency":   payoutCurrency,
+			"payout_currency":  payoutCurrency,
 			"is_vat_deduction": isVatDeduction,
 		})
 	}
