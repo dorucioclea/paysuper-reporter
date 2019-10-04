@@ -66,7 +66,7 @@ func (h *RoyaltyTransactions) Build() (interface{}, error) {
 			"status":     order.Transaction,
 			"project":    order.Project.Name[0].Value,
 			"datetime":   order.TransactionDate.Format("2006-01-02T15:04:05"),
-			"country":    order.Currency,
+			"country":    order.CountryCode,
 			"method":     order.PaymentMethod.Name,
 			"id":         order.Id.Hex(),
 			"net_amount": math.Round(netRevenue*100) / 100,
