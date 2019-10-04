@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/paysuper/paysuper-recurring-repository/tools"
 	"github.com/paysuper/paysuper-reporter/internal/config"
 	"github.com/paysuper/paysuper-reporter/pkg"
@@ -82,10 +81,10 @@ func (dg DocumentGenerator) Render(payload *proto.GeneratorPayload) ([]byte, err
 		var rspErr map[string]interface{}
 
 		if err = json.Unmarshal(msg, &rspErr); err != nil {
-			return nil, errors.New(errs.ErrorDocumentGeneratorRender.Message)
+			return nil, errors.New("error unmarshal jsreport response: " + errs.ErrorDocumentGeneratorRender.Message)
 		}
 
-		return nil, errors.New(fmt.Sprintf("%s", rspErr))
+		return nil, errors.New("error jsreport response code: " + string(msg))
 	}
 
 	return msg, nil
