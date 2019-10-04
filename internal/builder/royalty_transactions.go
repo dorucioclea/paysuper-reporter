@@ -63,7 +63,7 @@ func (h *RoyaltyTransactions) Build() (interface{}, error) {
 		}
 
 		transactions = append(transactions, map[string]interface{}{
-			"status":     order.Transaction,
+			"status":     order.Status,
 			"project":    order.Project.Name[0].Value,
 			"datetime":   order.TransactionDate.Format("2006-01-02T15:04:05"),
 			"country":    order.CountryCode,
