@@ -7,6 +7,7 @@ import (
 	"github.com/globalsign/mgo/bson"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
+	"go.uber.org/zap"
 	"math"
 )
 
@@ -55,7 +56,7 @@ func (h *RoyaltyTransactions) Build() (interface{}, error) {
 	}
 
 	var transactions []map[string]interface{}
-
+	zap.L().Error("royalty transactions", zap.Int("count", len(transactions)))
 	for _, order := range orders {
 		netRevenue := float64(0)
 		if order.NetRevenue != nil {
