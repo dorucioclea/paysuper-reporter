@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/globalsign/mgo/bson"
+	billingPkg "github.com/paysuper/paysuper-billing-server/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
 	"math"
@@ -57,6 +58,11 @@ func (h *VatTransactions) Build() (interface{}, error) {
 		if order.PaymentGrossRevenueOrigin != nil {
 			amount = order.PaymentGrossRevenueOrigin.Amount
 			amountCurrency = order.PaymentGrossRevenueOrigin.Currency
+
+			if order.Type == billingPkg.OrderTypeRefund {
+				amount = -1 * order.PaymentRefundGrossRevenueOrigin.Amount
+				amountCurrency = order.PaymentRefundGrossRevenueOrigin.Currency
+			}
 		}
 
 		vat := float64(0)
@@ -65,6 +71,11 @@ func (h *VatTransactions) Build() (interface{}, error) {
 		if order.PaymentTaxFeeLocal != nil {
 			vat = order.PaymentTaxFeeLocal.Amount
 			vatCurrency = order.PaymentTaxFeeLocal.Currency
+
+			if order.Type == billingPkg.OrderTypeRefund {
+				vat = -1 * order.PaymentRefundTaxFeeLocal.Amount
+				vatCurrency = order.PaymentRefundTaxFeeLocal.Currency
+			}
 		}
 
 		fee := float64(0)
@@ -73,6 +84,11 @@ func (h *VatTransactions) Build() (interface{}, error) {
 		if order.FeesTotalLocal != nil {
 			fee = order.FeesTotalLocal.Amount
 			feeCurrency = order.FeesTotalLocal.Currency
+
+			if order.Type == billingPkg.OrderTypeRefund {
+				vat = order.RefundFeesTotalLocal.Amount
+				vatCurrency = order.RefundFeesTotalLocal.Currency
+			}
 		}
 
 		payout := float64(0)
@@ -81,6 +97,11 @@ func (h *VatTransactions) Build() (interface{}, error) {
 		if order.NetRevenue != nil {
 			payout = order.NetRevenue.Amount
 			payoutCurrency = order.NetRevenue.Currency
+
+			if order.Type == billingPkg.OrderTypeRefund {
+				vat = -1 * order.RefundReverseRevenue.Amount
+				vatCurrency = order.RefundReverseRevenue.Currency
+			}
 		}
 
 		isVatDeduction := "Yes"
