@@ -30,17 +30,10 @@ func (h *TransactionsRepository) GetByRoyalty(report *billingProto.MgoRoyaltyRep
 	match := bson.M{
 		"merchant_id":         report.MerchantId,
 		"pm_order_close_date": bson.M{"$gte": report.PeriodFrom, "$lte": report.PeriodTo},
-		"Status":              constant.OrderPublicStatusProcessed,
+		"status":              constant.OrderPublicStatusProcessed,
 	}
 	err := h.db.Collection(collectionOrderView).Find(match).Sort("created_at").All(&result)
-	zap.L().Error(
-		"royalty transactions",
-		zap.String("merchant_id", report.MerchantId.Hex()),
-		zap.String("PeriodFrom", report.PeriodFrom.String()),
-		zap.String("PeriodTo", report.PeriodTo.String()),
-		zap.String("Status", constant.OrderPublicStatusProcessed),
-		zap.Int("count", len(result)),
-	)
+
 	if err != nil {
 		zap.L().Error(
 			errors.ErrorDatabaseQueryFailed.Message,
