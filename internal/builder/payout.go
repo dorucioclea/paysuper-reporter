@@ -9,6 +9,7 @@ import (
 	billingGrpc "github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
+	"math"
 )
 
 type Payout DefaultHandler
@@ -60,8 +61,8 @@ func (h *Payout) Build() (interface{}, error) {
 		"period_to":               payout.PeriodTo.Format("2006-01-02T15:04:05"),
 		"transactions_for_period": payout.TotalTransactions,
 		"agreement_number":        payout.MerchantAgreementNumber,
-		"total_fees":              payout.TotalFees,
-		"balance":                 payout.Balance,
+		"total_fees":              math.Round(payout.TotalFees*100) / 100,
+		"balance":                 math.Round(payout.Balance*100) / 100,
 	}
 
 	return result, nil
