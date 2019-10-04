@@ -72,10 +72,22 @@ func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Build_Ok() {
 	payoutRep := mocks.PayoutRepositoryInterface{}
 	payoutRep.On("GetById", mock2.Anything).Return(report, nil)
 
+	merchantRep := mocks.MerchantRepositoryInterface{}
+	merchantRep.
+		On("GetById", mock2.Anything).
+		Return(
+			&billingProto.MgoMerchant{
+				Id:      bson.NewObjectId(),
+				Company: &billingProto.MerchantCompanyInfo{Name: "", Address: "", TaxId: ""},
+			},
+			nil,
+		)
+
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newPayoutHandler(&Handler{
-		payoutRepository: &payoutRep,
-		report:           &proto.ReportFile{Params: params},
+		payoutRepository:   &payoutRep,
+		merchantRepository: &merchantRep,
+		report:             &proto.ReportFile{Params: params},
 	})
 
 	r, err := h.Build()

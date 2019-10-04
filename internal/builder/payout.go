@@ -43,12 +43,18 @@ func (h *Payout) Build() (interface{}, error) {
 		return nil, err
 	}
 
+	merchant, err := h.merchantRepository.GetById(payout.MerchantId.Hex())
+
+	if err != nil {
+		return nil, err
+	}
+
 	result := map[string]interface{}{
 		"id":                      payout.Id.Hex(),
 		"date":                    payout.CreatedAt.Format("2006-01-02T15:04:05"),
-		"merchant_legal_name":     payout.MerchantId,
-		"merchant_address":        payout.Destination.Address,
-		"merchant_eu_vat_number":  payout.Company.TaxId,
+		"merchant_legal_name":     merchant.Company.Name,
+		"merchant_address":        merchant.Company.Address,
+		"merchant_eu_vat_number":  merchant.Company.TaxId,
 		"merchant_bank_details":   payout.Destination.Details,
 		"period_from":             payout.PeriodFrom.Format("2006-01-02T15:04:05"),
 		"period_to":               payout.PeriodTo.Format("2006-01-02T15:04:05"),
