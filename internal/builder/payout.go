@@ -63,6 +63,7 @@ func (h *Payout) Build() (interface{}, error) {
 		"agreement_number":        payout.MerchantAgreementNumber,
 		"total_fees":              math.Round(payout.TotalFees*100) / 100,
 		"balance":                 math.Round(payout.Balance*100) / 100,
+		"currency":                payout.Currency,
 	}
 
 	return result, nil
