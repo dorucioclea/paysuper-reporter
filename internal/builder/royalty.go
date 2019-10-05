@@ -112,11 +112,11 @@ func (h *Royalty) Build() (interface{}, error) {
 
 	result := map[string]interface{}{
 		"id":                       royalty.Id.Hex(),
-		"report_date":              royalty.CreatedAt.Format("2006-01-02T15:04:05"),
+		"report_date":              royalty.CreatedAt.Format("2006-01-02"),
 		"merchant_legal_name":      merchant.Company.Name,
 		"merchant_company_address": merchant.Company.Address,
-		"start_date":               royalty.PeriodFrom.Format("2006-01-02T15:04:05"),
-		"end_date":                 royalty.PeriodTo.Format("2006-01-02T15:04:05"),
+		"start_date":               royalty.PeriodFrom.Format("2006-01-02"),
+		"end_date":                 royalty.PeriodTo.Format("2006-01-02"),
 		"currency":                 royalty.Currency,
 		"correction_total_amount":  royalty.Totals.CorrectionAmount,
 		"rolling_reserve_amount":   royalty.Totals.RollingReserveAmount,

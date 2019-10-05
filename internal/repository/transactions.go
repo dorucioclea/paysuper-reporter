@@ -30,7 +30,11 @@ func (h *TransactionsRepository) GetByRoyalty(report *billingProto.MgoRoyaltyRep
 	match := bson.M{
 		"merchant_id":         report.MerchantId,
 		"pm_order_close_date": bson.M{"$gte": report.PeriodFrom, "$lte": report.PeriodTo},
-		"status":              constant.OrderPublicStatusProcessed,
+		"status": bson.M{"$in": []string{
+			constant.OrderPublicStatusProcessed,
+			constant.OrderPublicStatusRefunded,
+			constant.OrderPublicStatusChargeback,
+		}},
 	}
 	err := h.db.Collection(collectionOrderView).Find(match).Sort("created_at").All(&result)
 

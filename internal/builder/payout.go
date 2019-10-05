@@ -52,13 +52,13 @@ func (h *Payout) Build() (interface{}, error) {
 
 	result := map[string]interface{}{
 		"id":                      payout.Id.Hex(),
-		"date":                    payout.CreatedAt.Format("2006-01-02T15:04:05"),
+		"date":                    payout.CreatedAt.Format("2006-01-02"),
 		"merchant_legal_name":     merchant.Company.Name,
 		"merchant_address":        merchant.Company.Address,
 		"merchant_eu_vat_number":  merchant.Company.TaxId,
 		"merchant_bank_details":   payout.Destination.Details,
-		"period_from":             payout.PeriodFrom.Format("2006-01-02T15:04:05"),
-		"period_to":               payout.PeriodTo.Format("2006-01-02T15:04:05"),
+		"period_from":             payout.PeriodFrom.Format("2006-01-02"),
+		"period_to":               payout.PeriodTo.Format("2006-01-02"),
 		"transactions_for_period": payout.TotalTransactions,
 		"agreement_number":        payout.MerchantAgreementNumber,
 		"total_fees":              math.Round(payout.TotalFees*100) / 100,
