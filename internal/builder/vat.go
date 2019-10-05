@@ -65,11 +65,11 @@ func (h *Vat) Build() (interface{}, error) {
 		taxAmount += math.Round(vat.VatAmount*100) / 100
 
 		reports = append(reports, map[string]interface{}{
-			"period_from":             vat.DateFrom.Format("2006-01-02T15:04:05"),
-			"period_to":               vat.DateTo.Format("2006-01-02T15:04:05"),
+			"period_from":             vat.DateFrom.Format("2006-01-02"),
+			"period_to":               vat.DateTo.Format("2006-01-02"),
 			"vat_id":                  vat.Id.Hex(),
 			"status":                  vat.Status,
-			"payment_date":            vat.PayUntilDate.Format("2006-01-02T15:04:05"),
+			"payment_date":            vat.PayUntilDate.Format("2006-01-02"),
 			"tax_amount":              math.Round(vat.VatAmount*100) / 100,
 			"transactions_count":      vat.TransactionsCount,
 			"gross_amount":            math.Round(vat.GrossRevenue*100) / 100,
@@ -84,14 +84,15 @@ func (h *Vat) Build() (interface{}, error) {
 		"country":                  country,
 		"currency":                 vats[0].Currency,
 		"vat_rate":                 vats[0].VatRate,
-		"start_date":               "2019-10-01T00:00:00",
-		"end_date":                 time.Now().Format("2006-01-02T15:04:05"),
+		"start_date":               "2019-10-01",
+		"end_date":                 time.Now().Format("2006-01-02"),
 		"gross_revenue":            grossRevenue,
 		"correction":               correction,
 		"total_transactions_count": totalTransactionsCount,
 		"deduction":                deduction,
 		"rates_and_fees":           ratesAndFees,
 		"tax_amount":               taxAmount,
+		"has_total_block":          len(reports) > 1,
 		"reports":                  reports,
 	}
 
