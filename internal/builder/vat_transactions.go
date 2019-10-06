@@ -8,6 +8,7 @@ import (
 	billingPkg "github.com/paysuper/paysuper-billing-server/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
+	"go.uber.org/zap"
 	"math"
 )
 
@@ -99,6 +100,12 @@ func (h *VatTransactions) Build() (interface{}, error) {
 			payoutCurrency = order.NetRevenue.Currency
 
 			if order.Type == billingPkg.OrderTypeRefund {
+				zap.L().Error(
+					"debug refund payout",
+					zap.String("id", order.Id.Hex()),
+					zap.String("uuid", order.Uuid),
+					zap.Float64("refund_reverse_revenue", order.RefundReverseRevenue.Amount),
+				)
 				vat = -1 * order.RefundReverseRevenue.Amount
 				vatCurrency = order.RefundReverseRevenue.Currency
 			}
