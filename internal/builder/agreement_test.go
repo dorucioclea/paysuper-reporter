@@ -133,7 +133,53 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Validate_NumericPar
 }
 
 func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Build_Ok() {
-	handler := &Handler{report: &proto.ReportFile{Params: []byte(`{"number": "123"}`)}, service: micro.NewService()}
+	body := []byte(`
+		{
+		  "number": "0000001",
+		  "ps_rate": [
+			{
+			  "min_amount": 0,
+			  "max_amount": 4.99,
+			  "method_name": "VISA",
+			  "method_percent_fee": 1.8,
+			  "method_fixed_fee": 0.2,
+			  "method_fixed_fee_currency": "USD",
+			  "ps_percent_fee": 3.0,
+			  "ps_fixed_fee": 0.3,
+			  "ps_fixed_fee_currency": "USD",
+			  "merchant_home_region": "europe",
+			  "payer_region": "europe"
+			},
+			{
+			  "min_amount": 0,
+			  "max_amount": 4.99,
+			  "method_name": "MasterCard",
+			  "method_percent_fee": 1.8,
+			  "method_fixed_fee": 0.2,
+			  "method_fixed_fee_currency": "USD",
+			  "ps_percent_fee": 3.0,
+			  "ps_fixed_fee": 0.3,
+			  "ps_fixed_fee_currency": "USD",
+			  "merchant_home_region": "europe",
+			  "payer_region": "europe"
+			},
+			{
+			  "min_amount": 0,
+			  "max_amount": 99999999,
+			  "method_name": "Union Pay",
+			  "method_percent_fee": 1.8,
+			  "method_fixed_fee": 0.2,
+			  "method_fixed_fee_currency": "USD",
+			  "ps_percent_fee": 3.0,
+			  "ps_fixed_fee": 0.3,
+			  "ps_fixed_fee_currency": "USD",
+			  "merchant_home_region": "europe",
+			  "payer_region": "europe"
+			}
+		  ]
+		}`)
+
+	handler := &Handler{report: &proto.ReportFile{Params: body}, service: micro.NewService()}
 	builder := newAgreementHandler(handler)
 	params, err := builder.Build()
 	assert.NoError(suite.T(), err)
