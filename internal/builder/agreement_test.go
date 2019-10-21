@@ -41,17 +41,32 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Validate_Ok() {
 		pkg.RequestParameterAgreementPayoutCost:         10,
 		pkg.RequestParameterAgreementMinimalPayoutLimit: 10000,
 		pkg.RequestParameterAgreementPayoutCurrency:     "USD",
-		pkg.RequestParameterAgreementPSRate: []*billProto.MerchantTariffRatesPayments{
+		pkg.RequestParameterAgreementPSRate: []*billProto.MerchantTariffRatesPayment{
 			{
-				Method:                 "VISA",
-				PayoutCurrency:         "USD",
-				Country:                "",
-				MethodPercentFee:       2.0,
-				MethodFixedFee:         0.1,
+				MinAmount:              0,
+				MaxAmount:              4.99,
+				MethodName:             "VISA",
+				MethodPercentFee:       1.8,
+				MethodFixedFee:         0.2,
 				MethodFixedFeeCurrency: "USD",
-				PsPercentFee:           5.0,
-				PsFixedFee:             0.05,
+				PsPercentFee:           3.0,
+				PsFixedFee:             0.3,
 				PsFixedFeeCurrency:     "USD",
+				MerchantHomeRegion:     "russia_and_cis",
+				PayerRegion:            "europe",
+			},
+			{
+				MinAmount:              5,
+				MaxAmount:              999999999.99,
+				MethodName:             "MasterCard",
+				MethodPercentFee:       1.8,
+				MethodFixedFee:         0.2,
+				MethodFixedFeeCurrency: "USD",
+				PsPercentFee:           3.0,
+				PsFixedFee:             0.3,
+				PsFixedFeeCurrency:     "USD",
+				MerchantHomeRegion:     "russia_and_cis",
+				PayerRegion:            "europe",
 			},
 		},
 		pkg.RequestParameterAgreementHomeRegion:                 "CIS",
@@ -118,7 +133,53 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Validate_NumericPar
 }
 
 func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Build_Ok() {
-	handler := &Handler{report: &proto.ReportFile{Params: []byte(`{"number": "123"}`)}, service: micro.NewService()}
+	body := []byte(`
+		{
+		  "number": "0000001",
+		  "ps_rate": [
+			{
+			  "min_amount": 0,
+			  "max_amount": 4.99,
+			  "method_name": "VISA",
+			  "method_percent_fee": 1.8,
+			  "method_fixed_fee": 0.2,
+			  "method_fixed_fee_currency": "USD",
+			  "ps_percent_fee": 3.0,
+			  "ps_fixed_fee": 0.3,
+			  "ps_fixed_fee_currency": "USD",
+			  "merchant_home_region": "europe",
+			  "payer_region": "europe"
+			},
+			{
+			  "min_amount": 0,
+			  "max_amount": 4.99,
+			  "method_name": "MasterCard",
+			  "method_percent_fee": 1.8,
+			  "method_fixed_fee": 0.2,
+			  "method_fixed_fee_currency": "USD",
+			  "ps_percent_fee": 3.0,
+			  "ps_fixed_fee": 0.3,
+			  "ps_fixed_fee_currency": "USD",
+			  "merchant_home_region": "europe",
+			  "payer_region": "europe"
+			},
+			{
+			  "min_amount": 0,
+			  "max_amount": 99999999,
+			  "method_name": "Union Pay",
+			  "method_percent_fee": 1.8,
+			  "method_fixed_fee": 0.2,
+			  "method_fixed_fee_currency": "USD",
+			  "ps_percent_fee": 3.0,
+			  "ps_fixed_fee": 0.3,
+			  "ps_fixed_fee_currency": "USD",
+			  "merchant_home_region": "europe",
+			  "payer_region": "europe"
+			}
+		  ]
+		}`)
+
+	handler := &Handler{report: &proto.ReportFile{Params: body}, service: micro.NewService()}
 	builder := newAgreementHandler(handler)
 	params, err := builder.Build()
 	assert.NoError(suite.T(), err)
