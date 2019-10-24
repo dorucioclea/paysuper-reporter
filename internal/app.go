@@ -322,7 +322,8 @@ func (app *Application) execute(msg *stan.Msg) {
 	}
 
 	if reportFile.SendNotification {
-		err = app.centrifugo.Publish(fmt.Sprintf(app.cfg.CentrifugoConfig.UserChannel, reportFile.MerchantId), file)
+		msg := map[string]string{"file_name": reportFile.Id + "." + reportFile.FileType}
+		err = app.centrifugo.Publish(fmt.Sprintf(app.cfg.CentrifugoConfig.UserChannel, reportFile.MerchantId), msg)
 
 		if err != nil {
 			zap.L().Error(
