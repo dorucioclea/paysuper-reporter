@@ -28,7 +28,7 @@ const (
 	ReportTypePayout              = "payout"
 	ReportTypeAgreement           = "agreement"
 
-	OutputExtensionXlsx = "html-to-xlsx"
+	OutputExtensionXlsx = "xlsx"
 	OutputExtensionCsv  = "csv"
 	OutputExtensionPdf  = "pdf"
 

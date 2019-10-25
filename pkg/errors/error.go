@@ -8,7 +8,7 @@ var (
 	ErrorReportTypeNotFound           = newErrorMsg("rf000001", "unsupported report type.")
 	ErrorUnableToCreate               = newErrorMsg("rf000003", "unable to create report file.")
 	ErrorTemplateNotFound             = newErrorMsg("rf000004", "template not found.")
-	ErrorNotFound                     = newErrorMsg("rf000005", "report file not found.")
+	ErrorFileType                     = newErrorMsg("rf000005", "invalid file type.")
 	ErrorCentrifugoNotificationFailed = newErrorMsg("rf000006", "unable to send report file to centrifugo.")
 	ErrorMessageBrokerFailed          = newErrorMsg("rf000007", "unable to publish report file message to the message broker.")
 	ErrorDocumentGeneratorRender      = newErrorMsg("rf000008", "document generator api return not success http status.")
