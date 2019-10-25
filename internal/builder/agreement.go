@@ -110,7 +110,7 @@ func (h *Agreement) Build() (interface{}, error) {
 	return params, nil
 }
 
-func (h *Agreement) PostProcess(ctx context.Context, id string, fileName string, retentionTime int) error {
+func (h *Agreement) PostProcess(ctx context.Context, id string, fileName string, retentionTime int, content []byte) error {
 	req := &grpc.SetMerchantS3AgreementRequest{
 		MerchantId:      h.report.MerchantId,
 		S3AgreementName: fileName,
