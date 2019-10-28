@@ -134,7 +134,8 @@ func (h *Royalty) Build() (interface{}, error) {
 			"license_revenue_share": math.Round(summaryLicenseRevenueShare*100) / 100,
 			"license_fee":           math.Round(summaryLicenseFee*100) / 100,
 		},
-		"corrections": corrections,
+		"corrections":     corrections,
+		"has_corrections": len(corrections) > 0,
 	}
 
 	return result, nil
