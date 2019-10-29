@@ -198,7 +198,7 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_PostProcess_Ok() {
 		},
 		billingService: bs,
 	}
-	err := builder.PostProcess(context.TODO(), "id", "fileName", 3600)
+	err := builder.PostProcess(context.TODO(), "id", "fileName", 3600, []byte{})
 	assert.NoError(suite.T(), err)
 }
 
@@ -214,7 +214,7 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_PostProcess_Billing
 		},
 		billingService: bs,
 	}
-	err := builder.PostProcess(context.TODO(), "id", "fileName", 3600)
+	err := builder.PostProcess(context.TODO(), "id", "fileName", 3600, []byte{})
 	assert.Error(suite.T(), err)
 	assert.Equal(suite.T(), "some error", err.Error())
 }
@@ -237,7 +237,7 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_PostProcess_Billing
 		},
 		billingService: bs,
 	}
-	err := builder.PostProcess(context.TODO(), "id", "fileName", 3600)
+	err := builder.PostProcess(context.TODO(), "id", "fileName", 3600, []byte{})
 	assert.Error(suite.T(), err)
 	assert.Equal(suite.T(), "some business logic  error", err.Error())
 }

@@ -16,6 +16,6 @@ func (h *Transactions) Build() (interface{}, error) {
 	return nil, nil
 }
 
-func (h *Transactions) PostProcess(ctx context.Context, id string, fileName string, retentionTime int) error {
+func (h *Transactions) PostProcess(ctx context.Context, id string, fileName string, retentionTime int, content []byte) error {
 	return nil
 }

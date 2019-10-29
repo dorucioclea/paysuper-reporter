@@ -3,10 +3,9 @@ module github.com/paysuper/paysuper-reporter
 require (
 	github.com/InVisionApp/go-health v2.1.0+incompatible
 	github.com/ProtocolONE/nats v0.0.0-20190909153110-738ec68e5d7c
-	github.com/alicebob/gopher-json v0.0.0-20180125190556-5a6b3ba71ee6 // indirect
 	github.com/centrifugal/gocent v2.0.2+incompatible
 	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8
-	github.com/golang-migrate/migrate/v4 v4.3.1
+	github.com/golang-migrate/migrate/v4 v4.6.2
 	github.com/golang/protobuf v1.3.2
 	github.com/jinzhu/now v1.0.1
 	github.com/kelseyhightower/envconfig v1.4.0
@@ -14,11 +13,10 @@ require (
 	github.com/micro/go-plugins v1.2.0
 	github.com/nats-io/stan.go v0.5.0
 	github.com/paysuper/paysuper-aws-manager v0.0.1
-	github.com/paysuper/paysuper-billing-server v0.0.0-20191021125729-7bb90fb336aa
+	github.com/paysuper/paysuper-billing-server v0.0.0-20191029094149-bd636b19b815
 	github.com/paysuper/paysuper-database-mongo v0.1.1
-	github.com/paysuper/paysuper-recurring-repository v1.0.123
+	github.com/paysuper/paysuper-recurring-repository v1.0.124
 	github.com/stretchr/testify v1.4.0
-	github.com/yuin/gopher-lua v0.0.0-20190514113301-1cd887cd7036 // indirect
 	go.uber.org/zap v1.10.0
 )
 

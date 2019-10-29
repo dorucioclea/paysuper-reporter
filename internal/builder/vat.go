@@ -99,6 +99,6 @@ func (h *Vat) Build() (interface{}, error) {
 	return result, nil
 }
 
-func (h *Vat) PostProcess(ctx context.Context, id string, fileName string, retentionTime int) error {
+func (h *Vat) PostProcess(ctx context.Context, id string, fileName string, retentionTime int, content []byte) error {
 	return nil
 }

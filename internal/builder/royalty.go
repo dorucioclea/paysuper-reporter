@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"github.com/globalsign/mgo/bson"
 	"github.com/golang/protobuf/ptypes"
+	billingProto "github.com/paysuper/paysuper-billing-server/pkg"
+	billingGrpc "github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
 	"math"
@@ -132,12 +134,28 @@ func (h *Royalty) Build() (interface{}, error) {
 			"license_revenue_share": math.Round(summaryLicenseRevenueShare*100) / 100,
 			"license_fee":           math.Round(summaryLicenseFee*100) / 100,
 		},
-		"corrections": corrections,
+		"corrections":     corrections,
+		"has_corrections": len(corrections) > 0,
 	}
 
 	return result, nil
 }
 
-func (h *Royalty) PostProcess(ctx context.Context, id string, fileName string, retentionTime int) error {
+func (h *Royalty) PostProcess(ctx context.Context, id string, fileName string, retentionTime int, content []byte) error {
+	params, _ := h.GetParams()
+	billingService := billingGrpc.NewBillingService(billingProto.ServiceName, h.service.Client())
+
+	req := &billingGrpc.RoyaltyReportPdfUploadedRequest{
+		Id:              id,
+		RoyaltyReportId: fmt.Sprintf("%s", params[pkg.ParamsFieldId]),
+		Filename:        fileName,
+		RetentionTime:   int32(retentionTime),
+		Content:         content,
+	}
+
+	if _, err := billingService.RoyaltyReportPdfUploaded(ctx, req); err != nil {
+		return err
+	}
+
 	return nil
 }

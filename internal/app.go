@@ -344,7 +344,7 @@ func (app *Application) execute(msg *stan.Msg) {
 		return
 	}
 
-	if err = bldr.PostProcess(ctx, reportFile.Id, fileName, retentionTime); err != nil {
+	if err = bldr.PostProcess(ctx, reportFile.Id, fileName, retentionTime, file); err != nil {
 		zap.L().Error(
 			"PostProcess execution error",
 			zap.Error(err),

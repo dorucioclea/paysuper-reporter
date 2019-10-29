@@ -69,7 +69,7 @@ func (h *Payout) Build() (interface{}, error) {
 	return result, nil
 }
 
-func (h *Payout) PostProcess(ctx context.Context, id string, fileName string, retentionTime int) error {
+func (h *Payout) PostProcess(ctx context.Context, id string, fileName string, retentionTime int, content []byte) error {
 	params, _ := h.GetParams()
 	billingService := billingGrpc.NewBillingService(billingProto.ServiceName, h.service.Client())
 
@@ -78,6 +78,7 @@ func (h *Payout) PostProcess(ctx context.Context, id string, fileName string, re
 		PayoutId:      fmt.Sprintf("%s", params[pkg.ParamsFieldId]),
 		Filename:      fileName,
 		RetentionTime: int32(retentionTime),
+		Content:       content,
 	}
 
 	if _, err := billingService.PayoutDocumentPdfUploaded(ctx, req); err != nil {
