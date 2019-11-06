@@ -16,6 +16,7 @@ var (
 	ErrorHandlerValidation            = newErrorMsg("rf000010", "handler validation error.")
 	ErrorParamCountryNotFound         = newErrorMsg("rf000011", "unable to find the param <country>.")
 	ErrorParamIdNotFound              = newErrorMsg("rf000012", "unable to find the param <id>.")
+	ErrorParamMerchantIdNotFound      = newErrorMsg("rf000012", "unable to find the param <merchant_id>.")
 	ErrorDatabaseQueryFailed          = newErrorMsg("rf000013", "query to database collection failed")
 )
 
