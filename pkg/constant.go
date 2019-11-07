@@ -40,8 +40,12 @@ const (
 	RecipeCsv  = "text"
 	RecipePdf  = "chrome-pdf"
 
-	ParamsFieldId      = "id"
-	ParamsFieldCountry = "country"
+	ParamsFieldId            = "id"
+	ParamsFieldCountry       = "country"
+	ParamsFieldStatus        = "status"
+	ParamsFieldPaymentMethod = "payment_method"
+	ParamsFieldDateFrom      = "date_from"
+	ParamsFieldDateTo        = "date_to"
 
 	RequestParameterAgreementNumber                     = "number"
 	RequestParameterAgreementLegalName                  = "legal_name"
