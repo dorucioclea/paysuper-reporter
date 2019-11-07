@@ -10,6 +10,29 @@ type TransactionsRepositoryInterface struct {
 	mock.Mock
 }
 
+// FindByMerchant provides a mock function with given fields: _a0, _a1, _a2, _a3, _a4
+func (_m *TransactionsRepositoryInterface) FindByMerchant(_a0 string, _a1 []string, _a2 []string, _a3 int64, _a4 int64) ([]*billing.MgoOrderViewPublic, error) {
+	ret := _m.Called(_a0, _a1, _a2, _a3, _a4)
+
+	var r0 []*billing.MgoOrderViewPublic
+	if rf, ok := ret.Get(0).(func(string, []string, []string, int64, int64) []*billing.MgoOrderViewPublic); ok {
+		r0 = rf(_a0, _a1, _a2, _a3, _a4)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*billing.MgoOrderViewPublic)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []string, []string, int64, int64) error); ok {
+		r1 = rf(_a0, _a1, _a2, _a3, _a4)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetByRoyalty provides a mock function with given fields: _a0
 func (_m *TransactionsRepositoryInterface) GetByRoyalty(_a0 *billing.MgoRoyaltyReport) ([]*billing.MgoOrderViewPublic, error) {
 	ret := _m.Called(_a0)
