@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	errs "errors"
 	"github.com/micro/go-micro"
+	"github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
 	"github.com/paysuper/paysuper-reporter/internal/repository"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
@@ -37,6 +38,7 @@ type Handler struct {
 	transactionsRepository repository.TransactionsRepositoryInterface
 	payoutRepository       repository.PayoutRepositoryInterface
 	merchantRepository     repository.MerchantRepositoryInterface
+	billing                grpc.BillingService
 }
 
 type DefaultHandler struct {
@@ -51,6 +53,7 @@ func NewBuilder(
 	transactionsRepository repository.TransactionsRepositoryInterface,
 	payoutRepository repository.PayoutRepositoryInterface,
 	merchantRepository repository.MerchantRepositoryInterface,
+	billing grpc.BillingService,
 ) *Handler {
 	return &Handler{
 		service:                service,
@@ -60,6 +63,7 @@ func NewBuilder(
 		transactionsRepository: transactionsRepository,
 		payoutRepository:       payoutRepository,
 		merchantRepository:     merchantRepository,
+		billing:                billing,
 	}
 }
 

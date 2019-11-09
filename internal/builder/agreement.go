@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	billingPkg "github.com/paysuper/paysuper-billing-server/pkg"
-	"github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
+	billingGrpc "github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
 	"github.com/paysuper/paysuper-reporter/pkg"
 )
 
@@ -31,10 +31,7 @@ var (
 	}
 )
 
-type Agreement struct {
-	*Handler
-	billingService grpc.BillingService
-}
+type Agreement DefaultHandler
 
 type TariffPrintable struct {
 	MinAmount    string `json:"min_amount"`
@@ -46,10 +43,7 @@ type TariffPrintable struct {
 }
 
 func newAgreementHandler(h *Handler) BuildInterface {
-	return &Agreement{
-		Handler:        h,
-		billingService: grpc.NewBillingService(billingPkg.ServiceName, h.service.Client()),
-	}
+	return &Agreement{Handler: h}
 }
 
 func (h *Agreement) Validate() error {
@@ -111,11 +105,11 @@ func (h *Agreement) Build() (interface{}, error) {
 }
 
 func (h *Agreement) PostProcess(ctx context.Context, id string, fileName string, retentionTime int, content []byte) error {
-	req := &grpc.SetMerchantS3AgreementRequest{
+	req := &billingGrpc.SetMerchantS3AgreementRequest{
 		MerchantId:      h.report.MerchantId,
 		S3AgreementName: fileName,
 	}
-	rsp, err := h.billingService.SetMerchantS3Agreement(ctx, req)
+	rsp, err := h.billing.SetMerchantS3Agreement(ctx, req)
 
 	if err != nil {
 		return err

@@ -13,9 +13,9 @@ require (
 	github.com/micro/go-plugins v1.2.0
 	github.com/nats-io/stan.go v0.5.0
 	github.com/paysuper/paysuper-aws-manager v0.0.1
-	github.com/paysuper/paysuper-billing-server v0.0.0-20191029094149-bd636b19b815
-	github.com/paysuper/paysuper-database-mongo v0.1.1
-	github.com/paysuper/paysuper-recurring-repository v1.0.124
+	github.com/paysuper/paysuper-billing-server v0.0.0-20191109213112-9c1889944842
+	github.com/paysuper/paysuper-database-mongo v0.1.3
+	github.com/paysuper/paysuper-recurring-repository v1.0.126
 	github.com/stretchr/testify v1.4.0
 	go.uber.org/zap v1.10.0
 )

@@ -14,6 +14,8 @@ import (
 	"github.com/nats-io/stan.go"
 	"github.com/nats-io/stan.go/pb"
 	awsWrapper "github.com/paysuper/paysuper-aws-manager"
+	billingProto "github.com/paysuper/paysuper-billing-server/pkg"
+	billingGrpc "github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
 	mongodb "github.com/paysuper/paysuper-database-mongo"
 	"github.com/paysuper/paysuper-reporter/internal/builder"
 	"github.com/paysuper/paysuper-reporter/internal/config"
@@ -45,6 +47,7 @@ type Application struct {
 	payoutRepository       repository.PayoutRepositoryInterface
 	merchantRepository     repository.MerchantRepositoryInterface
 	service                micro.Service
+	billing                billingGrpc.BillingService
 
 	fatalFn func(msg string, fields ...zap.Field)
 }
@@ -224,6 +227,8 @@ func (app *Application) Run() {
 	app.service = micro.NewService(options...)
 	app.service.Init()
 
+	app.billing = billingGrpc.NewBillingService(billingProto.ServiceName, app.service.Client())
+
 	if err := proto.RegisterReporterServiceHandler(app.service.Server(), app); err != nil {
 		app.fatalFn("Can`t register service in micro", zap.Error(err))
 	}
@@ -257,6 +262,7 @@ func (app *Application) execute(msg *stan.Msg) {
 		app.transactionsRepository,
 		app.payoutRepository,
 		app.merchantRepository,
+		app.billing,
 	)
 	bldr, err := h.GetBuilder()
 

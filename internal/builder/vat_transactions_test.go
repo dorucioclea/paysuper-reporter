@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	errs "errors"
 	"github.com/globalsign/mgo/bson"
+	billPkg "github.com/paysuper/paysuper-billing-server/pkg"
+	billMocks "github.com/paysuper/paysuper-billing-server/pkg/mocks"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
+	"github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
 	"github.com/paysuper/paysuper-reporter/internal/mocks"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
@@ -77,6 +80,17 @@ func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_E
 }
 
 func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_Ok() {
+	bs := &billMocks.BillingService{}
+	response := &grpc.GetOperatingCompanyResponse{
+		Status: billPkg.ResponseStatusOk,
+		Company: &billingProto.OperatingCompany{
+			Name:      "Name",
+			Address:   "Address",
+			VatNumber: "VatNumber",
+		},
+	}
+	bs.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(response, nil)
+
 	report := &billingProto.MgoVatReport{Id: bson.NewObjectId()}
 	orders := []*billingProto.MgoOrderViewPrivate{{
 		Id: bson.NewObjectId(),
@@ -103,8 +117,50 @@ func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_O
 		vatRepository:          &vatRep,
 		transactionsRepository: &transRep,
 		report:                 &proto.ReportFile{Params: params},
+		billing:                bs,
 	})
 
 	_, err := h.Build()
 	assert.NoError(suite.T(), err)
+}
+
+func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_Error_GetOperatingCompany() {
+	bs := &billMocks.BillingService{}
+	response := &grpc.GetOperatingCompanyResponse{
+		Status:  billPkg.ResponseStatusBadData,
+		Message: &grpc.ResponseErrorMessage{Message: "some business logic error"},
+	}
+	bs.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(response, nil)
+
+	report := &billingProto.MgoVatReport{Id: bson.NewObjectId()}
+	orders := []*billingProto.MgoOrderViewPrivate{{
+		Id: bson.NewObjectId(),
+		PaymentMethod: &billingProto.MgoOrderPaymentMethod{
+			Name: "card",
+		},
+		TaxFeeTotal: &billingProto.OrderViewMoney{
+			Amount: float64(1),
+		},
+		FeesTotal: &billingProto.OrderViewMoney{
+			Amount: float64(1),
+		},
+		GrossRevenue: &billingProto.OrderViewMoney{
+			Amount: float64(1),
+		},
+	}}
+	vatRep := mocks.VatRepositoryInterface{}
+	vatRep.On("GetById", mock2.Anything).Return(report, nil)
+	transRep := mocks.TransactionsRepositoryInterface{}
+	transRep.On("GetByVat", report).Return(orders, nil)
+
+	params, _ := json.Marshal(map[string]interface{}{})
+	h := newVatTransactionsHandler(&Handler{
+		vatRepository:          &vatRep,
+		transactionsRepository: &transRep,
+		report:                 &proto.ReportFile{Params: params},
+		billing:                bs,
+	})
+
+	_, err := h.Build()
+	assert.Errorf(suite.T(), err, "some business logic error")
 }
