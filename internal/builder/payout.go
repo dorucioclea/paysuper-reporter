@@ -86,6 +86,7 @@ func (h *Payout) Build() (interface{}, error) {
 		"oc_name":                 res.Company.Name,
 		"oc_address":              res.Company.Address,
 		"oc_vat_number":           res.Company.VatNumber,
+		"oc_vat_address":          res.Company.VatAddress,
 	}
 
 	return result, nil
