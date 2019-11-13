@@ -70,10 +70,14 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Validate_Ok() {
 				PayerRegion:            "europe",
 			},
 		},
-		pkg.RequestParameterAgreementHomeRegion:                 "CIS",
-		pkg.RequestParameterAgreementMerchantAuthorizedName:     "Test Unit",
-		pkg.RequestParameterAgreementMerchantAuthorizedPosition: "Unit test",
-		pkg.RequestParameterAgreementProjectsLink:               "http://localhost",
+		pkg.RequestParameterAgreementHomeRegion:                         "CIS",
+		pkg.RequestParameterAgreementMerchantAuthorizedName:             "Test Unit",
+		pkg.RequestParameterAgreementMerchantAuthorizedPosition:         "Unit test",
+		pkg.RequestParameterAgreementOperatingCompanyLegalName:          "Unit test",
+		pkg.RequestParameterAgreementOperatingCompanyAddress:            "Unit test",
+		pkg.RequestParameterAgreementOperatingCompanyRegistrationNumber: "Unit test",
+		pkg.RequestParameterAgreementOperatingCompanyAuthorizedName:     "Unit test",
+		pkg.RequestParameterAgreementOperatingCompanyAuthorizedPosition: "Unit test",
 	}
 	b, err := json.Marshal(params)
 	assert.NoError(suite.T(), err)
