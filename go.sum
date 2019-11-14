@@ -729,6 +729,8 @@ github.com/paysuper/paysuper-billing-server v0.0.0-20191109213112-9c1889944842 h
 github.com/paysuper/paysuper-billing-server v0.0.0-20191109213112-9c1889944842/go.mod h1:CYx7c60OPthc8ZlTqiknrhgQwX1QzAkGEghubJP1z1E=
 github.com/paysuper/paysuper-billing-server v0.0.0-20191111090538-4a75afd2a960 h1:F7pKx7UAmDRgq89Nl6QAuteydcWjwWHw+nw7m3u9vkk=
 github.com/paysuper/paysuper-billing-server v0.0.0-20191111090538-4a75afd2a960/go.mod h1:CYx7c60OPthc8ZlTqiknrhgQwX1QzAkGEghubJP1z1E=
+github.com/paysuper/paysuper-billing-server v0.0.0-20191114134535-c158b5075a9a h1:WQghh1wJQoE1q9Ba/NSRPZrhv/opbChOKvUWcThFsT0=
+github.com/paysuper/paysuper-billing-server v0.0.0-20191114134535-c158b5075a9a/go.mod h1:DlSbiED5VwRXe72v/abBJ7VlazD8yM45r+NcutFMAPU=
 github.com/paysuper/paysuper-currencies v0.0.0-20190903083641-668b8b2b997d h1:hoMkfdq4qEGOONvxajsZO0Mf6np++pGnrKVxegvplaw=
 github.com/paysuper/paysuper-currencies v0.0.0-20190903083641-668b8b2b997d/go.mod h1:C+QHdgbjIlAPxHD93/08yi+xWfUgk8maLY8FKFqNzMQ=
 github.com/paysuper/paysuper-database-mongo v0.1.0/go.mod h1:IZu996j//Qoq+uzzCBL5GEYisfF4di/fwedWHlLz7sc=
@@ -750,6 +752,7 @@ github.com/paysuper/paysuper-reporter v0.0.0-20190926160409-3dfa3c2d811f/go.mod 
 github.com/paysuper/paysuper-reporter v0.0.0-20191003072342-610371fc9395/go.mod h1:QbzB6168BfM3iSunv9BlMKjJpYmPGsGyGpXr9t0saA4=
 github.com/paysuper/paysuper-reporter v0.0.0-20191021125507-8d7a093b7c6d/go.mod h1:d2oC+xp+BndvSge5SkmbZDcq5IiIeHYoQL50jfLfpMc=
 github.com/paysuper/paysuper-reporter v0.0.0-20191021130041-24bff0252418/go.mod h1:2T0VQoiOlB9PaGasKPJV8s9tZ53nNipEujRGxoDoe18=
+github.com/paysuper/paysuper-reporter v0.0.0-20191113111020-e3a5369c6d6a/go.mod h1:l8OVGqlyyxePTFh4n0qz9Pra9+EskkSX02byt7WNJdU=
 github.com/paysuper/paysuper-tax-service v0.0.0-20190903084038-7849f394f122 h1:46e+iUwsIwyRqININIIQNooTU8KCwcQw7AVnaTpTizg=
 github.com/paysuper/paysuper-tax-service v0.0.0-20190903084038-7849f394f122/go.mod h1:QK6czJ8ge3pF/QbFlRXuYfPRrm/90qubdWQ9OWKfeUs=
 github.com/paysuper/postmark-sender v0.0.0-20190903075212-a210e35789fc h1:LPZzsbFRq04SkYik74jOvu9pVpHWsjoELbxXkSx18D0=
