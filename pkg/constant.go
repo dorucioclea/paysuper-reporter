@@ -36,7 +36,7 @@ const (
 	OutputContentTypeCsv  = "text/csv"
 	OutputContentTypePdf  = "application/pdf"
 
-	RecipeXlsx = "xlsx"
+	RecipeXlsx = "html-to-xlsx"
 	RecipeCsv  = "text"
 	RecipePdf  = "chrome-pdf"
 
