@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	errs "errors"
 	"github.com/globalsign/mgo/bson"
+	billPkg "github.com/paysuper/paysuper-billing-server/pkg"
+	billMocks "github.com/paysuper/paysuper-billing-server/pkg/mocks"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
+	"github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
 	"github.com/paysuper/paysuper-reporter/internal/mocks"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
@@ -72,6 +75,17 @@ func (suite *VatBuilderTestSuite) TestVatBuilder_Build_Error_GetById() {
 }
 
 func (suite *VatBuilderTestSuite) TestVatBuilder_Build_Ok() {
+	bs := &billMocks.BillingService{}
+	response := &grpc.GetOperatingCompanyResponse{
+		Status: billPkg.ResponseStatusOk,
+		Company: &billingProto.OperatingCompany{
+			Name:      "Name",
+			Address:   "Address",
+			VatNumber: "VatNumber",
+		},
+	}
+	bs.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(response, nil)
+
 	report := []*billingProto.MgoVatReport{{Id: bson.NewObjectId()}}
 	vatRep := mocks.VatRepositoryInterface{}
 	vatRep.On("GetByCountry", mock2.Anything).Return(report, nil)
@@ -82,10 +96,36 @@ func (suite *VatBuilderTestSuite) TestVatBuilder_Build_Ok() {
 	h := newVatHandler(&Handler{
 		vatRepository: &vatRep,
 		report:        &proto.ReportFile{Params: params},
+		billing:       bs,
 	})
 
 	r, err := h.Build()
 	assert.NoError(suite.T(), err)
 	assert.Len(suite.T(), report, 1)
 	assert.NotEmpty(suite.T(), report[0].Id, r)
+}
+
+func (suite *VatBuilderTestSuite) TestVatBuilder_Build_Error_GetOperatingCompany() {
+	bs := &billMocks.BillingService{}
+	response := &grpc.GetOperatingCompanyResponse{
+		Status:  billPkg.ResponseStatusBadData,
+		Message: &grpc.ResponseErrorMessage{Message: "some business logic error"},
+	}
+	bs.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(response, nil)
+
+	report := []*billingProto.MgoVatReport{{Id: bson.NewObjectId()}}
+	vatRep := mocks.VatRepositoryInterface{}
+	vatRep.On("GetByCountry", mock2.Anything).Return(report, nil)
+
+	params, _ := json.Marshal(map[string]interface{}{
+		pkg.ParamsFieldCountry: "RU",
+	})
+	h := newVatHandler(&Handler{
+		vatRepository: &vatRep,
+		report:        &proto.ReportFile{Params: params},
+		billing:       bs,
+	})
+
+	_, err := h.Build()
+	assert.Errorf(suite.T(), err, "some business logic error")
 }

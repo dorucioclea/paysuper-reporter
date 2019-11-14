@@ -21,6 +21,7 @@ import (
 
 type AgreementBuilderTestSuite struct {
 	suite.Suite
+	service BuildInterface
 }
 
 func Test_AgreementBuilder(t *testing.T) {
@@ -69,10 +70,14 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Validate_Ok() {
 				PayerRegion:            "europe",
 			},
 		},
-		pkg.RequestParameterAgreementHomeRegion:                 "CIS",
-		pkg.RequestParameterAgreementMerchantAuthorizedName:     "Test Unit",
-		pkg.RequestParameterAgreementMerchantAuthorizedPosition: "Unit test",
-		pkg.RequestParameterAgreementProjectsLink:               "http://localhost",
+		pkg.RequestParameterAgreementHomeRegion:                         "CIS",
+		pkg.RequestParameterAgreementMerchantAuthorizedName:             "Test Unit",
+		pkg.RequestParameterAgreementMerchantAuthorizedPosition:         "Unit test",
+		pkg.RequestParameterAgreementOperatingCompanyLegalName:          "Unit test",
+		pkg.RequestParameterAgreementOperatingCompanyAddress:            "Unit test",
+		pkg.RequestParameterAgreementOperatingCompanyRegistrationNumber: "Unit test",
+		pkg.RequestParameterAgreementOperatingCompanyAuthorizedName:     "Unit test",
+		pkg.RequestParameterAgreementOperatingCompanyAuthorizedPosition: "Unit test",
 	}
 	b, err := json.Marshal(params)
 	assert.NoError(suite.T(), err)
@@ -191,13 +196,11 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_PostProcess_Ok() {
 	bs.On("SetMerchantS3Agreement", mock.Anything, mock.Anything, mock.Anything).
 		Return(&grpc.ChangeMerchantDataResponse{Status: billPkg.ResponseStatusOk}, nil)
 
-	builder := Agreement{
-		Handler: &Handler{
-			report:  &proto.ReportFile{MerchantId: bson.NewObjectId().Hex()},
-			service: micro.NewService(),
-		},
-		billingService: bs,
+	handler := &Handler{
+		report:  &proto.ReportFile{MerchantId: bson.NewObjectId().Hex()},
+		billing: bs,
 	}
+	builder := newAgreementHandler(handler)
 	err := builder.PostProcess(context.TODO(), "id", "fileName", 3600, []byte{})
 	assert.NoError(suite.T(), err)
 }
@@ -207,13 +210,11 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_PostProcess_Billing
 	bs.On("SetMerchantS3Agreement", mock.Anything, mock.Anything, mock.Anything).
 		Return(nil, errors.New("some error"))
 
-	builder := Agreement{
-		Handler: &Handler{
-			report:  &proto.ReportFile{MerchantId: bson.NewObjectId().Hex()},
-			service: micro.NewService(),
-		},
-		billingService: bs,
+	handler := &Handler{
+		report:  &proto.ReportFile{MerchantId: bson.NewObjectId().Hex()},
+		billing: bs,
 	}
+	builder := newAgreementHandler(handler)
 	err := builder.PostProcess(context.TODO(), "id", "fileName", 3600, []byte{})
 	assert.Error(suite.T(), err)
 	assert.Equal(suite.T(), "some error", err.Error())
@@ -230,13 +231,11 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_PostProcess_Billing
 			nil,
 		)
 
-	builder := Agreement{
-		Handler: &Handler{
-			report:  &proto.ReportFile{MerchantId: bson.NewObjectId().Hex()},
-			service: micro.NewService(),
-		},
-		billingService: bs,
+	handler := &Handler{
+		report:  &proto.ReportFile{MerchantId: bson.NewObjectId().Hex()},
+		billing: bs,
 	}
+	builder := newAgreementHandler(handler)
 	err := builder.PostProcess(context.TODO(), "id", "fileName", 3600, []byte{})
 	assert.Error(suite.T(), err)
 	assert.Equal(suite.T(), "some business logic  error", err.Error())

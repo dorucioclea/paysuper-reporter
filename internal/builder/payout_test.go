@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	errs "errors"
 	"github.com/globalsign/mgo/bson"
+	billPkg "github.com/paysuper/paysuper-billing-server/pkg"
+	billMocks "github.com/paysuper/paysuper-billing-server/pkg/mocks"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
+	"github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
 	"github.com/paysuper/paysuper-reporter/internal/mocks"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
@@ -17,7 +20,6 @@ import (
 
 type PayoutBuilderTestSuite struct {
 	suite.Suite
-	service BuildInterface
 }
 
 func Test_PayoutBuilder(t *testing.T) {
@@ -59,6 +61,17 @@ func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Build_Error_GetById() {
 }
 
 func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Build_Ok() {
+	bs := &billMocks.BillingService{}
+	response := &grpc.GetOperatingCompanyResponse{
+		Status: billPkg.ResponseStatusOk,
+		Company: &billingProto.OperatingCompany{
+			Name:      "Name",
+			Address:   "Address",
+			VatNumber: "VatNumber",
+		},
+	}
+	bs.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(response, nil)
+
 	report := &billingProto.MgoPayoutDocument{
 		Id: bson.NewObjectId(),
 		Destination: &billingProto.MerchantBanking{
@@ -73,24 +86,61 @@ func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Build_Ok() {
 	payoutRep.On("GetById", mock2.Anything).Return(report, nil)
 
 	merchantRep := mocks.MerchantRepositoryInterface{}
-	merchantRep.
-		On("GetById", mock2.Anything).
-		Return(
-			&billingProto.MgoMerchant{
-				Id:      bson.NewObjectId(),
-				Company: &billingProto.MerchantCompanyInfo{Name: "", Address: "", TaxId: ""},
-			},
-			nil,
-		)
+	merchant := &billingProto.MgoMerchant{
+		Id:      bson.NewObjectId(),
+		Company: &billingProto.MerchantCompanyInfo{Name: "", Address: "", TaxId: ""},
+	}
+	merchantRep.On("GetById", mock2.Anything).Return(merchant, nil)
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newPayoutHandler(&Handler{
 		payoutRepository:   &payoutRep,
 		merchantRepository: &merchantRep,
 		report:             &proto.ReportFile{Params: params},
+		billing:            bs,
 	})
 
 	r, err := h.Build()
 	assert.NoError(suite.T(), err)
 	assert.NotEmpty(suite.T(), report.Id, r)
+}
+
+func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Build_Error_GetOperatingCompany() {
+	bs := &billMocks.BillingService{}
+	response := &grpc.GetOperatingCompanyResponse{
+		Status:  billPkg.ResponseStatusBadData,
+		Message: &grpc.ResponseErrorMessage{Message: "some business logic error"},
+	}
+	bs.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(response, nil)
+
+	report := &billingProto.MgoPayoutDocument{
+		Id: bson.NewObjectId(),
+		Destination: &billingProto.MerchantBanking{
+			Address: "",
+			Details: "",
+		},
+		Company: &billingProto.MerchantCompanyInfo{
+			TaxId: "",
+		},
+	}
+	payoutRep := mocks.PayoutRepositoryInterface{}
+	payoutRep.On("GetById", mock2.Anything).Return(report, nil)
+
+	merchantRep := mocks.MerchantRepositoryInterface{}
+	merchant := &billingProto.MgoMerchant{
+		Id:      bson.NewObjectId(),
+		Company: &billingProto.MerchantCompanyInfo{Name: "", Address: "", TaxId: ""},
+	}
+	merchantRep.On("GetById", mock2.Anything).Return(merchant, nil)
+
+	params, _ := json.Marshal(map[string]interface{}{})
+	h := newPayoutHandler(&Handler{
+		payoutRepository:   &payoutRep,
+		merchantRepository: &merchantRep,
+		report:             &proto.ReportFile{Params: params},
+		billing:            bs,
+	})
+
+	_, err := h.Build()
+	assert.Errorf(suite.T(), err, "some business logic error")
 }

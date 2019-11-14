@@ -81,6 +81,7 @@ func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, 
 		app.transactionsRepository,
 		app.payoutRepository,
 		app.merchantRepository,
+		app.billing,
 	)
 	bldr, err := h.GetBuilder()
 
