@@ -117,7 +117,7 @@ func (h *TransactionsRepository) FindByMerchant(
 	if len(pmDates) > 0 {
 		query["pm_order_close_date"] = pmDates
 	}
-
+	zap.L().Error("transaction search", zap.Any("query", query))
 	err := h.db.Collection(collectionOrderView).Find(query).Sort("-created_at").All(&result)
 
 	if err != nil {
