@@ -47,11 +47,11 @@ func (h *Transactions) Build() (interface{}, error) {
 	}
 
 	if df, ok := params[pkg.ParamsFieldDateFrom]; ok {
-		dateFrom = df.(int64)
+		dateFrom = int64(df.(float64))
 	}
 
 	if dt, ok := params[pkg.ParamsFieldDateTo]; ok {
-		dateTo = dt.(int64)
+		dateTo = int64(dt.(float64))
 	}
 
 	transactions, err := h.transactionsRepository.FindByMerchant(h.report.MerchantId, status, paymentMethods, dateFrom, dateTo)
