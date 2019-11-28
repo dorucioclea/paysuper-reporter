@@ -38,6 +38,7 @@ var (
 type Agreement DefaultHandler
 
 type TariffPrintable struct {
+	Region       string `json:"region"`
 	MethodName   string `json:"method_name"`
 	PsPercentFee string `json:"ps_percent_fee"`
 	PsFixedFee   string `json:"ps_fixed_fee"`
@@ -84,8 +85,9 @@ func (h *Agreement) Build() (interface{}, error) {
 	for _, v := range tariffs {
 		vTyped := v.(map[string]interface{})
 		tariff := &TariffPrintable{
+			Region:       vTyped["payer_region"].(string),
 			MethodName:   vTyped["method_name"].(string),
-			PsPercentFee: fmt.Sprintf("%.2f", vTyped["ps_percent_fee"]),
+			PsPercentFee: fmt.Sprintf("%.2f", vTyped["ps_percent_fee"].(float64)*100),
 			PsFixedFee:   fmt.Sprintf("%.2f", vTyped["ps_fixed_fee"]),
 		}
 
