@@ -106,13 +106,12 @@ func (h *Agreement) PostProcess(ctx context.Context, id string, fileName string,
 		MerchantId:      h.report.MerchantId,
 		S3AgreementName: fileName,
 	}
-	rsp, err := h.billing.SetMerchantS3Agreement(ctx, req)
 
 	ctx, _ = context.WithTimeout(context.Background(), time.Minute*2)
 	opts := []client.CallOption{
 		client.WithRequestTimeout(time.Minute * 2),
 	}
-	rsp, err := h.billingService.SetMerchantS3Agreement(ctx, req, opts...)
+	rsp, err := h.billing.SetMerchantS3Agreement(ctx, req, opts...)
 
 	if err != nil {
 		return err
