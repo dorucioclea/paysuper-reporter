@@ -31,7 +31,7 @@ func (suite *ReportTestSuite) SetupTest() {
 
 func (suite *ReportTestSuite) TestReport_CreateFile_Error_ReportType() {
 	res := &proto.CreateFileResponse{}
-	err := suite.service.CreateFile(context.TODO(), &proto.ReportFile{}, res)
+	err := suite.service.CreateFile(context.TODO(), &proto.ReportFile{FileType: pkg.OutputExtensionPdf}, res)
 
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), pkg.ResponseStatusBadData, res.Status)
@@ -39,10 +39,21 @@ func (suite *ReportTestSuite) TestReport_CreateFile_Error_ReportType() {
 	assert.Equal(suite.T(), "", res.FileId)
 }
 
+func (suite *ReportTestSuite) TestReport_CreateFile_Error_FileType() {
+	res := &proto.CreateFileResponse{}
+	err := suite.service.CreateFile(context.TODO(), &proto.ReportFile{}, res)
+
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), pkg.ResponseStatusBadData, res.Status)
+	assert.Equal(suite.T(), errors.ErrorFileType, res.Message)
+	assert.Equal(suite.T(), "", res.FileId)
+}
+
 func (suite *ReportTestSuite) TestReport_CreateFile_Error_BuilderValidate() {
 	res := &proto.CreateFileResponse{}
 	report := &proto.ReportFile{
 		ReportType: pkg.ReportTypeVat,
+		FileType:   pkg.OutputExtensionPdf,
 		MerchantId: bson.NewObjectId().Hex(),
 	}
 	err := suite.service.CreateFile(context.TODO(), report, res)
@@ -57,6 +68,7 @@ func (suite *ReportTestSuite) TestReport_CreateFile_Error_Publish() {
 	res := &proto.CreateFileResponse{}
 	params, _ := json.Marshal(map[string]interface{}{pkg.ParamsFieldCountry: "RU"})
 	report := &proto.ReportFile{
+		FileType:   pkg.OutputExtensionPdf,
 		ReportType: pkg.ReportTypeVat,
 		MerchantId: bson.NewObjectId().Hex(),
 		Params:     params,
@@ -79,6 +91,7 @@ func (suite *ReportTestSuite) TestReport_CreateFile_Ok() {
 	params, _ := json.Marshal(map[string]interface{}{pkg.ParamsFieldCountry: "RU"})
 	report := &proto.ReportFile{
 		ReportType: pkg.ReportTypeVat,
+		FileType:   pkg.OutputExtensionPdf,
 		MerchantId: bson.NewObjectId().Hex(),
 		Params:     params,
 	}

@@ -8,6 +8,7 @@ import (
 	"github.com/paysuper/paysuper-recurring-repository/pkg/constant"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
 	"go.uber.org/zap"
+	"time"
 )
 
 const (
@@ -17,6 +18,7 @@ const (
 type TransactionsRepositoryInterface interface {
 	GetByRoyalty(*billingProto.MgoRoyaltyReport) ([]*billingProto.MgoOrderViewPublic, error)
 	GetByVat(*billingProto.MgoVatReport) ([]*billingProto.MgoOrderViewPrivate, error)
+	FindByMerchant(string, []string, []string, int64, int64) ([]*billingProto.MgoOrderViewPublic, error)
 }
 
 func NewTransactionsRepository(db *database.Source) TransactionsRepositoryInterface {
@@ -69,6 +71,61 @@ func (h *TransactionsRepository) GetByVat(report *billingProto.MgoVatReport) ([]
 			zap.Error(err),
 			zap.String("collection", collectionOrderView),
 			zap.Any("match", match),
+		)
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (h *TransactionsRepository) FindByMerchant(
+	merchantId string,
+	status []string,
+	paymentMethods []string,
+	dateFrom int64,
+	dateTo int64,
+) ([]*billingProto.MgoOrderViewPublic, error) {
+	var result []*billingProto.MgoOrderViewPublic
+
+	query := make(bson.M)
+	query["merchant_id"] = bson.ObjectIdHex(merchantId)
+
+	if len(paymentMethods) > 0 {
+		var paymentMethod []bson.ObjectId
+
+		for _, v := range paymentMethods {
+			paymentMethod = append(paymentMethod, bson.ObjectIdHex(v))
+		}
+
+		query["payment_method._id"] = bson.M{"$in": paymentMethod}
+	}
+
+	if len(status) > 0 {
+		query["status"] = bson.M{"$in": status}
+	}
+
+	pmDates := make(bson.M)
+
+	if dateFrom != 0 {
+		pmDates["$gte"] = time.Unix(dateFrom, 0)
+	}
+
+	if dateTo != 0 {
+		pmDates["$lte"] = time.Unix(dateTo, 0)
+	}
+
+	if len(pmDates) > 0 {
+		query["pm_order_close_date"] = pmDates
+	}
+
+	err := h.db.Collection(collectionOrderView).Find(query).Sort("-created_at").All(&result)
+
+	if err != nil {
+		zap.L().Error(
+			errors.ErrorDatabaseQueryFailed.Message,
+			zap.Error(err),
+			zap.String("collection", collectionOrderView),
+			zap.Any("match", nil),
 		)
 		return nil, err
 	}

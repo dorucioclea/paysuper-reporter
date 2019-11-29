@@ -1,6 +1,7 @@
 package builder
 
 import (
+	mocks2 "github.com/paysuper/paysuper-billing-server/pkg/mocks"
 	"github.com/paysuper/paysuper-reporter/internal/mocks"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
@@ -27,6 +28,7 @@ func (suite *BuilderTestSuite) TestBuilder_NewBuilder_Ok() {
 		&mocks.TransactionsRepositoryInterface{},
 		&mocks.PayoutRepositoryInterface{},
 		&mocks.MerchantRepositoryInterface{},
+		&mocks2.BillingService{},
 	)
 
 	assert.IsType(suite.T(), &Handler{}, builder)
@@ -41,6 +43,7 @@ func (suite *BuilderTestSuite) TestBuilder_GetBuilder_Error_NotFound() {
 		&mocks.TransactionsRepositoryInterface{},
 		&mocks.PayoutRepositoryInterface{},
 		&mocks.MerchantRepositoryInterface{},
+		&mocks2.BillingService{},
 	)
 	_, err := builder.GetBuilder()
 
@@ -56,6 +59,7 @@ func (suite *BuilderTestSuite) TestBuilder_GetBuilder_Ok() {
 		&mocks.TransactionsRepositoryInterface{},
 		&mocks.PayoutRepositoryInterface{},
 		&mocks.MerchantRepositoryInterface{},
+		&mocks2.BillingService{},
 	)
 	bldr, err := builder.GetBuilder()
 

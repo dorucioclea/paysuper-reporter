@@ -46,6 +46,14 @@ type ReportFileTemplate struct {
 func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, res *proto.CreateFileResponse) error {
 	var err error
 
+	if _, ok := reportFileContentTypes[file.FileType]; !ok {
+		zap.L().Error(errors.ErrorFileType.Message, zap.Any("file", file))
+		res.Status = pkg.ResponseStatusBadData
+		res.Message = errors.ErrorFileType
+
+		return nil
+	}
+
 	sort.Strings(reportTypes)
 
 	if file.ReportType == "" || sort.SearchStrings(reportTypes, file.ReportType) == len(reportTypes) {
@@ -73,6 +81,7 @@ func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, 
 		app.transactionsRepository,
 		app.payoutRepository,
 		app.merchantRepository,
+		app.billing,
 	)
 	bldr, err := h.GetBuilder()
 

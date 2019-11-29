@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"github.com/globalsign/mgo/bson"
 	"github.com/golang/protobuf/ptypes"
+	billingGrpc "github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
+	"go.uber.org/zap"
 	"math"
 )
 
@@ -110,6 +112,25 @@ func (h *Royalty) Build() (interface{}, error) {
 		}
 	}
 
+	res, err := h.billing.GetOperatingCompany(
+		context.Background(),
+		&billingGrpc.GetOperatingCompanyRequest{Id: royalty.OperatingCompanyId},
+	)
+
+	if err != nil || res.Company == nil {
+		if err == nil {
+			err = errors.New(res.Message.Message)
+		}
+
+		zap.L().Error(
+			"unable to get operating company",
+			zap.Error(err),
+			zap.String("operating_company_id", royalty.OperatingCompanyId),
+		)
+
+		return nil, err
+	}
+
 	result := map[string]interface{}{
 		"id":                       royalty.Id.Hex(),
 		"report_date":              royalty.CreatedAt.Format("2006-01-02"),
@@ -120,6 +141,8 @@ func (h *Royalty) Build() (interface{}, error) {
 		"currency":                 royalty.Currency,
 		"correction_total_amount":  royalty.Totals.CorrectionAmount,
 		"rolling_reserve_amount":   royalty.Totals.RollingReserveAmount,
+		"oc_name":                  res.Company.Name,
+		"oc_address":               res.Company.Address,
 		"products":                 products,
 		"products_total": map[string]interface{}{
 			"total_end_user_sales":  summaryTotalEndUserSales,
@@ -132,12 +155,27 @@ func (h *Royalty) Build() (interface{}, error) {
 			"license_revenue_share": math.Round(summaryLicenseRevenueShare*100) / 100,
 			"license_fee":           math.Round(summaryLicenseFee*100) / 100,
 		},
-		"corrections": corrections,
+		"corrections":     corrections,
+		"has_corrections": len(corrections) > 0,
 	}
 
 	return result, nil
 }
 
-func (h *Royalty) PostProcess(ctx context.Context, id string, fileName string, retentionTime int) error {
+func (h *Royalty) PostProcess(ctx context.Context, id string, fileName string, retentionTime int, content []byte) error {
+	params, _ := h.GetParams()
+
+	req := &billingGrpc.RoyaltyReportPdfUploadedRequest{
+		Id:              id,
+		RoyaltyReportId: fmt.Sprintf("%s", params[pkg.ParamsFieldId]),
+		Filename:        fileName,
+		RetentionTime:   int32(retentionTime),
+		Content:         content,
+	}
+
+	if _, err := h.billing.RoyaltyReportPdfUploaded(ctx, req); err != nil {
+		return err
+	}
+
 	return nil
 }

@@ -1,6 +1,14 @@
 package builder
 
-import "context"
+import (
+	"context"
+	"errors"
+	"fmt"
+	"github.com/globalsign/mgo/bson"
+	"github.com/paysuper/paysuper-reporter/pkg"
+	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
+	"math"
+)
 
 type Transactions DefaultHandler
 
@@ -9,13 +17,80 @@ func newTransactionsHandler(h *Handler) BuildInterface {
 }
 
 func (h *Transactions) Validate() error {
+	if bson.IsObjectIdHex(h.report.MerchantId) != true {
+		return errors.New(errs.ErrorParamMerchantIdNotFound.Message)
+	}
+
 	return nil
 }
 
 func (h *Transactions) Build() (interface{}, error) {
-	return nil, nil
+	var logs []map[string]interface{}
+	var status []string
+	var paymentMethods []string
+
+	dateFrom := int64(0)
+	dateTo := int64(0)
+
+	params, _ := h.GetParams()
+
+	if st, ok := params[pkg.ParamsFieldStatus]; ok {
+		for _, str := range st.([]interface{}) {
+			status = append(status, fmt.Sprintf("%s", str))
+		}
+	}
+
+	if pm, ok := params[pkg.ParamsFieldPaymentMethod]; ok {
+		for _, str := range pm.([]interface{}) {
+			paymentMethods = append(paymentMethods, fmt.Sprintf("%s", str))
+		}
+	}
+
+	if df, ok := params[pkg.ParamsFieldDateFrom]; ok {
+		dateFrom = int64(df.(float64))
+	}
+
+	if dt, ok := params[pkg.ParamsFieldDateTo]; ok {
+		dateTo = int64(dt.(float64))
+	}
+
+	transactions, err := h.transactionsRepository.FindByMerchant(h.report.MerchantId, status, paymentMethods, dateFrom, dateTo)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, transaction := range transactions {
+		product := "Checkout"
+
+		if len(transaction.Items) > 0 {
+			if len(transaction.Items) == 1 {
+				product = transaction.Items[0].Name
+			} else {
+				product = "Product"
+			}
+		}
+
+		logs = append(logs, map[string]interface{}{
+			"project_name":   transaction.Project.Name[0].Value,
+			"product_name":   product,
+			"datetime":       transaction.CreatedAt.Format("2006-01-02T15:04:05"),
+			"country":        transaction.CountryCode,
+			"payment_method": transaction.PaymentMethod.Name,
+			"transaction_id": transaction.Transaction,
+			"net_amount":     math.Round(transaction.TotalPaymentAmount*100) / 100,
+			"status":         transaction.Status,
+			"currency":       transaction.Currency,
+		})
+	}
+
+	reports := map[string]interface{}{
+		"transactions": logs,
+	}
+
+	return reports, nil
 }
 
-func (h *Transactions) PostProcess(ctx context.Context, id string, fileName string, retentionTime int) error {
+func (h *Transactions) PostProcess(ctx context.Context, id string, fileName string, retentionTime int, content []byte) error {
 	return nil
 }

@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	billingGrpc "github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
+	"go.uber.org/zap"
 	"math"
 	"time"
 )
@@ -80,6 +82,25 @@ func (h *Vat) Build() (interface{}, error) {
 		})
 	}
 
+	res, err := h.billing.GetOperatingCompany(
+		context.Background(),
+		&billingGrpc.GetOperatingCompanyRequest{Id: vats[0].OperatingCompanyId},
+	)
+
+	if err != nil || res.Company == nil {
+		if err == nil {
+			err = errors.New(res.Message.Message)
+		}
+
+		zap.L().Error(
+			"unable to get operating company",
+			zap.Error(err),
+			zap.String("operating_company_id", vats[0].OperatingCompanyId),
+		)
+
+		return nil, err
+	}
+
 	result := map[string]interface{}{
 		"country":                  country,
 		"currency":                 vats[0].Currency,
@@ -93,12 +114,14 @@ func (h *Vat) Build() (interface{}, error) {
 		"rates_and_fees":           ratesAndFees,
 		"tax_amount":               taxAmount,
 		"has_total_block":          len(reports) > 1,
+		"oc_name":                  res.Company.Name,
+		"oc_address":               res.Company.Address,
 		"reports":                  reports,
 	}
 
 	return result, nil
 }
 
-func (h *Vat) PostProcess(ctx context.Context, id string, fileName string, retentionTime int) error {
+func (h *Vat) PostProcess(ctx context.Context, id string, fileName string, retentionTime int, content []byte) error {
 	return nil
 }

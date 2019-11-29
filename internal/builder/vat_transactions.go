@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/globalsign/mgo/bson"
 	billingPkg "github.com/paysuper/paysuper-billing-server/pkg"
+	billingGrpc "github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
 	"go.uber.org/zap"
@@ -133,6 +134,25 @@ func (h *VatTransactions) Build() (interface{}, error) {
 		})
 	}
 
+	res, err := h.billing.GetOperatingCompany(
+		context.Background(),
+		&billingGrpc.GetOperatingCompanyRequest{Id: vat.OperatingCompanyId},
+	)
+
+	if err != nil || res.Company == nil {
+		if err == nil {
+			err = errors.New(res.Message.Message)
+		}
+
+		zap.L().Error(
+			"unable to get operating company",
+			zap.Error(err),
+			zap.String("operating_company_id", vat.OperatingCompanyId),
+		)
+
+		return nil, err
+	}
+
 	result := map[string]interface{}{
 		"id":                       params[pkg.ParamsFieldId],
 		"country":                  vat.Country,
@@ -153,12 +173,14 @@ func (h *VatTransactions) Build() (interface{}, error) {
 		"tax_amount":               math.Round(vat.VatAmount*100) / 100,
 		"has_pay_until_date":       vat.Status == billingPkg.VatReportStatusNeedToPay || vat.Status == billingPkg.VatReportStatusOverdue,
 		"has_disclaimer":           vat.AmountsApproximate,
+		"oc_name":                  res.Company.Name,
+		"oc_address":               res.Company.Address,
 		"transactions":             transactions,
 	}
 
 	return result, nil
 }
 
-func (h *VatTransactions) PostProcess(ctx context.Context, id string, fileName string, retentionTime int) error {
+func (h *VatTransactions) PostProcess(ctx context.Context, id string, fileName string, retentionTime int, content []byte) error {
 	return nil
 }
