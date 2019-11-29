@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/micro/go-micro/client"
 	billingPkg "github.com/paysuper/paysuper-billing-server/pkg"
 	"github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
 	"github.com/paysuper/paysuper-reporter/pkg"
+	"time"
 )
 
 const (
@@ -115,7 +117,12 @@ func (h *Agreement) PostProcess(ctx context.Context, id string, fileName string,
 		MerchantId:      h.report.MerchantId,
 		S3AgreementName: fileName,
 	}
-	rsp, err := h.billingService.SetMerchantS3Agreement(ctx, req)
+
+	ctx, _ = context.WithTimeout(context.Background(), time.Minute*2)
+	opts := []client.CallOption{
+		client.WithRequestTimeout(time.Minute * 2),
+	}
+	rsp, err := h.billingService.SetMerchantS3Agreement(ctx, req, opts...)
 
 	if err != nil {
 		return err
