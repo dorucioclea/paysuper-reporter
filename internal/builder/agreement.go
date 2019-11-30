@@ -101,13 +101,18 @@ func (h *Agreement) Build() (interface{}, error) {
 	return params, nil
 }
 
-func (h *Agreement) PostProcess(ctx context.Context, id string, fileName string, retentionTime int, content []byte) error {
+func (h *Agreement) PostProcess(
+	ctx context.Context,
+	id string,
+	fileName string,
+	retentionTime int64,
+	content []byte,
+) error {
 	req := &billingGrpc.SetMerchantS3AgreementRequest{
 		MerchantId:      h.report.MerchantId,
 		S3AgreementName: fileName,
 	}
 
-	ctx, _ = context.WithTimeout(context.Background(), time.Minute*2)
 	opts := []client.CallOption{
 		client.WithRequestTimeout(time.Minute * 2),
 	}

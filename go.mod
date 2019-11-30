@@ -16,9 +16,11 @@ require (
 	github.com/paysuper/paysuper-billing-server v0.0.0-20191114134535-c158b5075a9a
 	github.com/paysuper/paysuper-database-mongo v0.1.3
 	github.com/paysuper/paysuper-recurring-repository v1.0.126
+	github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271
 	github.com/stretchr/testify v1.4.0
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5 // indirect
 	go.uber.org/zap v1.10.0
+	gopkg.in/ProtocolONE/rabbitmq.v1 v1.0.0-20191130200733-22b27ffa73aa
 )
 
 replace (

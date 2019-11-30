@@ -6,11 +6,9 @@ const (
 
 	LoggerName = "PAYSUPER_REPORTER"
 
-	SubjectRequestReportFileCreate = "report_file_create"
-	FileMask                       = "report_%s_%s.%s"
-	FileMaskAgreement              = "agreement_%s.%s"
+	FileMask          = "report_%s_%s.%s"
+	FileMaskAgreement = "agreement_%s.%s"
 
-	HeaderAccept      = "Accept"
 	HeaderContentType = "Content-Type"
 
 	MIMEApplicationJSON = "application/json"
@@ -63,4 +61,9 @@ const (
 	RequestParameterAgreementOperatingCompanyRegistrationNumber = "oc_registration_number"
 	RequestParameterAgreementOperatingCompanyAuthorizedName     = "oc_authorized_name"
 	RequestParameterAgreementOperatingCompanyAuthorizedPosition = "oc_authorized_position"
+
+	BrokerMessageRetryMaxCount = 10
+
+	BrokerGenerateReportTopicName = "reporter-generate"
+	BrokerPostProcessTopicName    = "reporter-post-process"
 )

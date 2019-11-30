@@ -162,7 +162,13 @@ func (h *Royalty) Build() (interface{}, error) {
 	return result, nil
 }
 
-func (h *Royalty) PostProcess(ctx context.Context, id string, fileName string, retentionTime int, content []byte) error {
+func (h *Royalty) PostProcess(
+	ctx context.Context,
+	id string,
+	fileName string,
+	retentionTime int64,
+	content []byte,
+) error {
 	params, _ := h.GetParams()
 
 	req := &billingGrpc.RoyaltyReportPdfUploadedRequest{

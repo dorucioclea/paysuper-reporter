@@ -27,7 +27,7 @@ var (
 type BuildInterface interface {
 	Validate() error
 	Build() (interface{}, error)
-	PostProcess(context.Context, string, string, int, []byte) error
+	PostProcess(context.Context, string, string, int64, []byte) error
 }
 
 type Handler struct {
