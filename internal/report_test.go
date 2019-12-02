@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	errs "errors"
-	natsMocks "github.com/ProtocolONE/nats/pkg/mocks"
 	"github.com/globalsign/mgo/bson"
 	"github.com/paysuper/paysuper-reporter/internal/config"
 	"github.com/paysuper/paysuper-reporter/pkg"
@@ -13,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	rabbitmqMock "gopkg.in/ProtocolONE/rabbitmq.v1/pkg/mocks"
 	"testing"
 )
 
@@ -74,9 +74,9 @@ func (suite *ReportTestSuite) TestReport_CreateFile_Error_Publish() {
 		Params:     params,
 	}
 
-	broker := &natsMocks.NatsManagerInterface{}
+	broker := &rabbitmqMock.BrokerInterface{}
 	broker.On("Publish", mock.Anything, mock.Anything, mock.Anything).Return(errs.New("error"))
-	suite.service.messageBroker = broker
+	suite.service.generateReportBroker = broker
 
 	err := suite.service.CreateFile(context.TODO(), report, res)
 
@@ -96,9 +96,9 @@ func (suite *ReportTestSuite) TestReport_CreateFile_Ok() {
 		Params:     params,
 	}
 
-	broker := &natsMocks.NatsManagerInterface{}
+	broker := &rabbitmqMock.BrokerInterface{}
 	broker.On("Publish", mock.Anything, mock.Anything, mock.Anything).Return(nil)
-	suite.service.messageBroker = broker
+	suite.service.generateReportBroker = broker
 
 	err := suite.service.CreateFile(context.TODO(), report, res)
 
