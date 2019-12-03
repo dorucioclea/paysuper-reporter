@@ -40,7 +40,7 @@ message ReportFile {
     string file_type = 5;
     // @inject_tag: json:"params"
     bytes params = 6;
-    // @inject_tag: json:"template" validate:"required,hexadecimal"
+    // @inject_tag: json:"template" validate:"omitempty,hexadecimal"
     string template = 7;
     // @inject_tag: json:"retention_time"
     int32 retention_time = 8;

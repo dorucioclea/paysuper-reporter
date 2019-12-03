@@ -23,14 +23,14 @@ const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 type CreateFileResponse struct {
 	// @inject_tag: json:"status"
-	Status int32 `protobuf:"varint,1,opt,name=status,proto3" json:"status"`
+	Status int32 `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
 	// @inject_tag: json:"message,omitempty"
 	Message *ResponseErrorMessage `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
 	// @inject_tag: json:"file_id"
-	FileId               string   `protobuf:"bytes,3,opt,name=file_id,json=fileId,proto3" json:"file_id"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-" bson:"-" structure:"-" validate:"-"`
-	XXX_unrecognized     []byte   `json:"-" bson:"-" structure:"-" validate:"-"`
-	XXX_sizecache        int32    `json:"-" bson:"-" structure:"-" validate:"-"`
+	FileId               string   `protobuf:"bytes,3,opt,name=file_id,json=fileId,proto3" json:"file_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *CreateFileResponse) Reset()         { *m = CreateFileResponse{} }
@@ -81,14 +81,14 @@ func (m *CreateFileResponse) GetFileId() string {
 
 type ResponseErrorMessage struct {
 	//@inject_tag: json:"code"
-	Code string `protobuf:"bytes,1,opt,name=code,proto3" json:"code"`
+	Code string `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
 	//@inject_tag: json:"message"
-	Message string `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	Message string `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
 	//@inject_tag: json:"details,omitempty"
 	Details              string   `protobuf:"bytes,3,opt,name=details,proto3" json:"details,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-" bson:"-" structure:"-" validate:"-"`
-	XXX_unrecognized     []byte   `json:"-" bson:"-" structure:"-" validate:"-"`
-	XXX_sizecache        int32    `json:"-" bson:"-" structure:"-" validate:"-"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *ResponseErrorMessage) Reset()         { *m = ResponseErrorMessage{} }
@@ -139,28 +139,28 @@ func (m *ResponseErrorMessage) GetDetails() string {
 
 type ReportFile struct {
 	//@inject_tag: json:"id" bson:"_id"
-	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id" bson:"_id"`
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	// @inject_tag: json:"user_id" validate:"required,hexadecimal,len=24"
-	UserId string `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id" validate:"required,hexadecimal,len=24"`
+	UserId string `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	// @inject_tag: json:"merchant_id" validate:"required,hexadecimal,len=24"
-	MerchantId string `protobuf:"bytes,3,opt,name=merchant_id,json=merchantId,proto3" json:"merchant_id" validate:"required,hexadecimal,len=24"`
+	MerchantId string `protobuf:"bytes,3,opt,name=merchant_id,json=merchantId,proto3" json:"merchant_id,omitempty"`
 	// @inject_tag: json:"report_type" validate:"required,alpha"
-	ReportType string `protobuf:"bytes,4,opt,name=report_type,json=reportType,proto3" json:"report_type" validate:"required,alpha"`
+	ReportType string `protobuf:"bytes,4,opt,name=report_type,json=reportType,proto3" json:"report_type,omitempty"`
 	// @inject_tag: json:"file_type" validate:"required,alpha"
-	FileType string `protobuf:"bytes,5,opt,name=file_type,json=fileType,proto3" json:"file_type" validate:"required,alpha"`
+	FileType string `protobuf:"bytes,5,opt,name=file_type,json=fileType,proto3" json:"file_type,omitempty"`
 	// @inject_tag: json:"params"
-	Params []byte `protobuf:"bytes,6,opt,name=params,proto3" json:"params"`
-	// @inject_tag: json:"template" validate:"required,hexadecimal"
-	Template string `protobuf:"bytes,7,opt,name=template,proto3" json:"template" validate:"required,hexadecimal"`
+	Params []byte `protobuf:"bytes,6,opt,name=params,proto3" json:"params,omitempty"`
+	// @inject_tag: json:"template" validate:"omitempty,hexadecimal"
+	Template string `protobuf:"bytes,7,opt,name=template,proto3" json:"template,omitempty"`
 	// @inject_tag: json:"retention_time"
-	RetentionTime int32 `protobuf:"varint,8,opt,name=retention_time,json=retentionTime,proto3" json:"retention_time"`
+	RetentionTime int32 `protobuf:"varint,8,opt,name=retention_time,json=retentionTime,proto3" json:"retention_time,omitempty"`
 	// @inject_tag: json:"send_notification"
-	SendNotification bool `protobuf:"varint,9,opt,name=send_notification,json=sendNotification,proto3" json:"send_notification"`
+	SendNotification bool `protobuf:"varint,9,opt,name=send_notification,json=sendNotification,proto3" json:"send_notification,omitempty"`
 	// @inject_tag: json:"created_at"
-	CreatedAt            *timestamp.Timestamp `protobuf:"bytes,10,opt,name=created_at,json=createdAt,proto3" json:"created_at"`
-	XXX_NoUnkeyedLiteral struct{}             `json:"-" bson:"-" structure:"-" validate:"-"`
-	XXX_unrecognized     []byte               `json:"-" bson:"-" structure:"-" validate:"-"`
-	XXX_sizecache        int32                `json:"-" bson:"-" structure:"-" validate:"-"`
+	CreatedAt            *timestamp.Timestamp `protobuf:"bytes,10,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
 }
 
 func (m *ReportFile) Reset()         { *m = ReportFile{} }
@@ -263,9 +263,9 @@ type PostProcessRequest struct {
 	FileName             string      `protobuf:"bytes,2,opt,name=file_name,json=fileName,proto3" json:"file_name,omitempty"`
 	RetentionTime        int64       `protobuf:"varint,3,opt,name=retention_time,json=retentionTime,proto3" json:"retention_time,omitempty"`
 	File                 []byte      `protobuf:"bytes,4,opt,name=file,proto3" json:"file,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}    `json:"-" bson:"-" structure:"-" validate:"-"`
-	XXX_unrecognized     []byte      `json:"-" bson:"-" structure:"-" validate:"-"`
-	XXX_sizecache        int32       `json:"-" bson:"-" structure:"-" validate:"-"`
+	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
+	XXX_unrecognized     []byte      `json:"-"`
+	XXX_sizecache        int32       `json:"-"`
 }
 
 func (m *PostProcessRequest) Reset()         { *m = PostProcessRequest{} }
