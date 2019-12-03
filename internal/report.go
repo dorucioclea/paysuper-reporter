@@ -8,6 +8,7 @@ import (
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
 	"github.com/paysuper/paysuper-reporter/pkg/proto"
+	"github.com/streadway/amqp"
 	"go.uber.org/zap"
 	"sort"
 )
@@ -101,8 +102,17 @@ func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, 
 		return nil
 	}
 
-	if err := app.messageBroker.Publish(pkg.SubjectRequestReportFileCreate, file, false); err != nil {
-		zap.L().Error(errors.ErrorMessageBrokerFailed.Message, zap.Error(err), zap.Any("file", file))
+	amqpHeaders := amqp.Table{
+		"x-retry-count": int32(0),
+	}
+	err = app.generateReportBroker.Publish(pkg.BrokerGenerateReportTopicName, file, amqpHeaders)
+
+	if err != nil {
+		zap.L().Error(
+			errors.ErrorMessageBrokerFailed.Message,
+			zap.Error(err),
+			zap.Any("file", file),
+		)
 		res.Status = pkg.ResponseStatusSystemError
 		res.Message = errors.ErrorMessageBrokerFailed
 		return nil

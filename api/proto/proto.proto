@@ -49,3 +49,10 @@ message ReportFile {
     // @inject_tag: json:"created_at"
     google.protobuf.Timestamp created_at = 10;
 }
+
+message PostProcessRequest {
+    ReportFile report_file = 1;
+    string file_name = 2;
+    int64 retention_time = 3;
+    bytes file = 4;
+}
