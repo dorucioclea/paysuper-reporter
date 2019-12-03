@@ -17,12 +17,7 @@ DocumentReporter is a GRPS service for creating printable reports (royalties, va
 | MONGO_DSN                            | true     | -                                              | MongoBD DSN connection string                                           |
 | MONGO_DIAL_TIMEOUT                   | -        | 10                                             | MongoBD dial timeout in seconds                                         |
 | MONGO_MODE                           | -        | 4                                              | Consistency mode for the MongoDB session                                |
-| NATS_SERVER_URLS                     | -        | 127.0.0.1:4222                                 | The nats server URLs (separated by comma)                               |
-| NATS_ASYNC                           | -        | false                                          | Publish asynchronously                                                  |
-| NATS_USER                            | -        |                                                | User sets the username to be used when connecting to the server         |
-| NATS_PASSWORD                        | -        |                                                | Password sets the password to be used when connecting to a server       |
-| NATS_CLUSTER_ID                      | -        | test-cluster                                   | The NATS Streaming cluster ID                                           |
-| NATS_CLIENT_ID                       | -        | billing-server-publisher                       | The NATS Streaming client ID to connect with                            |
+| BROKER_ADDRESS                       | -        | amqp://127.0.0.1:5672                          | RabbitMQ url address                                                    |
 | AWS_ACCESS_KEY_ID                    | true     |                                                |                                                                         |
 | AWS_SECRET_ACCESS_KEY                | true     |                                                |                                                                         |
 | AWS_BUCKET                           | true     |                                                |                                                                         |
