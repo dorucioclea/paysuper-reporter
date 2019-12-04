@@ -122,6 +122,6 @@ func (h *Vat) Build() (interface{}, error) {
 	return result, nil
 }
 
-func (h *Vat) PostProcess(ctx context.Context, id string, fileName string, retentionTime int, content []byte) error {
+func (h *Vat) PostProcess(ctx context.Context, id, fileName string, retentionTime int64, content []byte) error {
 	return nil
 }

@@ -47,6 +47,7 @@ backend:
     - DOCGEN_USERNAME
     - DOCGEN_PASSWORD
     - DOCUMENT_RETENTION_TIME
+    - BROKER_ADDRESS
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious

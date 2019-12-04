@@ -3,16 +3,13 @@ package internal
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/InVisionApp/go-health"
 	"github.com/InVisionApp/go-health/handlers"
-	nats "github.com/ProtocolONE/nats/pkg"
+	protobufProto "github.com/golang/protobuf/proto"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-plugins/client/selector/static"
 	"github.com/micro/go-plugins/wrapper/monitoring/prometheus"
-	"github.com/nats-io/stan.go"
-	"github.com/nats-io/stan.go/pb"
 	awsWrapper "github.com/paysuper/paysuper-aws-manager"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg"
 	billingGrpc "github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
@@ -23,12 +20,13 @@ import (
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
 	"github.com/paysuper/paysuper-reporter/pkg/proto"
+	"github.com/streadway/amqp"
 	"go.uber.org/zap"
+	rabbitmq "gopkg.in/ProtocolONE/rabbitmq.v1/pkg"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 )
 
@@ -36,7 +34,6 @@ type Application struct {
 	cfg                    *config.Config
 	log                    *zap.Logger
 	database               *mongodb.Source
-	messageBroker          nats.NatsManagerInterface
 	s3                     awsWrapper.AwsManagerInterface
 	s3Agreement            awsWrapper.AwsManagerInterface
 	centrifugo             CentrifugoInterface
@@ -48,6 +45,9 @@ type Application struct {
 	merchantRepository     repository.MerchantRepositoryInterface
 	service                micro.Service
 	billing                billingGrpc.BillingService
+
+	generateReportBroker rabbitmq.BrokerInterface
+	postProcessBroker    rabbitmq.BrokerInterface
 
 	fatalFn func(msg string, fields ...zap.Field)
 }
@@ -179,18 +179,48 @@ func (app *Application) initDocumentGenerator() {
 }
 
 func (app *Application) initMessageBroker() {
-	var err error
-
-	opts := []nats.Option{
-		nats.ClientId(app.cfg.Nats.ClientId + "_" + strconv.FormatInt(time.Now().UnixNano(), 16)),
-	}
-	app.messageBroker, err = nats.NewNatsManager(opts...)
+	generateReportBroker, err := rabbitmq.NewBroker(app.cfg.BrokerAddress)
 
 	if err != nil {
-		app.fatalFn("Message broker initialization failed", zap.Error(err))
+		app.fatalFn(
+			"Creating generate report broker failed",
+			zap.Error(err),
+			zap.String("DSN", app.cfg.BrokerAddress),
+		)
+		return
 	}
 
-	zap.L().Info("Message broker initialization successfully...")
+	generateReportBroker.SetExchangeName(pkg.BrokerGenerateReportTopicName)
+	err = generateReportBroker.RegisterSubscriber(pkg.BrokerGenerateReportTopicName, app.ExecuteProcess)
+
+	if err != nil {
+		app.fatalFn("Registration generate report subscriber function failed", zap.Error(err))
+		return
+	}
+
+	postProcessBroker, err := rabbitmq.NewBroker(app.cfg.BrokerAddress)
+
+	if err != nil {
+		app.fatalFn(
+			"Creating post process broker failed",
+			zap.Error(err),
+			zap.String("DSN", app.cfg.BrokerAddress),
+		)
+		return
+	}
+
+	postProcessBroker.SetExchangeName(pkg.BrokerPostProcessTopicName)
+	err = postProcessBroker.RegisterSubscriber(pkg.BrokerPostProcessTopicName, app.ExecutePostProcess)
+
+	if err != nil {
+		app.fatalFn("Registration post process subscriber function failed", zap.Error(err))
+		return
+	}
+
+	app.generateReportBroker = generateReportBroker
+	app.postProcessBroker = postProcessBroker
+
+	zap.L().Info("Message brokers initialized successfully...")
 }
 
 func (app *Application) Run() {
@@ -200,19 +230,28 @@ func (app *Application) Run() {
 		micro.WrapHandler(prometheus.NewHandlerWrapper()),
 		micro.BeforeStart(func() error {
 			go func() {
-				startOpt := stan.StartAt(pb.StartPosition_NewOnly)
-				_, err := app.messageBroker.QueueSubscribe(pkg.SubjectRequestReportFileCreate, "", app.execute, startOpt)
+				go func() {
+					err := app.generateReportBroker.Subscribe(nil)
+
+					if err != nil {
+						app.fatalFn("Generate report subscriber start failed...", zap.Error(err))
+					}
+				}()
+
+				err := app.postProcessBroker.Subscribe(nil)
 
 				if err != nil {
-					zap.L().Fatal("Unable to subscribe to the broker message", zap.Error(err))
+					app.fatalFn("Generate report subscriber start failed...", zap.Error(err))
 				}
 			}()
 
 			return nil
 		}),
 		micro.AfterStop(func() error {
-			if err := app.messageBroker.Close(); err != nil {
-				zap.L().Fatal("Unable to close the broker message", zap.Error(err))
+			if err := app.log.Sync(); err != nil {
+				app.fatalFn("Logger sync failed", zap.Error(err))
+			} else {
+				zap.L().Info("Logger synced")
 			}
 
 			return nil
@@ -246,17 +285,10 @@ func (app *Application) Stop() {
 	}
 }
 
-func (app *Application) execute(msg *stan.Msg) {
-	reportFile := &proto.ReportFile{}
-
-	if err := json.Unmarshal(msg.Data, reportFile); err != nil {
-		zap.L().Error("Invalid message data", zap.Error(err))
-		return
-	}
-
+func (app *Application) ExecuteProcess(payload *proto.ReportFile, d amqp.Delivery) error {
 	h := builder.NewBuilder(
 		app.service,
-		reportFile,
+		payload,
 		app.royaltyRepository,
 		app.vatRepository,
 		app.transactionsRepository,
@@ -264,57 +296,79 @@ func (app *Application) execute(msg *stan.Msg) {
 		app.merchantRepository,
 		app.billing,
 	)
-	bldr, err := h.GetBuilder()
+	handler, err := h.GetBuilder()
 
 	if err != nil {
-		zap.L().Error("Unable to get builder", zap.Error(err))
-		return
+		zap.L().Error(
+			"Unable to get handler",
+			zap.Error(err),
+			zap.Any("payload", payload),
+		)
+		return app.getProcessResult(app.generateReportBroker, pkg.BrokerGenerateReportTopicName, payload, d)
 	}
 
-	rawData, err := bldr.Build()
+	rawData, err := handler.Build()
 
 	if err != nil {
-		zap.L().Error("Unable to build document", zap.Error(err))
-		return
+		zap.L().Error(
+			"Unable to build document",
+			zap.Error(err),
+			zap.Any("payload", payload),
+		)
+		return app.getProcessResult(app.generateReportBroker, pkg.BrokerGenerateReportTopicName, payload, d)
 	}
 
-	payload := &proto.GeneratorPayload{
+	fileRequest := &proto.GeneratorPayload{
 		Template: &proto.GeneratorTemplate{
-			ShortId: reportFile.Template,
-			Recipe:  reportFileRecipes[reportFile.FileType],
+			ShortId: payload.Template,
+			Recipe:  reportFileRecipes[payload.FileType],
 		},
 		Data: rawData,
 	}
 
-	file, err := app.documentGenerator.Render(payload)
+	file, err := app.documentGenerator.Render(fileRequest)
+
 	if err != nil {
-		zap.L().Error("Unable to render report", zap.Error(err), zap.Any("payload", payload))
-		return
+		zap.L().Error(
+			"Unable to render report",
+			zap.Error(err),
+			zap.Any("payload", payload),
+		)
+		return app.getProcessResult(app.generateReportBroker, pkg.BrokerGenerateReportTopicName, payload, d)
 	}
 
-	fileName := fmt.Sprintf(pkg.FileMask, reportFile.UserId, reportFile.Id, reportFile.FileType)
+	fileName := fmt.Sprintf(pkg.FileMask, payload.UserId, payload.Id, payload.FileType)
 
-	if reportFile.ReportType == pkg.ReportTypeAgreement {
-		fileName = fmt.Sprintf(pkg.FileMaskAgreement, reportFile.MerchantId, reportFile.FileType)
+	if payload.ReportType == pkg.ReportTypeAgreement {
+		fileName = fmt.Sprintf(pkg.FileMaskAgreement, payload.MerchantId, payload.FileType)
 	}
 
 	filePath := os.TempDir() + string(os.PathSeparator) + fileName
+	err = ioutil.WriteFile(filePath, file, 0644)
 
-	if err = ioutil.WriteFile(filePath, file, 0644); err != nil {
-		zap.L().Error("internal error", zap.Error(err))
-		return
+	if err != nil {
+		zap.L().Error(
+			"internal error",
+			zap.Error(err),
+			zap.Any("payload", payload),
+		)
+		return app.getProcessResult(app.generateReportBroker, pkg.BrokerGenerateReportTopicName, payload, d)
 	}
 
 	retentionTime := app.cfg.DocumentRetentionTime
-	if reportFile.RetentionTime > 0 {
-		retentionTime = int(reportFile.RetentionTime)
+
+	if payload.RetentionTime > 0 {
+		retentionTime = int64(payload.RetentionTime)
 	}
 
-	ctx := context.TODO()
 	awsManager := app.s3
-	in := &awsWrapper.UploadInput{Body: bytes.NewReader(file), FileName: fileName}
+	in := &awsWrapper.UploadInput{
+		Body:     bytes.NewReader(file),
+		FileName: fileName,
+	}
+	ctx, _ := context.WithTimeout(context.Background(), time.Second*10)
 
-	if reportFile.ReportType == pkg.ReportTypeAgreement {
+	if payload.ReportType == pkg.ReportTypeAgreement {
 		awsManager = app.s3Agreement
 	} else {
 		in.Expires = time.Now().Add(time.Duration(retentionTime) * time.Second)
@@ -323,43 +377,137 @@ func (app *Application) execute(msg *stan.Msg) {
 	_, err = awsManager.Upload(ctx, in)
 
 	if err != nil {
-		zap.L().Error("Unable to upload report to the S3", zap.Error(err))
-		return
+		zap.L().Error(
+			"Unable to upload report to the S3",
+			zap.Error(err),
+			zap.Any("payload", payload),
+		)
+		return app.getProcessResult(app.generateReportBroker, pkg.BrokerGenerateReportTopicName, payload, d)
 	}
 
-	if reportFile.SendNotification {
-		msg := map[string]string{"file_name": reportFile.Id + "." + reportFile.FileType}
-		err = app.centrifugo.Publish(fmt.Sprintf(app.cfg.CentrifugoConfig.UserChannel, reportFile.MerchantId), msg)
+	if payload.SendNotification {
+		msg := map[string]string{"file_name": payload.Id + "." + payload.FileType}
+		ch := fmt.Sprintf(app.cfg.CentrifugoConfig.UserChannel, payload.MerchantId)
+		err = app.centrifugo.Publish(ch, msg)
 
 		if err != nil {
 			zap.L().Error(
 				errors.ErrorCentrifugoNotificationFailed.Message,
 				zap.Error(err),
-				zap.Any("report_file", reportFile),
+				zap.Any("payload", payload),
 			)
-			return
+			return app.getProcessResult(app.generateReportBroker, pkg.BrokerGenerateReportTopicName, payload, d)
 		}
 	}
 
-	if err = os.Remove(filePath); err != nil {
+	err = os.Remove(filePath)
+
+	if err != nil {
 		zap.L().Error(
 			"Unable to delete temporary file",
 			zap.Error(err),
-			zap.String("path", filePath),
+			zap.Any("payload", payload),
 		)
-		return
+		return app.getProcessResult(app.generateReportBroker, pkg.BrokerGenerateReportTopicName, payload, d)
 	}
 
-	if err = bldr.PostProcess(ctx, reportFile.Id, fileName, retentionTime, file); err != nil {
+	postProcessData := &proto.PostProcessRequest{
+		ReportFile:    payload,
+		FileName:      fileName,
+		RetentionTime: retentionTime,
+		File:          file,
+	}
+	amqpHeaders := amqp.Table{
+		"x-retry-count": int32(0),
+	}
+	err = app.postProcessBroker.Publish(pkg.BrokerPostProcessTopicName, postProcessData, amqpHeaders)
+
+	if err != nil {
+		postProcessData.File = nil
+		zap.L().Error(
+			"Publish message to post process broker failed",
+			zap.Error(err),
+			zap.Any("data", postProcessData),
+		)
+		return app.getProcessResult(app.generateReportBroker, pkg.BrokerGenerateReportTopicName, payload, d)
+	}
+
+	return nil
+}
+
+func (app *Application) ExecutePostProcess(payload *proto.PostProcessRequest, d amqp.Delivery) error {
+	log.Println("2")
+	h := builder.NewBuilder(
+		app.service,
+		payload.ReportFile,
+		app.royaltyRepository,
+		app.vatRepository,
+		app.transactionsRepository,
+		app.payoutRepository,
+		app.merchantRepository,
+		app.billing,
+	)
+	handler, err := h.GetBuilder()
+
+	if err != nil {
+		payload.File = nil
+		zap.L().Error(
+			"Unable to get handler",
+			zap.Error(err),
+			zap.Any("payload", payload),
+		)
+		return app.getProcessResult(app.postProcessBroker, pkg.BrokerPostProcessTopicName, payload, d)
+	}
+
+	ctx, _ := context.WithTimeout(context.Background(), time.Minute*2)
+	err = handler.PostProcess(ctx, payload.ReportFile.Id, payload.FileName, payload.RetentionTime, payload.File)
+
+	if err != nil {
+		payload.File = nil
 		zap.L().Error(
 			"PostProcess execution error",
 			zap.Error(err),
-			zap.String("path", filePath),
+			zap.Any("payload", payload),
 		)
-		return
+		return app.getProcessResult(app.postProcessBroker, pkg.BrokerPostProcessTopicName, payload, d)
 	}
 
-	return
+	return nil
+}
+
+func (app *Application) getProcessResult(
+	broker rabbitmq.BrokerInterface,
+	topic string,
+	message protobufProto.Message,
+	d amqp.Delivery,
+) error {
+	retryCount := int32(0)
+
+	if v, ok := d.Headers[rabbitmq.BrokerMessageRetryCountHeader]; ok {
+		retryCount = v.(int32)
+	}
+
+	if retryCount >= pkg.BrokerMessageRetryMaxCount {
+		return nil
+	}
+
+	amqpHeaders := amqp.Table{
+		"x-retry-count": retryCount + 1,
+	}
+	err := broker.Publish(topic, message, amqpHeaders)
+
+	if err != nil {
+		zap.L().Error(
+			"ReQueue message to broker failed",
+			zap.Error(err),
+			zap.String("topic", topic),
+			zap.Any("message", message),
+			zap.Any("headers", amqpHeaders),
+		)
+		return nil
+	}
+
+	return nil
 }
 
 func (c *appHealthCheck) Status() (interface{}, error) {
