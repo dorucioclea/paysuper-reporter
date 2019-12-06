@@ -8,6 +8,7 @@ import (
 	"github.com/paysuper/paysuper-reporter/pkg"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
 	"math"
+	"reflect"
 )
 
 type Transactions DefaultHandler
@@ -17,8 +18,40 @@ func newTransactionsHandler(h *Handler) BuildInterface {
 }
 
 func (h *Transactions) Validate() error {
+	params, _ := h.GetParams()
+
 	if bson.IsObjectIdHex(h.report.MerchantId) != true {
 		return errors.New(errs.ErrorParamMerchantIdNotFound.Message)
+	}
+
+	if st, ok := params[pkg.ParamsFieldStatus]; ok {
+		if reflect.TypeOf(st).Kind() != reflect.Slice {
+			return errors.New(errs.ErrorHandlerValidation.Message)
+		}
+	}
+
+	if st, ok := params[pkg.ParamsFieldPaymentMethod]; ok {
+		if reflect.TypeOf(st).Kind() != reflect.Slice {
+			return errors.New(errs.ErrorHandlerValidation.Message)
+		}
+
+		for _, str := range st.([]interface{}) {
+			if !bson.IsObjectIdHex(fmt.Sprintf("%s", str)) {
+				return errors.New(errs.ErrorHandlerValidation.Message)
+			}
+		}
+	}
+
+	if st, ok := params[pkg.ParamsFieldDateFrom]; ok {
+		if reflect.TypeOf(st).Kind() != reflect.Float64 {
+			return errors.New(errs.ErrorHandlerValidation.Message)
+		}
+	}
+
+	if st, ok := params[pkg.ParamsFieldDateTo]; ok {
+		if reflect.TypeOf(st).Kind() != reflect.Float64 {
+			return errors.New(errs.ErrorHandlerValidation.Message)
+		}
 	}
 
 	return nil
