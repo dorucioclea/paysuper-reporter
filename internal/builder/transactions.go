@@ -24,16 +24,14 @@ func (h *Transactions) Validate() error {
 		return errors.New(errs.ErrorParamMerchantIdNotFound.Message)
 	}
 
-	if st, ok := params[pkg.ParamsFieldStatus]; ok {
-		t := reflect.TypeOf(st)
-		if t != nil && reflect.TypeOf(st).Kind() != reflect.Slice {
+	if st, ok := params[pkg.ParamsFieldStatus]; ok && st != nil {
+		if reflect.TypeOf(st).Kind() != reflect.Slice {
 			return errors.New(errs.ErrorHandlerValidation.Message)
 		}
 	}
 
-	if st, ok := params[pkg.ParamsFieldPaymentMethod]; ok {
-		t := reflect.TypeOf(st)
-		if t != nil && reflect.TypeOf(st).Kind() != reflect.Slice {
+	if st, ok := params[pkg.ParamsFieldPaymentMethod]; ok && st != nil {
+		if reflect.TypeOf(st).Kind() != reflect.Slice {
 			return errors.New(errs.ErrorHandlerValidation.Message)
 		}
 
@@ -69,13 +67,13 @@ func (h *Transactions) Build() (interface{}, error) {
 
 	params, _ := h.GetParams()
 
-	if st, ok := params[pkg.ParamsFieldStatus]; ok {
+	if st, ok := params[pkg.ParamsFieldStatus]; ok && st != nil {
 		for _, str := range st.([]interface{}) {
 			status = append(status, fmt.Sprintf("%s", str))
 		}
 	}
 
-	if pm, ok := params[pkg.ParamsFieldPaymentMethod]; ok {
+	if pm, ok := params[pkg.ParamsFieldPaymentMethod]; ok && pm != nil {
 		for _, str := range pm.([]interface{}) {
 			paymentMethods = append(paymentMethods, fmt.Sprintf("%s", str))
 		}
