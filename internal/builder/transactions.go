@@ -25,13 +25,15 @@ func (h *Transactions) Validate() error {
 	}
 
 	if st, ok := params[pkg.ParamsFieldStatus]; ok {
-		if reflect.TypeOf(st).Kind() != reflect.Slice {
+		t := reflect.TypeOf(st)
+		if t != nil && reflect.TypeOf(st).Kind() != reflect.Slice {
 			return errors.New(errs.ErrorHandlerValidation.Message)
 		}
 	}
 
 	if st, ok := params[pkg.ParamsFieldPaymentMethod]; ok {
-		if reflect.TypeOf(st).Kind() != reflect.Slice {
+		t := reflect.TypeOf(st)
+		if t != nil && reflect.TypeOf(st).Kind() != reflect.Slice {
 			return errors.New(errs.ErrorHandlerValidation.Message)
 		}
 
