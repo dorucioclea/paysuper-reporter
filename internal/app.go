@@ -14,6 +14,7 @@ import (
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg"
 	billingGrpc "github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
 	mongodb "github.com/paysuper/paysuper-database-mongo"
+	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	"github.com/paysuper/paysuper-reporter/internal/builder"
 	"github.com/paysuper/paysuper-reporter/internal/config"
 	"github.com/paysuper/paysuper-reporter/internal/repository"
@@ -268,7 +269,7 @@ func (app *Application) Run() {
 
 	app.billing = billingGrpc.NewBillingService(billingProto.ServiceName, app.service.Client())
 
-	if err := proto.RegisterReporterServiceHandler(app.service.Server(), app); err != nil {
+	if err := reporterpb.RegisterReporterServiceHandler(app.service.Server(), app); err != nil {
 		app.fatalFn("Can`t register service in micro", zap.Error(err))
 	}
 
@@ -285,7 +286,7 @@ func (app *Application) Stop() {
 	}
 }
 
-func (app *Application) ExecuteProcess(payload *proto.ReportFile, d amqp.Delivery) error {
+func (app *Application) ExecuteProcess(payload *reporterpb.ReportFile, d amqp.Delivery) error {
 	h := builder.NewBuilder(
 		app.service,
 		payload,
@@ -411,7 +412,7 @@ func (app *Application) ExecuteProcess(payload *proto.ReportFile, d amqp.Deliver
 		return app.getProcessResult(app.generateReportBroker, pkg.BrokerGenerateReportTopicName, payload, d)
 	}
 
-	postProcessData := &proto.PostProcessRequest{
+	postProcessData := &reporterpb.PostProcessRequest{
 		ReportFile:    payload,
 		FileName:      fileName,
 		RetentionTime: retentionTime,
@@ -435,7 +436,7 @@ func (app *Application) ExecuteProcess(payload *proto.ReportFile, d amqp.Deliver
 	return nil
 }
 
-func (app *Application) ExecutePostProcess(payload *proto.PostProcessRequest, d amqp.Delivery) error {
+func (app *Application) ExecutePostProcess(payload *reporterpb.PostProcessRequest, d amqp.Delivery) error {
 	log.Println("2")
 	h := builder.NewBuilder(
 		app.service,

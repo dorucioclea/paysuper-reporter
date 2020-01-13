@@ -11,8 +11,8 @@ import (
 	billMocks "github.com/paysuper/paysuper-billing-server/pkg/mocks"
 	billProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
 	"github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
+	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	"github.com/paysuper/paysuper-reporter/pkg"
-	"github.com/paysuper/paysuper-reporter/pkg/proto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -81,14 +81,14 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Validate_Ok() {
 	}
 	b, err := json.Marshal(params)
 	assert.NoError(suite.T(), err)
-	handler := &Handler{report: &proto.ReportFile{Params: b}, service: micro.NewService()}
+	handler := &Handler{report: &reporterpb.ReportFile{Params: b}, service: micro.NewService()}
 	builder := newAgreementHandler(handler)
 	err = builder.Validate()
 	assert.NoError(suite.T(), err)
 }
 
 func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Validate_GetParams_Error() {
-	handler := &Handler{report: &proto.ReportFile{Params: []byte("\nnot_json_string\n")}, service: micro.NewService()}
+	handler := &Handler{report: &reporterpb.ReportFile{Params: []byte("\nnot_json_string\n")}, service: micro.NewService()}
 	builder := newAgreementHandler(handler)
 	err := builder.Validate()
 	assert.Error(suite.T(), err)
@@ -100,7 +100,7 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Validate_ParamsWith
 	}
 	b, err := json.Marshal(params)
 	assert.NoError(suite.T(), err)
-	handler := &Handler{report: &proto.ReportFile{Params: b}, service: micro.NewService()}
+	handler := &Handler{report: &reporterpb.ReportFile{Params: b}, service: micro.NewService()}
 	builder := newAgreementHandler(handler)
 	err = builder.Validate()
 	assert.Error(suite.T(), err)
@@ -113,7 +113,7 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Validate_StringPara
 	}
 	b, err := json.Marshal(params)
 	assert.NoError(suite.T(), err)
-	handler := &Handler{report: &proto.ReportFile{Params: b}, service: micro.NewService()}
+	handler := &Handler{report: &reporterpb.ReportFile{Params: b}, service: micro.NewService()}
 	builder := newAgreementHandler(handler)
 	err = builder.Validate()
 	assert.Error(suite.T(), err)
@@ -130,7 +130,7 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Validate_NumericPar
 	}
 	b, err := json.Marshal(params)
 	assert.NoError(suite.T(), err)
-	handler := &Handler{report: &proto.ReportFile{Params: b}, service: micro.NewService()}
+	handler := &Handler{report: &reporterpb.ReportFile{Params: b}, service: micro.NewService()}
 	builder := newAgreementHandler(handler)
 	err = builder.Validate()
 	assert.Error(suite.T(), err)
@@ -184,7 +184,7 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Build_Ok() {
 		  ]
 		}`)
 
-	handler := &Handler{report: &proto.ReportFile{Params: body}, service: micro.NewService()}
+	handler := &Handler{report: &reporterpb.ReportFile{Params: body}, service: micro.NewService()}
 	builder := newAgreementHandler(handler)
 	params, err := builder.Build()
 	assert.NoError(suite.T(), err)
@@ -197,7 +197,7 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_PostProcess_Ok() {
 		Return(&grpc.ChangeMerchantDataResponse{Status: billPkg.ResponseStatusOk}, nil)
 
 	handler := &Handler{
-		report:  &proto.ReportFile{MerchantId: bson.NewObjectId().Hex()},
+		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex()},
 		billing: bs,
 	}
 	builder := newAgreementHandler(handler)
@@ -211,7 +211,7 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_PostProcess_Billing
 		Return(nil, errors.New("some error"))
 
 	handler := &Handler{
-		report:  &proto.ReportFile{MerchantId: bson.NewObjectId().Hex()},
+		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex()},
 		billing: bs,
 	}
 	builder := newAgreementHandler(handler)
@@ -232,7 +232,7 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_PostProcess_Billing
 		)
 
 	handler := &Handler{
-		report:  &proto.ReportFile{MerchantId: bson.NewObjectId().Hex()},
+		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex()},
 		billing: bs,
 	}
 	builder := newAgreementHandler(handler)

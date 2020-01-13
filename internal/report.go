@@ -4,10 +4,10 @@ import (
 	"context"
 	errs "errors"
 	"github.com/globalsign/mgo/bson"
+	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	"github.com/paysuper/paysuper-reporter/internal/builder"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
-	"github.com/paysuper/paysuper-reporter/pkg/proto"
 	"github.com/streadway/amqp"
 	"go.uber.org/zap"
 	"sort"
@@ -44,7 +44,7 @@ type ReportFileTemplate struct {
 	Group      string
 }
 
-func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, res *proto.CreateFileResponse) error {
+func (app *Application) CreateFile(ctx context.Context, file *reporterpb.ReportFile, res *reporterpb.CreateFileResponse) error {
 	var err error
 
 	if _, ok := reportFileContentTypes[file.FileType]; !ok {
@@ -124,7 +124,7 @@ func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, 
 	return nil
 }
 
-func (app *Application) getTemplate(file *proto.ReportFile) (string, error) {
+func (app *Application) getTemplate(file *reporterpb.ReportFile) (string, error) {
 	if file.Template != "" {
 		return file.Template, nil
 	}

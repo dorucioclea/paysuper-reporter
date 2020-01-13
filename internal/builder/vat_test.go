@@ -8,10 +8,10 @@ import (
 	billMocks "github.com/paysuper/paysuper-billing-server/pkg/mocks"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
 	"github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
+	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	"github.com/paysuper/paysuper-reporter/internal/mocks"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
-	"github.com/paysuper/paysuper-reporter/pkg/proto"
 	"github.com/stretchr/testify/assert"
 	mock2 "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -30,7 +30,7 @@ func Test_VatBuilder(t *testing.T) {
 func (suite *VatBuilderTestSuite) TestVatBuilder_Validate_Error_CountryEmpty() {
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newVatHandler(&Handler{
-		report: &proto.ReportFile{Params: params},
+		report: &reporterpb.ReportFile{Params: params},
 	})
 
 	assert.Errorf(suite.T(), h.Validate(), errors.ErrorParamIdNotFound.Message)
@@ -41,7 +41,7 @@ func (suite *VatBuilderTestSuite) TestVatBuilder_Validate_Error_CountryInvalid()
 		pkg.ParamsFieldCountry: "ABC",
 	})
 	h := newVatHandler(&Handler{
-		report: &proto.ReportFile{Params: params},
+		report: &reporterpb.ReportFile{Params: params},
 	})
 
 	assert.Errorf(suite.T(), h.Validate(), errors.ErrorParamIdNotFound.Message)
@@ -52,7 +52,7 @@ func (suite *VatBuilderTestSuite) TestVatBuilder_Validate_Ok() {
 		pkg.ParamsFieldCountry: "RU",
 	})
 	h := newVatHandler(&Handler{
-		report: &proto.ReportFile{Params: params},
+		report: &reporterpb.ReportFile{Params: params},
 	})
 
 	assert.NoError(suite.T(), h.Validate())
@@ -67,7 +67,7 @@ func (suite *VatBuilderTestSuite) TestVatBuilder_Build_Error_GetById() {
 	})
 	h := newVatHandler(&Handler{
 		vatRepository: &vatRep,
-		report:        &proto.ReportFile{Params: params},
+		report:        &reporterpb.ReportFile{Params: params},
 	})
 
 	_, err := h.Build()
@@ -95,7 +95,7 @@ func (suite *VatBuilderTestSuite) TestVatBuilder_Build_Ok() {
 	})
 	h := newVatHandler(&Handler{
 		vatRepository: &vatRep,
-		report:        &proto.ReportFile{Params: params},
+		report:        &reporterpb.ReportFile{Params: params},
 		billing:       bs,
 	})
 
@@ -122,7 +122,7 @@ func (suite *VatBuilderTestSuite) TestVatBuilder_Build_Error_GetOperatingCompany
 	})
 	h := newVatHandler(&Handler{
 		vatRepository: &vatRep,
-		report:        &proto.ReportFile{Params: params},
+		report:        &reporterpb.ReportFile{Params: params},
 		billing:       bs,
 	})
 

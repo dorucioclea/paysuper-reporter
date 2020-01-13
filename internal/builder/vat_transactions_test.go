@@ -8,10 +8,10 @@ import (
 	billMocks "github.com/paysuper/paysuper-billing-server/pkg/mocks"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
 	"github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
+	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	"github.com/paysuper/paysuper-reporter/internal/mocks"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
-	"github.com/paysuper/paysuper-reporter/pkg/proto"
 	"github.com/stretchr/testify/assert"
 	mock2 "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -30,7 +30,7 @@ func Test_VatTransactionsBuilder(t *testing.T) {
 func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Validate_Error_IdNotFound() {
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newVatTransactionsHandler(&Handler{
-		report: &proto.ReportFile{Params: params},
+		report: &reporterpb.ReportFile{Params: params},
 	})
 
 	assert.Errorf(suite.T(), h.Validate(), errors.ErrorParamIdNotFound.Message)
@@ -41,7 +41,7 @@ func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Validat
 		pkg.ParamsFieldId: "5ced34d689fce60bf4440829",
 	})
 	h := newVatTransactionsHandler(&Handler{
-		report: &proto.ReportFile{Params: params},
+		report: &reporterpb.ReportFile{Params: params},
 	})
 
 	assert.NoError(suite.T(), h.Validate())
@@ -54,7 +54,7 @@ func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_E
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newVatTransactionsHandler(&Handler{
 		vatRepository: &vatRep,
-		report:        &proto.ReportFile{Params: params},
+		report:        &reporterpb.ReportFile{Params: params},
 	})
 
 	_, err := h.Build()
@@ -72,7 +72,7 @@ func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_E
 	h := newVatTransactionsHandler(&Handler{
 		vatRepository:          &vatRep,
 		transactionsRepository: &transRep,
-		report:                 &proto.ReportFile{Params: params},
+		report:                 &reporterpb.ReportFile{Params: params},
 	})
 
 	_, err := h.Build()
@@ -116,7 +116,7 @@ func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_O
 	h := newVatTransactionsHandler(&Handler{
 		vatRepository:          &vatRep,
 		transactionsRepository: &transRep,
-		report:                 &proto.ReportFile{Params: params},
+		report:                 &reporterpb.ReportFile{Params: params},
 		billing:                bs,
 	})
 
@@ -157,7 +157,7 @@ func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_E
 	h := newVatTransactionsHandler(&Handler{
 		vatRepository:          &vatRep,
 		transactionsRepository: &transRep,
-		report:                 &proto.ReportFile{Params: params},
+		report:                 &reporterpb.ReportFile{Params: params},
 		billing:                bs,
 	})
 

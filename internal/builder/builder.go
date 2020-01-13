@@ -6,10 +6,10 @@ import (
 	errs "errors"
 	"github.com/micro/go-micro"
 	"github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
+	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	"github.com/paysuper/paysuper-reporter/internal/repository"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
-	"github.com/paysuper/paysuper-reporter/pkg/proto"
 )
 
 var (
@@ -32,7 +32,7 @@ type BuildInterface interface {
 
 type Handler struct {
 	service                micro.Service
-	report                 *proto.ReportFile
+	report                 *reporterpb.ReportFile
 	royaltyRepository      repository.RoyaltyRepositoryInterface
 	vatRepository          repository.VatRepositoryInterface
 	transactionsRepository repository.TransactionsRepositoryInterface
@@ -47,7 +47,7 @@ type DefaultHandler struct {
 
 func NewBuilder(
 	service micro.Service,
-	report *proto.ReportFile,
+	report *reporterpb.ReportFile,
 	royaltyRepository repository.RoyaltyRepositoryInterface,
 	vatRepository repository.VatRepositoryInterface,
 	transactionsRepository repository.TransactionsRepositoryInterface,

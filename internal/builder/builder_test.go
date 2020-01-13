@@ -2,10 +2,10 @@ package builder
 
 import (
 	mocks2 "github.com/paysuper/paysuper-billing-server/pkg/mocks"
+	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	"github.com/paysuper/paysuper-reporter/internal/mocks"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
-	"github.com/paysuper/paysuper-reporter/pkg/proto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"testing"
@@ -22,7 +22,7 @@ func Test_Builder(t *testing.T) {
 func (suite *BuilderTestSuite) TestBuilder_NewBuilder_Ok() {
 	builder := NewBuilder(
 		nil,
-		&proto.ReportFile{},
+		&reporterpb.ReportFile{},
 		&mocks.RoyaltyRepositoryInterface{},
 		&mocks.VatRepositoryInterface{},
 		&mocks.TransactionsRepositoryInterface{},
@@ -37,7 +37,7 @@ func (suite *BuilderTestSuite) TestBuilder_NewBuilder_Ok() {
 func (suite *BuilderTestSuite) TestBuilder_GetBuilder_Error_NotFound() {
 	builder := NewBuilder(
 		nil,
-		&proto.ReportFile{ReportType: "unknown"},
+		&reporterpb.ReportFile{ReportType: "unknown"},
 		&mocks.RoyaltyRepositoryInterface{},
 		&mocks.VatRepositoryInterface{},
 		&mocks.TransactionsRepositoryInterface{},
@@ -53,7 +53,7 @@ func (suite *BuilderTestSuite) TestBuilder_GetBuilder_Error_NotFound() {
 func (suite *BuilderTestSuite) TestBuilder_GetBuilder_Ok() {
 	builder := NewBuilder(
 		nil,
-		&proto.ReportFile{ReportType: pkg.ReportTypeVat},
+		&reporterpb.ReportFile{ReportType: pkg.ReportTypeVat},
 		&mocks.RoyaltyRepositoryInterface{},
 		&mocks.VatRepositoryInterface{},
 		&mocks.TransactionsRepositoryInterface{},

@@ -5,10 +5,10 @@ import (
 	errs "errors"
 	"github.com/globalsign/mgo/bson"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
+	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	"github.com/paysuper/paysuper-reporter/internal/mocks"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
-	"github.com/paysuper/paysuper-reporter/pkg/proto"
 	"github.com/stretchr/testify/assert"
 	mock2 "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -28,7 +28,7 @@ func Test_TransactionsBuilder(t *testing.T) {
 func (suite *TransactionsBuilderTestSuite) TestTransactionsBuilder_Validate_Error_MerchantIdNotFound() {
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newTransactionsHandler(&Handler{
-		report: &proto.ReportFile{Params: params},
+		report: &reporterpb.ReportFile{Params: params},
 	})
 
 	assert.Errorf(suite.T(), h.Validate(), errors.ErrorParamMerchantIdNotFound.Message)
@@ -36,7 +36,7 @@ func (suite *TransactionsBuilderTestSuite) TestTransactionsBuilder_Validate_Erro
 
 func (suite *TransactionsBuilderTestSuite) TestTransactionsBuilder_Validate_Ok() {
 	h := newTransactionsHandler(&Handler{
-		report: &proto.ReportFile{MerchantId: bson.NewObjectId().Hex()},
+		report: &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex()},
 	})
 
 	assert.NoError(suite.T(), h.Validate())
@@ -51,7 +51,7 @@ func (suite *TransactionsBuilderTestSuite) TestTransactionsBuilder_Build_Error_F
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newTransactionsHandler(&Handler{
 		transactionsRepository: &rep,
-		report:                 &proto.ReportFile{Params: params},
+		report:                 &reporterpb.ReportFile{Params: params},
 	})
 
 	_, err := h.Build()
@@ -83,7 +83,7 @@ func (suite *TransactionsBuilderTestSuite) TestTransactionsBuilder_Build_Ok() {
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newTransactionsHandler(&Handler{
 		transactionsRepository: &rep,
-		report:                 &proto.ReportFile{MerchantId: merchantId, Params: params},
+		report:                 &reporterpb.ReportFile{MerchantId: merchantId, Params: params},
 	})
 
 	_, err := h.Build()
@@ -115,7 +115,7 @@ func (suite *TransactionsBuilderTestSuite) TestTransactionsBuilder_Build_Ok_Cust
 	})
 	h := newTransactionsHandler(&Handler{
 		transactionsRepository: &rep,
-		report:                 &proto.ReportFile{Params: params},
+		report:                 &reporterpb.ReportFile{Params: params},
 	})
 
 	_, err := h.Build()

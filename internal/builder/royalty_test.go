@@ -8,10 +8,10 @@ import (
 	billMocks "github.com/paysuper/paysuper-billing-server/pkg/mocks"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
 	"github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
+	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	"github.com/paysuper/paysuper-reporter/internal/mocks"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
-	"github.com/paysuper/paysuper-reporter/pkg/proto"
 	"github.com/stretchr/testify/assert"
 	mock2 "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -31,7 +31,7 @@ func Test_RoyaltyBuilder(t *testing.T) {
 func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Validate_Error_IdNotFound() {
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newRoyaltyHandler(&Handler{
-		report: &proto.ReportFile{Params: params},
+		report: &reporterpb.ReportFile{Params: params},
 	})
 
 	assert.Errorf(suite.T(), h.Validate(), errors.ErrorParamIdNotFound.Message)
@@ -42,7 +42,7 @@ func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Validate_Ok() {
 		pkg.ParamsFieldId: "5ced34d689fce60bf4440829",
 	})
 	h := newRoyaltyHandler(&Handler{
-		report: &proto.ReportFile{Params: params},
+		report: &reporterpb.ReportFile{Params: params},
 	})
 
 	assert.NoError(suite.T(), h.Validate())
@@ -55,7 +55,7 @@ func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Build_Error_GetById() {
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newRoyaltyHandler(&Handler{
 		royaltyRepository: &royaltyRep,
-		report:            &proto.ReportFile{Params: params},
+		report:            &reporterpb.ReportFile{Params: params},
 	})
 
 	_, err := h.Build()
@@ -121,7 +121,7 @@ func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Build_Ok() {
 	h := newRoyaltyHandler(&Handler{
 		royaltyRepository:  &royaltyRep,
 		merchantRepository: &merchantRep,
-		report:             &proto.ReportFile{Params: params},
+		report:             &reporterpb.ReportFile{Params: params},
 		billing:            bs,
 	})
 
@@ -185,7 +185,7 @@ func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Build_Error_GetOperatin
 	h := newRoyaltyHandler(&Handler{
 		royaltyRepository:  &royaltyRep,
 		merchantRepository: &merchantRep,
-		report:             &proto.ReportFile{Params: params},
+		report:             &reporterpb.ReportFile{Params: params},
 		billing:            bs,
 	})
 
