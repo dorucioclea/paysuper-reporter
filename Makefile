@@ -15,13 +15,6 @@ else
 override ROOT_DIR = $(CURRENT_DIR)
 endif
 
-generate: docker-protoc-generate go-inject-tag ## execute all generators & go-inject-tag
-.PHONY: generate
-
-go-inject-tag: ## inject tags into golang grpc structs
-	. ${ROOT_DIR}/scripts/inject-tag.sh ${ROOT_DIR}/scripts
-.PHONY: go-inject-tag
-
 go-mockery: ## generate golang mock objects
 	go get github.com/vektra/mockery/.../ ;\
 	. ${ROOT_DIR}/scripts/mockery.sh ${ROOT_DIR}/scripts
