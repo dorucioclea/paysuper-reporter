@@ -54,9 +54,9 @@ func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_O
 	}
 	billing.On("GetVatReport", mock2.Anything, mock2.Anything).Return(vatResponse, nil)
 
-	ordersResponse := &billingpb.TransactionsResponse{
+	ordersResponse := &billingpb.PrivateTransactionsResponse{
 		Status: billingpb.ResponseStatusOk,
-		Data: &billingpb.TransactionsPaginate{
+		Data: &billingpb.PrivateTransactionsPaginate{
 			Items: suite.getOrdersTemplate(),
 		},
 	}
@@ -88,9 +88,9 @@ func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_E
 	}
 	billing.On("GetVatReport", mock2.Anything, mock2.Anything).Return(vatResponse, nil)
 
-	ordersResponse := &billingpb.TransactionsResponse{
+	ordersResponse := &billingpb.PrivateTransactionsResponse{
 		Status: billingpb.ResponseStatusOk,
-		Data: &billingpb.TransactionsPaginate{
+		Data: &billingpb.PrivateTransactionsPaginate{
 			Items: suite.getOrdersTemplate(),
 		},
 	}
@@ -121,10 +121,10 @@ func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_E
 	}
 	billing.On("GetVatReport", mock2.Anything, mock2.Anything).Return(vatResponse, nil)
 
-	ordersResponse := &billingpb.TransactionsResponse{
+	ordersResponse := &billingpb.PrivateTransactionsResponse{
 		Status:  billingpb.ResponseStatusNotFound,
 		Message: &billingpb.ResponseErrorMessage{Message: "error"},
-		Data: &billingpb.TransactionsPaginate{
+		Data: &billingpb.PrivateTransactionsPaginate{
 			Items: nil,
 		},
 	}
@@ -155,9 +155,9 @@ func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_E
 	}
 	billing.On("GetVatReport", mock2.Anything, mock2.Anything).Return(vatResponse, nil)
 
-	ordersResponse := &billingpb.TransactionsResponse{
+	ordersResponse := &billingpb.PrivateTransactionsResponse{
 		Status: billingpb.ResponseStatusOk,
-		Data: &billingpb.TransactionsPaginate{
+		Data: &billingpb.PrivateTransactionsPaginate{
 			Items: suite.getOrdersTemplate(),
 		},
 	}
@@ -191,10 +191,10 @@ func (suite *VatTransactionsBuilderTestSuite) getVatTemplate() *billingpb.VatRep
 	}
 }
 
-func (suite *VatTransactionsBuilderTestSuite) getOrdersTemplate() []*billingpb.OrderViewPublic {
+func (suite *VatTransactionsBuilderTestSuite) getOrdersTemplate() []*billingpb.OrderViewPrivate {
 	datetime, _ := ptypes.TimestampProto(time.Now())
 
-	return []*billingpb.OrderViewPublic{{
+	return []*billingpb.OrderViewPrivate{{
 		Id: bson.NewObjectId().Hex(),
 		PaymentMethod: &billingpb.PaymentMethodOrder{
 			Name: "card",
