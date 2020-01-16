@@ -15,7 +15,7 @@ jobs:
       services:
         - mongodb
       go:
-        - 1.12.x
+        - 1.13
       install: true
       env:
         - GO111MODULE=on
