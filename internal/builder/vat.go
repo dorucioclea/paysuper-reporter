@@ -4,7 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	billingGrpc "github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/paysuper/paysuper-proto/go/billingpb"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
 	"go.uber.org/zap"
@@ -39,15 +40,28 @@ func (h *Vat) Validate() error {
 func (h *Vat) Build() (interface{}, error) {
 	var reports []map[string]interface{}
 
+	ctx := context.TODO()
 	params, _ := h.GetParams()
 	country := fmt.Sprintf("%s", params[pkg.ParamsFieldCountry])
-	vats, err := h.vatRepository.GetByCountry(country)
 
-	if err != nil {
+	vatsRequest := &billingpb.VatReportsRequest{Country: country, Offset: 0, Limit: 1000}
+	vats, err := h.billing.GetVatReportsForCountry(ctx, vatsRequest)
+
+	if err != nil || vats.Status != billingpb.ResponseStatusOk {
+		if err == nil {
+			err = errors.New(vats.Message.Message)
+		}
+
+		zap.L().Error(
+			"Unable to get vats for country",
+			zap.Error(err),
+			zap.String("country", country),
+		)
+
 		return nil, err
 	}
 
-	if len(vats) < 1 {
+	if len(vats.Data.Items) < 1 {
 		return reports, nil
 	}
 
@@ -58,7 +72,7 @@ func (h *Vat) Build() (interface{}, error) {
 	ratesAndFees := float64(0)
 	taxAmount := float64(0)
 
-	for _, vat := range vats {
+	for _, vat := range vats.Data.Items {
 		grossRevenue += math.Round(vat.GrossRevenue*100) / 100
 		correction += math.Round(vat.CorrectionAmount*100) / 100
 		totalTransactionsCount += vat.TransactionsCount
@@ -66,12 +80,45 @@ func (h *Vat) Build() (interface{}, error) {
 		ratesAndFees += math.Round(vat.FeesAmount*100) / 100
 		taxAmount += math.Round(vat.VatAmount*100) / 100
 
+		dateFrom, err := ptypes.Timestamp(vat.DateFrom)
+
+		if err != nil {
+			zap.L().Error(
+				"Unable to cast timestamp to time",
+				zap.Error(err),
+				zap.String("date_from", vat.DateFrom.String()),
+			)
+			return nil, err
+		}
+
+		dateTo, err := ptypes.Timestamp(vat.DateTo)
+
+		if err != nil {
+			zap.L().Error(
+				"Unable to cast timestamp to time",
+				zap.Error(err),
+				zap.String("date_to", vat.DateTo.String()),
+			)
+			return nil, err
+		}
+
+		payUntilDate, err := ptypes.Timestamp(vat.PayUntilDate)
+
+		if err != nil {
+			zap.L().Error(
+				"Unable to cast timestamp to time",
+				zap.Error(err),
+				zap.String("pay_until_date", vat.PayUntilDate.String()),
+			)
+			return nil, err
+		}
+
 		reports = append(reports, map[string]interface{}{
-			"period_from":             vat.DateFrom.Format("2006-01-02"),
-			"period_to":               vat.DateTo.Format("2006-01-02"),
-			"vat_id":                  vat.Id.Hex(),
+			"period_from":             dateFrom.Format("2006-01-02"),
+			"period_to":               dateTo.Format("2006-01-02"),
+			"vat_id":                  vat.Id,
 			"status":                  vat.Status,
-			"payment_date":            vat.PayUntilDate.Format("2006-01-02"),
+			"payment_date":            payUntilDate.Format("2006-01-02"),
 			"tax_amount":              math.Round(vat.VatAmount*100) / 100,
 			"transactions_count":      vat.TransactionsCount,
 			"gross_amount":            math.Round(vat.GrossRevenue*100) / 100,
@@ -84,7 +131,7 @@ func (h *Vat) Build() (interface{}, error) {
 
 	res, err := h.billing.GetOperatingCompany(
 		context.Background(),
-		&billingGrpc.GetOperatingCompanyRequest{Id: vats[0].OperatingCompanyId},
+		&billingpb.GetOperatingCompanyRequest{Id: vats.Data.Items[0].OperatingCompanyId},
 	)
 
 	if err != nil || res.Company == nil {
@@ -95,7 +142,7 @@ func (h *Vat) Build() (interface{}, error) {
 		zap.L().Error(
 			"unable to get operating company",
 			zap.Error(err),
-			zap.String("operating_company_id", vats[0].OperatingCompanyId),
+			zap.String("operating_company_id", vats.Data.Items[0].OperatingCompanyId),
 		)
 
 		return nil, err
@@ -103,8 +150,8 @@ func (h *Vat) Build() (interface{}, error) {
 
 	result := map[string]interface{}{
 		"country":                  country,
-		"currency":                 vats[0].Currency,
-		"vat_rate":                 vats[0].VatRate,
+		"currency":                 vats.Data.Items[0].Currency,
+		"vat_rate":                 vats.Data.Items[0].VatRate,
 		"start_date":               "2019-10-01",
 		"end_date":                 time.Now().Format("2006-01-02"),
 		"gross_revenue":            grossRevenue,

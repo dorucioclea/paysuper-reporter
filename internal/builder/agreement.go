@@ -5,8 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/micro/go-micro/client"
-	billingPkg "github.com/paysuper/paysuper-billing-server/pkg"
-	billingGrpc "github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
+	"github.com/paysuper/paysuper-proto/go/billingpb"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"time"
 )
@@ -116,7 +115,7 @@ func (h *Agreement) PostProcess(
 	retentionTime int64,
 	content []byte,
 ) error {
-	req := &billingGrpc.SetMerchantS3AgreementRequest{
+	req := &billingpb.SetMerchantS3AgreementRequest{
 		MerchantId:      h.report.MerchantId,
 		S3AgreementName: fileName,
 	}
@@ -130,7 +129,7 @@ func (h *Agreement) PostProcess(
 		return err
 	}
 
-	if rsp.Status != billingPkg.ResponseStatusOk {
+	if rsp.Status != billingpb.ResponseStatusOk {
 		return errors.New(rsp.Message.Message)
 	}
 

@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/globalsign/mgo/bson"
-	billingPkg "github.com/paysuper/paysuper-billing-server/pkg"
-	billingGrpc "github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/paysuper/paysuper-proto/go/billingpb"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
 	"go.uber.org/zap"
@@ -38,22 +38,47 @@ func (h *VatTransactions) Validate() error {
 }
 
 func (h *VatTransactions) Build() (interface{}, error) {
+	ctx := context.TODO()
 	params, _ := h.GetParams()
-	vat, err := h.vatRepository.GetById(fmt.Sprintf("%s", params[pkg.ParamsFieldId]))
+	vatId := fmt.Sprintf("%s", params[pkg.ParamsFieldId])
 
-	if err != nil {
+	vatRequest := &billingpb.VatReportRequest{Id: vatId}
+	vat, err := h.billing.GetVatReport(ctx, vatRequest)
+
+	if err != nil || vat.Status != billingpb.ResponseStatusOk {
+		if err == nil {
+			err = errors.New(vat.Message.Message)
+		}
+
+		zap.L().Error(
+			"Unable to get vat orders",
+			zap.Error(err),
+			zap.String("vat_id", vatId),
+		)
+
 		return nil, err
 	}
 
-	orders, err := h.transactionsRepository.GetByVat(vat)
+	ordersRequest := &billingpb.VatTransactionsRequest{VatReportId: vatId, Offset: 0, Limit: 1000}
+	orders, err := h.billing.GetVatReportTransactions(ctx, ordersRequest)
 
-	if err != nil {
+	if err != nil || orders.Status != billingpb.ResponseStatusOk {
+		if err == nil {
+			err = errors.New(orders.Message.Message)
+		}
+
+		zap.L().Error(
+			"Unable to get vat orders",
+			zap.Error(err),
+			zap.String("vat_id", vatId),
+		)
+
 		return nil, err
 	}
 
 	var transactions []map[string]interface{}
 
-	for _, order := range orders {
+	for _, order := range orders.Data.Items {
 		amount := float64(0)
 		amountCurrency := ""
 
@@ -61,7 +86,7 @@ func (h *VatTransactions) Build() (interface{}, error) {
 			amount = order.PaymentGrossRevenueOrigin.Amount
 			amountCurrency = order.PaymentGrossRevenueOrigin.Currency
 
-			if order.Type == billingPkg.OrderTypeRefund {
+			if order.Type == billingpb.OrderTypeRefund {
 				amount = -1 * order.PaymentRefundGrossRevenueOrigin.Amount
 				amountCurrency = order.PaymentRefundGrossRevenueOrigin.Currency
 			}
@@ -74,7 +99,7 @@ func (h *VatTransactions) Build() (interface{}, error) {
 			vat = order.PaymentTaxFeeLocal.Amount
 			vatCurrency = order.PaymentTaxFeeLocal.Currency
 
-			if order.Type == billingPkg.OrderTypeRefund {
+			if order.Type == billingpb.OrderTypeRefund {
 				vat = -1 * order.PaymentRefundTaxFeeLocal.Amount
 				vatCurrency = order.PaymentRefundTaxFeeLocal.Currency
 			}
@@ -87,7 +112,7 @@ func (h *VatTransactions) Build() (interface{}, error) {
 			fee = order.FeesTotalLocal.Amount
 			feeCurrency = order.FeesTotalLocal.Currency
 
-			if order.Type == billingPkg.OrderTypeRefund {
+			if order.Type == billingpb.OrderTypeRefund {
 				vat = order.RefundFeesTotalLocal.Amount
 				vatCurrency = order.RefundFeesTotalLocal.Currency
 			}
@@ -100,10 +125,10 @@ func (h *VatTransactions) Build() (interface{}, error) {
 			payout = order.NetRevenue.Amount
 			payoutCurrency = order.NetRevenue.Currency
 
-			if order.Type == billingPkg.OrderTypeRefund {
+			if order.Type == billingpb.OrderTypeRefund {
 				zap.L().Error(
 					"debug refund payout",
-					zap.String("id", order.Id.Hex()),
+					zap.String("id", order.Id),
 					zap.String("uuid", order.Uuid),
 					zap.Float64("refund_reverse_revenue", order.RefundReverseRevenue.Amount),
 				)
@@ -117,10 +142,21 @@ func (h *VatTransactions) Build() (interface{}, error) {
 			isVatDeduction = "No"
 		}
 
+		date, err := ptypes.Timestamp(order.TransactionDate)
+
+		if err != nil {
+			zap.L().Error(
+				"Unable to cast timestamp to time",
+				zap.Error(err),
+				zap.String("transaction_date", order.TransactionDate.String()),
+			)
+			return nil, err
+		}
+
 		transactions = append(transactions, map[string]interface{}{
-			"date":             order.TransactionDate.Format("2006-01-02T15:04:05"),
+			"date":             date.Format("2006-01-02T15:04:05"),
 			"country":          order.CountryCode,
-			"id":               order.Id.Hex(),
+			"id":               order.Id,
 			"payment_method":   order.PaymentMethod.Name,
 			"amount":           math.Round(amount*100) / 100,
 			"amount_currency":  amountCurrency,
@@ -136,7 +172,7 @@ func (h *VatTransactions) Build() (interface{}, error) {
 
 	res, err := h.billing.GetOperatingCompany(
 		context.Background(),
-		&billingGrpc.GetOperatingCompanyRequest{Id: vat.OperatingCompanyId},
+		&billingpb.GetOperatingCompanyRequest{Id: vat.Vat.OperatingCompanyId},
 	)
 
 	if err != nil || res.Company == nil {
@@ -147,32 +183,65 @@ func (h *VatTransactions) Build() (interface{}, error) {
 		zap.L().Error(
 			"unable to get operating company",
 			zap.Error(err),
-			zap.String("operating_company_id", vat.OperatingCompanyId),
+			zap.String("operating_company_id", vat.Vat.OperatingCompanyId),
 		)
 
 		return nil, err
 	}
 
+	createdAt, err := ptypes.Timestamp(vat.Vat.CreatedAt)
+
+	if err != nil {
+		zap.L().Error(
+			"Unable to cast timestamp to time",
+			zap.Error(err),
+			zap.String("created_at", vat.Vat.CreatedAt.String()),
+		)
+		return nil, err
+	}
+
+	dateFrom, err := ptypes.Timestamp(vat.Vat.DateFrom)
+
+	if err != nil {
+		zap.L().Error(
+			"Unable to cast timestamp to time",
+			zap.Error(err),
+			zap.String("date_from", vat.Vat.DateFrom.String()),
+		)
+		return nil, err
+	}
+
+	dateTo, err := ptypes.Timestamp(vat.Vat.DateTo)
+
+	if err != nil {
+		zap.L().Error(
+			"Unable to cast timestamp to time",
+			zap.Error(err),
+			zap.String("date_to", vat.Vat.DateTo.String()),
+		)
+		return nil, err
+	}
+
 	result := map[string]interface{}{
 		"id":                       params[pkg.ParamsFieldId],
-		"country":                  vat.Country,
-		"currency":                 vat.Currency,
-		"vat_rate":                 vat.VatRate,
-		"status":                   vat.Status,
-		"pay_until_date":           vat.PayUntilDate,
-		"country_annual_turnover":  vat.CountryAnnualTurnover,
-		"world_annual_turnover":    vat.WorldAnnualTurnover,
-		"created_at":               vat.CreatedAt.Format("2006-01-02"),
-		"start_date":               vat.DateFrom.Format("2006-01-02"),
-		"end_date":                 vat.DateTo.Format("2006-01-02"),
-		"gross_revenue":            math.Round(vat.GrossRevenue*100) / 100,
-		"correction":               math.Round(vat.CorrectionAmount*100) / 100,
-		"total_transactions_count": vat.TransactionsCount,
-		"deduction":                math.Round(vat.DeductionAmount*100) / 100,
-		"rates_and_fees":           math.Round(vat.FeesAmount*100) / 100,
-		"tax_amount":               math.Round(vat.VatAmount*100) / 100,
-		"has_pay_until_date":       vat.Status == billingPkg.VatReportStatusNeedToPay || vat.Status == billingPkg.VatReportStatusOverdue,
-		"has_disclaimer":           vat.AmountsApproximate,
+		"country":                  vat.Vat.Country,
+		"currency":                 vat.Vat.Currency,
+		"vat_rate":                 vat.Vat.VatRate,
+		"status":                   vat.Vat.Status,
+		"pay_until_date":           vat.Vat.PayUntilDate,
+		"country_annual_turnover":  vat.Vat.CountryAnnualTurnover,
+		"world_annual_turnover":    vat.Vat.WorldAnnualTurnover,
+		"created_at":               createdAt.Format("2006-01-02"),
+		"start_date":               dateFrom.Format("2006-01-02"),
+		"end_date":                 dateTo.Format("2006-01-02"),
+		"gross_revenue":            math.Round(vat.Vat.GrossRevenue*100) / 100,
+		"correction":               math.Round(vat.Vat.CorrectionAmount*100) / 100,
+		"total_transactions_count": vat.Vat.TransactionsCount,
+		"deduction":                math.Round(vat.Vat.DeductionAmount*100) / 100,
+		"rates_and_fees":           math.Round(vat.Vat.FeesAmount*100) / 100,
+		"tax_amount":               math.Round(vat.Vat.VatAmount*100) / 100,
+		"has_pay_until_date":       vat.Vat.Status == billingpb.VatReportStatusNeedToPay || vat.Vat.Status == billingpb.VatReportStatusOverdue,
+		"has_disclaimer":           vat.Vat.AmountsApproximate,
 		"oc_name":                  res.Company.Name,
 		"oc_address":               res.Company.Address,
 		"transactions":             transactions,

@@ -9,18 +9,19 @@ require (
 	github.com/golang/protobuf v1.3.2
 	github.com/jinzhu/now v1.0.1
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/micro/go-micro v1.8.0
+	github.com/micro/go-micro v1.18.0
 	github.com/micro/go-plugins v1.2.0
 	github.com/nats-io/stan.go v0.5.0
 	github.com/paysuper/paysuper-aws-manager v0.0.1
-	github.com/paysuper/paysuper-billing-server v0.0.0-20191114134535-c158b5075a9a
 	github.com/paysuper/paysuper-database-mongo v0.1.3
+	github.com/paysuper/paysuper-proto/go/billingpb v0.0.0-20200115195040-5c9141b02eb2
+	github.com/paysuper/paysuper-proto/go/recurringpb v0.0.0-20200114235009-da02b724903d // indirect
 	github.com/paysuper/paysuper-proto/go/reporterpb v0.0.0-20200113130036-a29295b4b67a
-	github.com/paysuper/paysuper-recurring-repository v1.0.126
+	github.com/paysuper/paysuper-tools v0.0.0-20200115135413-15b9d03f5ec4
 	github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271
 	github.com/stretchr/testify v1.4.0
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5 // indirect
-	go.uber.org/zap v1.10.0
+	go.uber.org/zap v1.13.0
 	gopkg.in/ProtocolONE/rabbitmq.v1 v1.0.0-20191130200733-22b27ffa73aa
 )
 

@@ -7,10 +7,8 @@ import (
 	"fmt"
 	"github.com/globalsign/mgo/bson"
 	"github.com/micro/go-micro"
-	billPkg "github.com/paysuper/paysuper-billing-server/pkg"
-	billMocks "github.com/paysuper/paysuper-billing-server/pkg/mocks"
-	billProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
-	"github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
+	"github.com/paysuper/paysuper-proto/go/billingpb"
+	billingMocks "github.com/paysuper/paysuper-proto/go/billingpb/mocks"
 	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/stretchr/testify/assert"
@@ -42,7 +40,7 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Validate_Ok() {
 		pkg.RequestParameterAgreementPayoutCost:         10,
 		pkg.RequestParameterAgreementMinimalPayoutLimit: 10000,
 		pkg.RequestParameterAgreementPayoutCurrency:     "USD",
-		pkg.RequestParameterAgreementPSRate: []*billProto.MerchantTariffRatesPayment{
+		pkg.RequestParameterAgreementPSRate: []*billingpb.MerchantTariffRatesPayment{
 			{
 				MinAmount:              0,
 				MaxAmount:              4.99,
@@ -192,9 +190,9 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Build_Ok() {
 }
 
 func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_PostProcess_Ok() {
-	bs := &billMocks.BillingService{}
+	bs := &billingMocks.BillingService{}
 	bs.On("SetMerchantS3Agreement", mock.Anything, mock.Anything, mock.Anything).
-		Return(&grpc.ChangeMerchantDataResponse{Status: billPkg.ResponseStatusOk}, nil)
+		Return(&billingpb.ChangeMerchantDataResponse{Status: billingpb.ResponseStatusOk}, nil)
 
 	handler := &Handler{
 		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex()},
@@ -206,7 +204,7 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_PostProcess_Ok() {
 }
 
 func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_PostProcess_BillingServerSystem_Error() {
-	bs := &billMocks.BillingService{}
+	bs := &billingMocks.BillingService{}
 	bs.On("SetMerchantS3Agreement", mock.Anything, mock.Anything, mock.Anything).
 		Return(nil, errors.New("some error"))
 
@@ -221,12 +219,12 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_PostProcess_Billing
 }
 
 func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_PostProcess_BillingServerReturn_Error() {
-	bs := &billMocks.BillingService{}
+	bs := &billingMocks.BillingService{}
 	bs.On("SetMerchantS3Agreement", mock.Anything, mock.Anything, mock.Anything).
 		Return(
-			&grpc.ChangeMerchantDataResponse{
-				Status:  billPkg.ResponseStatusBadData,
-				Message: &grpc.ResponseErrorMessage{Message: "some business logic  error"},
+			&billingpb.ChangeMerchantDataResponse{
+				Status:  billingpb.ResponseStatusBadData,
+				Message: &billingpb.ResponseErrorMessage{Message: "some business logic  error"},
 			},
 			nil,
 		)

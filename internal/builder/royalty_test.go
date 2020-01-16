@@ -2,14 +2,11 @@ package builder
 
 import (
 	"encoding/json"
-	errs "errors"
 	"github.com/globalsign/mgo/bson"
-	billPkg "github.com/paysuper/paysuper-billing-server/pkg"
-	billMocks "github.com/paysuper/paysuper-billing-server/pkg/mocks"
-	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
-	"github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/paysuper/paysuper-proto/go/billingpb"
+	billingMocks "github.com/paysuper/paysuper-proto/go/billingpb/mocks"
 	"github.com/paysuper/paysuper-proto/go/reporterpb"
-	"github.com/paysuper/paysuper-reporter/internal/mocks"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -28,8 +25,10 @@ func Test_RoyaltyBuilder(t *testing.T) {
 	suite.Run(t, new(RoyaltyBuilderTestSuite))
 }
 
-func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Validate_Error_IdNotFound() {
-	params, _ := json.Marshal(map[string]interface{}{})
+func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Validate_Error_MerchantIdNotFound() {
+	params, _ := json.Marshal(map[string]interface{}{
+		pkg.ParamsFieldId: bson.NewObjectId().Hex(),
+	})
 	h := newRoyaltyHandler(&Handler{
 		report: &reporterpb.ReportFile{Params: params},
 	})
@@ -37,158 +36,198 @@ func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Validate_Error_IdNotFou
 	assert.Errorf(suite.T(), h.Validate(), errors.ErrorParamIdNotFound.Message)
 }
 
+func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Validate_Error_IdNotFound() {
+	params, _ := json.Marshal(map[string]interface{}{})
+	h := newRoyaltyHandler(&Handler{
+		report: &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+	})
+
+	assert.Errorf(suite.T(), h.Validate(), errors.ErrorParamIdNotFound.Message)
+}
+
 func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Validate_Ok() {
 	params, _ := json.Marshal(map[string]interface{}{
-		pkg.ParamsFieldId: "5ced34d689fce60bf4440829",
+		pkg.ParamsFieldId: bson.NewObjectId().Hex(),
 	})
 	h := newRoyaltyHandler(&Handler{
-		report: &reporterpb.ReportFile{Params: params},
+		report: &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
 	})
 
 	assert.NoError(suite.T(), h.Validate())
 }
 
-func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Build_Error_GetById() {
-	royaltyRep := mocks.RoyaltyRepositoryInterface{}
-	royaltyRep.On("GetById", mock2.Anything).Return(nil, errs.New("not found"))
+func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Build_Ok() {
+	billing := &billingMocks.BillingService{}
+
+	royaltyResponse := &billingpb.GetRoyaltyReportResponse{
+		Status: billingpb.ResponseStatusOk,
+		Item:   suite.getRoyaltyReportTemplate(),
+	}
+	billing.On("GetRoyaltyReport", mock2.Anything, mock2.Anything).Return(royaltyResponse, nil)
+
+	merchantResponse := &billingpb.GetMerchantResponse{
+		Status: billingpb.ResponseStatusOk,
+		Item:   suite.getMerchantTemplate(),
+	}
+	billing.On("GetMerchantBy", mock2.Anything, mock2.Anything).Return(merchantResponse, nil)
+
+	ocResponse := &billingpb.GetOperatingCompanyResponse{
+		Status:  billingpb.ResponseStatusOk,
+		Company: suite.getOperatingCompanyTemplate(),
+	}
+	billing.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(ocResponse, nil)
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newRoyaltyHandler(&Handler{
-		royaltyRepository: &royaltyRep,
-		report:            &reporterpb.ReportFile{Params: params},
+		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+		billing: billing,
+	})
+
+	r, err := h.Build()
+	assert.NoError(suite.T(), err)
+	assert.NotEmpty(suite.T(), royaltyResponse.Item.Id, r)
+}
+
+func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Build_Error_GetRoyaltyReport() {
+	billing := &billingMocks.BillingService{}
+
+	royaltyResponse := &billingpb.GetRoyaltyReportResponse{
+		Status:  billingpb.ResponseStatusNotFound,
+		Message: &billingpb.ResponseErrorMessage{Message: "error"},
+		Item:    nil,
+	}
+	billing.On("GetRoyaltyReport", mock2.Anything, mock2.Anything).Return(royaltyResponse, nil)
+
+	merchantResponse := &billingpb.GetMerchantResponse{
+		Status: billingpb.ResponseStatusOk,
+		Item:   suite.getMerchantTemplate(),
+	}
+	billing.On("GetMerchantBy", mock2.Anything, mock2.Anything).Return(merchantResponse, nil)
+
+	ocResponse := &billingpb.GetOperatingCompanyResponse{
+		Status:  billingpb.ResponseStatusOk,
+		Company: suite.getOperatingCompanyTemplate(),
+	}
+	billing.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(ocResponse, nil)
+
+	params, _ := json.Marshal(map[string]interface{}{})
+	h := newRoyaltyHandler(&Handler{
+		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+		billing: billing,
 	})
 
 	_, err := h.Build()
 	assert.Error(suite.T(), err)
 }
 
-func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Build_Ok() {
-	bs := &billMocks.BillingService{}
-	response := &grpc.GetOperatingCompanyResponse{
-		Status: billPkg.ResponseStatusOk,
-		Company: &billingProto.OperatingCompany{
-			Name:      "Name",
-			Address:   "Address",
-			VatNumber: "VatNumber",
-		},
-	}
-	bs.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(response, nil)
+func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Build_Error_GetMerchantBy() {
+	billing := &billingMocks.BillingService{}
 
-	datetime := time.Now()
-	report := &billingProto.MgoRoyaltyReport{
-		Id:         bson.NewObjectId(),
-		PeriodFrom: datetime,
-		PeriodTo:   datetime,
-		PayoutDate: datetime,
-		CreatedAt:  datetime,
-		AcceptedAt: datetime,
-		Totals: &billingProto.RoyaltyReportTotals{
-			RollingReserveAmount: 1,
-			CorrectionAmount:     1,
-		},
-		Summary: &billingProto.RoyaltyReportSummary{
-			ProductsItems: []*billingProto.RoyaltyReportProductSummaryItem{{
-				Product:            "",
-				Region:             "",
-				TotalTransactions:  1,
-				ReturnsCount:       1,
-				SalesCount:         1,
-				GrossSalesAmount:   1,
-				GrossReturnsAmount: 1,
-				GrossTotalAmount:   1,
-				TotalVat:           1,
-				TotalFees:          1,
-				PayoutAmount:       1,
-			}},
-			Corrections: nil,
-		},
+	royaltyResponse := &billingpb.GetRoyaltyReportResponse{
+		Status: billingpb.ResponseStatusOk,
+		Item:   suite.getRoyaltyReportTemplate(),
 	}
-	royaltyRep := mocks.RoyaltyRepositoryInterface{}
-	royaltyRep.On("GetById", mock2.Anything).Return(report, nil)
+	billing.On("GetRoyaltyReport", mock2.Anything, mock2.Anything).Return(royaltyResponse, nil)
 
-	merchantRep := mocks.MerchantRepositoryInterface{}
-	merchantRep.
-		On("GetById", mock2.Anything).
-		Return(
-			&billingProto.MgoMerchant{
-				Id:      bson.NewObjectId(),
-				Company: &billingProto.MerchantCompanyInfo{Name: "", Address: ""},
-			},
-			nil,
-		)
+	merchantResponse := &billingpb.GetMerchantResponse{
+		Status:  billingpb.ResponseStatusNotFound,
+		Message: &billingpb.ResponseErrorMessage{Message: "error"},
+		Item:    nil,
+	}
+	billing.On("GetMerchantBy", mock2.Anything, mock2.Anything).Return(merchantResponse, nil)
+
+	ocResponse := &billingpb.GetOperatingCompanyResponse{
+		Status:  billingpb.ResponseStatusOk,
+		Company: suite.getOperatingCompanyTemplate(),
+	}
+	billing.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(ocResponse, nil)
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newRoyaltyHandler(&Handler{
-		royaltyRepository:  &royaltyRep,
-		merchantRepository: &merchantRep,
-		report:             &reporterpb.ReportFile{Params: params},
-		billing:            bs,
-	})
-
-	r, err := h.Build()
-	assert.NoError(suite.T(), err)
-	assert.NotEmpty(suite.T(), report.Id, r)
-}
-
-func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Build_Error_GetOperatingCompany() {
-	bs := &billMocks.BillingService{}
-	response := &grpc.GetOperatingCompanyResponse{
-		Status:  billPkg.ResponseStatusBadData,
-		Message: &grpc.ResponseErrorMessage{Message: "some business logic error"},
-	}
-	bs.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(response, nil)
-
-	datetime := time.Now()
-	report := &billingProto.MgoRoyaltyReport{
-		Id:         bson.NewObjectId(),
-		PeriodFrom: datetime,
-		PeriodTo:   datetime,
-		PayoutDate: datetime,
-		CreatedAt:  datetime,
-		AcceptedAt: datetime,
-		Totals: &billingProto.RoyaltyReportTotals{
-			RollingReserveAmount: 1,
-			CorrectionAmount:     1,
-		},
-		Summary: &billingProto.RoyaltyReportSummary{
-			ProductsItems: []*billingProto.RoyaltyReportProductSummaryItem{{
-				Product:            "",
-				Region:             "",
-				TotalTransactions:  1,
-				ReturnsCount:       1,
-				SalesCount:         1,
-				GrossSalesAmount:   1,
-				GrossReturnsAmount: 1,
-				GrossTotalAmount:   1,
-				TotalVat:           1,
-				TotalFees:          1,
-				PayoutAmount:       1,
-			}},
-			Corrections: nil,
-		},
-	}
-	royaltyRep := mocks.RoyaltyRepositoryInterface{}
-	royaltyRep.On("GetById", mock2.Anything).Return(report, nil)
-
-	merchantRep := mocks.MerchantRepositoryInterface{}
-	merchantRep.
-		On("GetById", mock2.Anything).
-		Return(
-			&billingProto.MgoMerchant{
-				Id:      bson.NewObjectId(),
-				Company: &billingProto.MerchantCompanyInfo{Name: "", Address: ""},
-			},
-			nil,
-		)
-
-	params, _ := json.Marshal(map[string]interface{}{})
-	h := newRoyaltyHandler(&Handler{
-		royaltyRepository:  &royaltyRep,
-		merchantRepository: &merchantRep,
-		report:             &reporterpb.ReportFile{Params: params},
-		billing:            bs,
+		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+		billing: billing,
 	})
 
 	_, err := h.Build()
-	assert.Errorf(suite.T(), err, "some business logic error")
+	assert.Error(suite.T(), err)
+}
+
+func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Build_Error_GetOperatingCompany() {
+	billing := &billingMocks.BillingService{}
+
+	royaltyResponse := &billingpb.GetRoyaltyReportResponse{
+		Status: billingpb.ResponseStatusOk,
+		Item:   suite.getRoyaltyReportTemplate(),
+	}
+	billing.On("GetRoyaltyReport", mock2.Anything, mock2.Anything).Return(royaltyResponse, nil)
+
+	merchantResponse := &billingpb.GetMerchantResponse{
+		Status: billingpb.ResponseStatusOk,
+		Item:   suite.getMerchantTemplate(),
+	}
+	billing.On("GetMerchantBy", mock2.Anything, mock2.Anything).Return(merchantResponse, nil)
+
+	ocResponse := &billingpb.GetOperatingCompanyResponse{
+		Status:  billingpb.ResponseStatusNotFound,
+		Message: &billingpb.ResponseErrorMessage{Message: "error"},
+		Company: nil,
+	}
+	billing.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(ocResponse, nil)
+
+	params, _ := json.Marshal(map[string]interface{}{})
+	h := newRoyaltyHandler(&Handler{
+		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+		billing: billing,
+	})
+
+	_, err := h.Build()
+	assert.Error(suite.T(), err)
+}
+
+func (suite *RoyaltyBuilderTestSuite) getRoyaltyReportTemplate() *billingpb.RoyaltyReport {
+	datetime, _ := ptypes.TimestampProto(time.Now())
+
+	return &billingpb.RoyaltyReport{
+		Id:         bson.NewObjectId().Hex(),
+		PeriodFrom: datetime,
+		PeriodTo:   datetime,
+		PayoutDate: datetime,
+		CreatedAt:  datetime,
+		AcceptedAt: datetime,
+		Totals: &billingpb.RoyaltyReportTotals{
+			RollingReserveAmount: 1,
+			CorrectionAmount:     1,
+		},
+		Summary: &billingpb.RoyaltyReportSummary{
+			ProductsItems: []*billingpb.RoyaltyReportProductSummaryItem{{
+				Product:            "",
+				Region:             "",
+				TotalTransactions:  1,
+				ReturnsCount:       1,
+				SalesCount:         1,
+				GrossSalesAmount:   1,
+				GrossReturnsAmount: 1,
+				GrossTotalAmount:   1,
+				TotalVat:           1,
+				TotalFees:          1,
+				PayoutAmount:       1,
+			}},
+			Corrections: nil,
+		},
+	}
+}
+
+func (suite *RoyaltyBuilderTestSuite) getMerchantTemplate() *billingpb.Merchant {
+	return &billingpb.Merchant{
+		Id:      bson.NewObjectId().String(),
+		Company: &billingpb.MerchantCompanyInfo{Name: "", Address: "", TaxId: ""},
+	}
+}
+
+func (suite *RoyaltyBuilderTestSuite) getOperatingCompanyTemplate() *billingpb.OperatingCompany {
+	return &billingpb.OperatingCompany{
+		Name:      "Name",
+		Address:   "Address",
+		VatNumber: "VatNumber",
+	}
 }

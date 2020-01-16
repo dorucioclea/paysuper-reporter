@@ -77,11 +77,6 @@ func (app *Application) CreateFile(ctx context.Context, file *reporterpb.ReportF
 	h := builder.NewBuilder(
 		app.service,
 		file,
-		app.royaltyRepository,
-		app.vatRepository,
-		app.transactionsRepository,
-		app.payoutRepository,
-		app.merchantRepository,
 		app.billing,
 	)
 	bldr, err := h.GetBuilder()

@@ -1,9 +1,8 @@
 package builder
 
 import (
-	mocks2 "github.com/paysuper/paysuper-billing-server/pkg/mocks"
+	billingMocks "github.com/paysuper/paysuper-proto/go/billingpb/mocks"
 	"github.com/paysuper/paysuper-proto/go/reporterpb"
-	"github.com/paysuper/paysuper-reporter/internal/mocks"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -23,12 +22,7 @@ func (suite *BuilderTestSuite) TestBuilder_NewBuilder_Ok() {
 	builder := NewBuilder(
 		nil,
 		&reporterpb.ReportFile{},
-		&mocks.RoyaltyRepositoryInterface{},
-		&mocks.VatRepositoryInterface{},
-		&mocks.TransactionsRepositoryInterface{},
-		&mocks.PayoutRepositoryInterface{},
-		&mocks.MerchantRepositoryInterface{},
-		&mocks2.BillingService{},
+		&billingMocks.BillingService{},
 	)
 
 	assert.IsType(suite.T(), &Handler{}, builder)
@@ -38,12 +32,7 @@ func (suite *BuilderTestSuite) TestBuilder_GetBuilder_Error_NotFound() {
 	builder := NewBuilder(
 		nil,
 		&reporterpb.ReportFile{ReportType: "unknown"},
-		&mocks.RoyaltyRepositoryInterface{},
-		&mocks.VatRepositoryInterface{},
-		&mocks.TransactionsRepositoryInterface{},
-		&mocks.PayoutRepositoryInterface{},
-		&mocks.MerchantRepositoryInterface{},
-		&mocks2.BillingService{},
+		&billingMocks.BillingService{},
 	)
 	_, err := builder.GetBuilder()
 
@@ -54,12 +43,7 @@ func (suite *BuilderTestSuite) TestBuilder_GetBuilder_Ok() {
 	builder := NewBuilder(
 		nil,
 		&reporterpb.ReportFile{ReportType: pkg.ReportTypeVat},
-		&mocks.RoyaltyRepositoryInterface{},
-		&mocks.VatRepositoryInterface{},
-		&mocks.TransactionsRepositoryInterface{},
-		&mocks.PayoutRepositoryInterface{},
-		&mocks.MerchantRepositoryInterface{},
-		&mocks2.BillingService{},
+		&billingMocks.BillingService{},
 	)
 	bldr, err := builder.GetBuilder()
 
