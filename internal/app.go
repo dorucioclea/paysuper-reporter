@@ -213,8 +213,8 @@ func (app *Application) initMessageBroker() {
 
 func (app *Application) Run() {
 	options := []micro.Option{
-		micro.Name(pkg.ServiceName),
-		micro.Version(pkg.ServiceVersion),
+		micro.Name(reporterpb.ServiceName),
+		micro.Version(reporterpb.ServiceVersion),
 		micro.WrapHandler(prometheus.NewHandlerWrapper()),
 		micro.BeforeStart(func() error {
 			go func() {

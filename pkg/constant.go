@@ -1,8 +1,6 @@
 package pkg
 
 const (
-	ServiceVersion = "latest"
-
 	LoggerName = "PAYSUPER_REPORTER"
 
 	FileMask          = "report_%s_%s.%s"
