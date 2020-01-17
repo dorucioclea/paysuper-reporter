@@ -3,7 +3,6 @@ package builder
 import (
 	billingMocks "github.com/paysuper/paysuper-proto/go/billingpb/mocks"
 	"github.com/paysuper/paysuper-proto/go/reporterpb"
-	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -42,7 +41,7 @@ func (suite *BuilderTestSuite) TestBuilder_GetBuilder_Error_NotFound() {
 func (suite *BuilderTestSuite) TestBuilder_GetBuilder_Ok() {
 	builder := NewBuilder(
 		nil,
-		&reporterpb.ReportFile{ReportType: pkg.ReportTypeVat},
+		&reporterpb.ReportFile{ReportType: reporterpb.ReportTypeVat},
 		&billingMocks.BillingService{},
 	)
 	bldr, err := builder.GetBuilder()

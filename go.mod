@@ -15,7 +15,7 @@ require (
 	github.com/paysuper/paysuper-database-mongo v0.1.3
 	github.com/paysuper/paysuper-proto/go/billingpb v0.0.0-20200116145615-427433ee02be
 	github.com/paysuper/paysuper-proto/go/recurringpb v0.0.0-20200114235009-da02b724903d // indirect
-	github.com/paysuper/paysuper-proto/go/reporterpb v0.0.0-20200116234616-184ad6d9fc3c
+	github.com/paysuper/paysuper-proto/go/reporterpb v0.0.0-20200117172130-df1a443c1fe8
 	github.com/paysuper/paysuper-tools v0.0.0-20200115135413-15b9d03f5ec4
 	github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271
 	github.com/stretchr/testify v1.4.0

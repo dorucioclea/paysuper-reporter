@@ -7,7 +7,7 @@ import (
 	"github.com/globalsign/mgo/bson"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/paysuper/paysuper-proto/go/billingpb"
-	"github.com/paysuper/paysuper-reporter/pkg"
+	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
 	"go.uber.org/zap"
 	"math"
@@ -26,11 +26,11 @@ func (h *Payout) Validate() error {
 		return err
 	}
 
-	if _, ok := params[pkg.ParamsFieldId]; !ok {
+	if _, ok := params[reporterpb.ParamsFieldId]; !ok {
 		return errors.New(errs.ErrorParamIdNotFound.Message)
 	}
 
-	if !bson.IsObjectIdHex(fmt.Sprintf("%s", params[pkg.ParamsFieldId])) {
+	if !bson.IsObjectIdHex(fmt.Sprintf("%s", params[reporterpb.ParamsFieldId])) {
 		return errors.New(errs.ErrorParamIdNotFound.Message)
 	}
 
@@ -40,7 +40,7 @@ func (h *Payout) Validate() error {
 func (h *Payout) Build() (interface{}, error) {
 	ctx := context.TODO()
 	params, _ := h.GetParams()
-	payoutId := fmt.Sprintf("%s", params[pkg.ParamsFieldId])
+	payoutId := fmt.Sprintf("%s", params[reporterpb.ParamsFieldId])
 
 	payoutRequest := &billingpb.GetPayoutDocumentRequest{PayoutDocumentId: payoutId}
 	payout, err := h.billing.GetPayoutDocument(ctx, payoutRequest)
@@ -160,7 +160,7 @@ func (h *Payout) PostProcess(
 
 	req := &billingpb.PayoutDocumentPdfUploadedRequest{
 		Id:            id,
-		PayoutId:      fmt.Sprintf("%s", params[pkg.ParamsFieldId]),
+		PayoutId:      fmt.Sprintf("%s", params[reporterpb.ParamsFieldId]),
 		Filename:      fileName,
 		RetentionTime: int32(retentionTime),
 		Content:       content,

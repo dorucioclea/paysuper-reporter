@@ -7,7 +7,6 @@ import (
 	"github.com/paysuper/paysuper-proto/go/billingpb"
 	billingMocks "github.com/paysuper/paysuper-proto/go/billingpb/mocks"
 	"github.com/paysuper/paysuper-proto/go/reporterpb"
-	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	mock2 "github.com/stretchr/testify/mock"
@@ -36,7 +35,7 @@ func (suite *VatBuilderTestSuite) TestVatBuilder_Validate_Error_CountryEmpty() {
 
 func (suite *VatBuilderTestSuite) TestVatBuilder_Validate_Error_CountryInvalid() {
 	params, _ := json.Marshal(map[string]interface{}{
-		pkg.ParamsFieldCountry: "ABC",
+		reporterpb.ParamsFieldCountry: "ABC",
 	})
 	h := newVatHandler(&Handler{
 		report: &reporterpb.ReportFile{Params: params},
@@ -47,7 +46,7 @@ func (suite *VatBuilderTestSuite) TestVatBuilder_Validate_Error_CountryInvalid()
 
 func (suite *VatBuilderTestSuite) TestVatBuilder_Validate_Ok() {
 	params, _ := json.Marshal(map[string]interface{}{
-		pkg.ParamsFieldCountry: "RU",
+		reporterpb.ParamsFieldCountry: "RU",
 	})
 	h := newVatHandler(&Handler{
 		report: &reporterpb.ReportFile{Params: params},
@@ -84,7 +83,7 @@ func (suite *VatBuilderTestSuite) TestVatBuilder_Build_Ok() {
 	billing.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(response, nil)
 
 	params, _ := json.Marshal(map[string]interface{}{
-		pkg.ParamsFieldCountry: "RU",
+		reporterpb.ParamsFieldCountry: "RU",
 	})
 	h := newVatHandler(&Handler{
 		report:  &reporterpb.ReportFile{Params: params},
@@ -126,7 +125,7 @@ func (suite *VatBuilderTestSuite) TestVatBuilder_Build_Error_GetVatReportsForCou
 	billing.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(response, nil)
 
 	params, _ := json.Marshal(map[string]interface{}{
-		pkg.ParamsFieldCountry: "RU",
+		reporterpb.ParamsFieldCountry: "RU",
 	})
 	h := newVatHandler(&Handler{
 		report:  &reporterpb.ReportFile{Params: params},
@@ -166,7 +165,7 @@ func (suite *VatBuilderTestSuite) TestVatBuilder_Build_Error_GetOperatingCompany
 	billing.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(response, nil)
 
 	params, _ := json.Marshal(map[string]interface{}{
-		pkg.ParamsFieldCountry: "RU",
+		reporterpb.ParamsFieldCountry: "RU",
 	})
 	h := newVatHandler(&Handler{
 		report:  &reporterpb.ReportFile{Params: params},

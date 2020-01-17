@@ -7,6 +7,7 @@ import (
 	"github.com/globalsign/mgo/bson"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/paysuper/paysuper-proto/go/billingpb"
+	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
 	"go.uber.org/zap"
@@ -27,13 +28,13 @@ func (h *Transactions) Validate() error {
 		return errors.New(errs.ErrorParamMerchantIdNotFound.Message)
 	}
 
-	if st, ok := params[pkg.ParamsFieldStatus]; ok && st != nil {
+	if st, ok := params[reporterpb.ParamsFieldStatus]; ok && st != nil {
 		if reflect.TypeOf(st).Kind() != reflect.Slice {
 			return errors.New(errs.ErrorHandlerValidation.Message)
 		}
 	}
 
-	if st, ok := params[pkg.ParamsFieldPaymentMethod]; ok && st != nil {
+	if st, ok := params[reporterpb.ParamsFieldPaymentMethod]; ok && st != nil {
 		if reflect.TypeOf(st).Kind() != reflect.Slice {
 			return errors.New(errs.ErrorHandlerValidation.Message)
 		}
@@ -45,13 +46,13 @@ func (h *Transactions) Validate() error {
 		}
 	}
 
-	if st, ok := params[pkg.ParamsFieldDateFrom]; ok {
+	if st, ok := params[reporterpb.ParamsFieldDateFrom]; ok {
 		if reflect.TypeOf(st).Kind() != reflect.Float64 {
 			return errors.New(errs.ErrorHandlerValidation.Message)
 		}
 	}
 
-	if st, ok := params[pkg.ParamsFieldDateTo]; ok {
+	if st, ok := params[reporterpb.ParamsFieldDateTo]; ok {
 		if reflect.TypeOf(st).Kind() != reflect.Float64 {
 			return errors.New(errs.ErrorHandlerValidation.Message)
 		}
@@ -71,23 +72,23 @@ func (h *Transactions) Build() (interface{}, error) {
 	ctx := context.TODO()
 	params, _ := h.GetParams()
 
-	if st, ok := params[pkg.ParamsFieldStatus]; ok && st != nil {
+	if st, ok := params[reporterpb.ParamsFieldStatus]; ok && st != nil {
 		for _, str := range st.([]interface{}) {
 			status = append(status, fmt.Sprintf("%s", str))
 		}
 	}
 
-	if pm, ok := params[pkg.ParamsFieldPaymentMethod]; ok && pm != nil {
+	if pm, ok := params[reporterpb.ParamsFieldPaymentMethod]; ok && pm != nil {
 		for _, str := range pm.([]interface{}) {
 			paymentMethods = append(paymentMethods, fmt.Sprintf("%s", str))
 		}
 	}
 
-	if df, ok := params[pkg.ParamsFieldDateFrom]; ok {
+	if df, ok := params[reporterpb.ParamsFieldDateFrom]; ok {
 		dateFrom = int64(df.(float64))
 	}
 
-	if dt, ok := params[pkg.ParamsFieldDateTo]; ok {
+	if dt, ok := params[reporterpb.ParamsFieldDateTo]; ok {
 		dateTo = int64(dt.(float64))
 	}
 

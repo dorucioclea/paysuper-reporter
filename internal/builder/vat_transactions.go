@@ -7,7 +7,7 @@ import (
 	"github.com/globalsign/mgo/bson"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/paysuper/paysuper-proto/go/billingpb"
-	"github.com/paysuper/paysuper-reporter/pkg"
+	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
 	"go.uber.org/zap"
 	"math"
@@ -26,11 +26,11 @@ func (h *VatTransactions) Validate() error {
 		return err
 	}
 
-	if _, ok := params[pkg.ParamsFieldId]; !ok {
+	if _, ok := params[reporterpb.ParamsFieldId]; !ok {
 		return errors.New(errs.ErrorParamIdNotFound.Message)
 	}
 
-	if !bson.IsObjectIdHex(fmt.Sprintf("%s", params[pkg.ParamsFieldId])) {
+	if !bson.IsObjectIdHex(fmt.Sprintf("%s", params[reporterpb.ParamsFieldId])) {
 		return errors.New(errs.ErrorParamIdNotFound.Message)
 	}
 
@@ -40,7 +40,7 @@ func (h *VatTransactions) Validate() error {
 func (h *VatTransactions) Build() (interface{}, error) {
 	ctx := context.TODO()
 	params, _ := h.GetParams()
-	vatId := fmt.Sprintf("%s", params[pkg.ParamsFieldId])
+	vatId := fmt.Sprintf("%s", params[reporterpb.ParamsFieldId])
 
 	vatRequest := &billingpb.VatReportRequest{Id: vatId}
 	vat, err := h.billing.GetVatReport(ctx, vatRequest)
@@ -223,7 +223,7 @@ func (h *VatTransactions) Build() (interface{}, error) {
 	}
 
 	result := map[string]interface{}{
-		"id":                       params[pkg.ParamsFieldId],
+		"id":                       params[reporterpb.ParamsFieldId],
 		"country":                  vat.Vat.Country,
 		"currency":                 vat.Vat.Currency,
 		"vat_rate":                 vat.Vat.VatRate,

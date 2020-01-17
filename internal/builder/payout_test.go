@@ -7,7 +7,6 @@ import (
 	"github.com/paysuper/paysuper-proto/go/billingpb"
 	billingMocks "github.com/paysuper/paysuper-proto/go/billingpb/mocks"
 	"github.com/paysuper/paysuper-proto/go/reporterpb"
-	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	mock2 "github.com/stretchr/testify/mock"
@@ -35,7 +34,7 @@ func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Validate_Error_IdNotFound
 
 func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Validate_Ok() {
 	params, _ := json.Marshal(map[string]interface{}{
-		pkg.ParamsFieldId: bson.NewObjectId().Hex(),
+		reporterpb.ParamsFieldId: bson.NewObjectId().Hex(),
 	})
 	h := newPayoutHandler(&Handler{
 		report: &reporterpb.ReportFile{Params: params},

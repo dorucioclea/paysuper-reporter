@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/micro/go-micro/client"
 	"github.com/paysuper/paysuper-proto/go/billingpb"
-	"github.com/paysuper/paysuper-reporter/pkg"
+	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	"time"
 )
 
@@ -19,22 +19,22 @@ const (
 
 var (
 	agreementRequestRequiredFields = []string{
-		pkg.RequestParameterAgreementNumber,
-		pkg.RequestParameterAgreementLegalName,
-		pkg.RequestParameterAgreementAddress,
-		pkg.RequestParameterAgreementRegistrationNumber,
-		pkg.RequestParameterAgreementPayoutCost,
-		pkg.RequestParameterAgreementMinimalPayoutLimit,
-		pkg.RequestParameterAgreementPayoutCurrency,
-		pkg.RequestParameterAgreementPSRate,
-		pkg.RequestParameterAgreementHomeRegion,
-		pkg.RequestParameterAgreementMerchantAuthorizedName,
-		pkg.RequestParameterAgreementMerchantAuthorizedPosition,
-		pkg.RequestParameterAgreementOperatingCompanyLegalName,
-		pkg.RequestParameterAgreementOperatingCompanyAddress,
-		pkg.RequestParameterAgreementOperatingCompanyRegistrationNumber,
-		pkg.RequestParameterAgreementOperatingCompanyAuthorizedName,
-		pkg.RequestParameterAgreementOperatingCompanyAuthorizedPosition,
+		reporterpb.RequestParameterAgreementNumber,
+		reporterpb.RequestParameterAgreementLegalName,
+		reporterpb.RequestParameterAgreementAddress,
+		reporterpb.RequestParameterAgreementRegistrationNumber,
+		reporterpb.RequestParameterAgreementPayoutCost,
+		reporterpb.RequestParameterAgreementMinimalPayoutLimit,
+		reporterpb.RequestParameterAgreementPayoutCurrency,
+		reporterpb.RequestParameterAgreementPSRate,
+		reporterpb.RequestParameterAgreementHomeRegion,
+		reporterpb.RequestParameterAgreementMerchantAuthorizedName,
+		reporterpb.RequestParameterAgreementMerchantAuthorizedPosition,
+		reporterpb.RequestParameterAgreementOperatingCompanyLegalName,
+		reporterpb.RequestParameterAgreementOperatingCompanyAddress,
+		reporterpb.RequestParameterAgreementOperatingCompanyRegistrationNumber,
+		reporterpb.RequestParameterAgreementOperatingCompanyAuthorizedName,
+		reporterpb.RequestParameterAgreementOperatingCompanyAuthorizedPosition,
 	}
 )
 
@@ -86,7 +86,7 @@ func (h *Agreement) Build() (interface{}, error) {
 	}
 
 	var tariffsPrintable []*TariffPrintable
-	tariffs := params[pkg.RequestParameterAgreementPSRate].([]interface{})
+	tariffs := params[reporterpb.RequestParameterAgreementPSRate].([]interface{})
 
 	for _, v := range tariffs {
 		vTyped := v.(map[string]interface{})
@@ -103,7 +103,7 @@ func (h *Agreement) Build() (interface{}, error) {
 		tariffsPrintable = append(tariffsPrintable, tariff)
 	}
 
-	params[pkg.RequestParameterAgreementPSRate] = tariffsPrintable
+	params[reporterpb.RequestParameterAgreementPSRate] = tariffsPrintable
 
 	return params, nil
 }

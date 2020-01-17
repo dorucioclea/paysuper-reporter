@@ -322,7 +322,7 @@ func (app *Application) ExecuteProcess(payload *reporterpb.ReportFile, d amqp.De
 
 	fileName := fmt.Sprintf(pkg.FileMask, payload.UserId, payload.Id, payload.FileType)
 
-	if payload.ReportType == pkg.ReportTypeAgreement {
+	if payload.ReportType == reporterpb.ReportTypeAgreement {
 		fileName = fmt.Sprintf(pkg.FileMaskAgreement, payload.MerchantId, payload.FileType)
 	}
 
@@ -351,7 +351,7 @@ func (app *Application) ExecuteProcess(payload *reporterpb.ReportFile, d amqp.De
 	}
 	ctx, _ := context.WithTimeout(context.Background(), time.Second*10)
 
-	if payload.ReportType == pkg.ReportTypeAgreement {
+	if payload.ReportType == reporterpb.ReportTypeAgreement {
 		awsManager = app.s3Agreement
 	} else {
 		in.Expires = time.Now().Add(time.Duration(retentionTime) * time.Second)

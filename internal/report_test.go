@@ -31,7 +31,7 @@ func (suite *ReportTestSuite) SetupTest() {
 
 func (suite *ReportTestSuite) TestReport_CreateFile_Error_ReportType() {
 	res := &reporterpb.CreateFileResponse{}
-	err := suite.service.CreateFile(context.TODO(), &reporterpb.ReportFile{FileType: pkg.OutputExtensionPdf}, res)
+	err := suite.service.CreateFile(context.TODO(), &reporterpb.ReportFile{FileType: reporterpb.OutputExtensionPdf}, res)
 
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), pkg.ResponseStatusBadData, res.Status)
@@ -52,8 +52,8 @@ func (suite *ReportTestSuite) TestReport_CreateFile_Error_FileType() {
 func (suite *ReportTestSuite) TestReport_CreateFile_Error_BuilderValidate() {
 	res := &reporterpb.CreateFileResponse{}
 	report := &reporterpb.ReportFile{
-		ReportType: pkg.ReportTypeVat,
-		FileType:   pkg.OutputExtensionPdf,
+		ReportType: reporterpb.ReportTypeVat,
+		FileType:   reporterpb.OutputExtensionPdf,
 		MerchantId: bson.NewObjectId().Hex(),
 	}
 	err := suite.service.CreateFile(context.TODO(), report, res)
@@ -66,10 +66,10 @@ func (suite *ReportTestSuite) TestReport_CreateFile_Error_BuilderValidate() {
 
 func (suite *ReportTestSuite) TestReport_CreateFile_Error_Publish() {
 	res := &reporterpb.CreateFileResponse{}
-	params, _ := json.Marshal(map[string]interface{}{pkg.ParamsFieldCountry: "RU"})
+	params, _ := json.Marshal(map[string]interface{}{reporterpb.ParamsFieldCountry: "RU"})
 	report := &reporterpb.ReportFile{
-		FileType:   pkg.OutputExtensionPdf,
-		ReportType: pkg.ReportTypeVat,
+		FileType:   reporterpb.OutputExtensionPdf,
+		ReportType: reporterpb.ReportTypeVat,
 		MerchantId: bson.NewObjectId().Hex(),
 		Params:     params,
 	}
@@ -88,10 +88,10 @@ func (suite *ReportTestSuite) TestReport_CreateFile_Error_Publish() {
 
 func (suite *ReportTestSuite) TestReport_CreateFile_Ok() {
 	res := &reporterpb.CreateFileResponse{}
-	params, _ := json.Marshal(map[string]interface{}{pkg.ParamsFieldCountry: "RU"})
+	params, _ := json.Marshal(map[string]interface{}{reporterpb.ParamsFieldCountry: "RU"})
 	report := &reporterpb.ReportFile{
-		ReportType: pkg.ReportTypeVat,
-		FileType:   pkg.OutputExtensionPdf,
+		ReportType: reporterpb.ReportTypeVat,
+		FileType:   reporterpb.OutputExtensionPdf,
 		MerchantId: bson.NewObjectId().Hex(),
 		Params:     params,
 	}
@@ -119,7 +119,7 @@ func (suite *ReportTestSuite) TestReport_getTemplate_DefaultRoyaltyTemplate() {
 	suite.service.cfg.DG = config.DocumentGeneratorConfig{
 		RoyaltyTemplate: "royalty",
 	}
-	report := &reporterpb.ReportFile{ReportType: pkg.ReportTypeRoyalty}
+	report := &reporterpb.ReportFile{ReportType: reporterpb.ReportTypeRoyalty}
 	name, err := suite.service.getTemplate(report)
 
 	assert.NoError(suite.T(), err)
@@ -130,7 +130,7 @@ func (suite *ReportTestSuite) TestReport_getTemplate_DefaultRoyaltyTransactionsT
 	suite.service.cfg.DG = config.DocumentGeneratorConfig{
 		RoyaltyTransactionsTemplate: "royalty_transactions",
 	}
-	report := &reporterpb.ReportFile{ReportType: pkg.ReportTypeRoyaltyTransactions}
+	report := &reporterpb.ReportFile{ReportType: reporterpb.ReportTypeRoyaltyTransactions}
 	name, err := suite.service.getTemplate(report)
 
 	assert.NoError(suite.T(), err)
@@ -141,7 +141,7 @@ func (suite *ReportTestSuite) TestReport_getTemplate_DefaultVatTemplate() {
 	suite.service.cfg.DG = config.DocumentGeneratorConfig{
 		VatTemplate: "vat",
 	}
-	report := &reporterpb.ReportFile{ReportType: pkg.ReportTypeVat}
+	report := &reporterpb.ReportFile{ReportType: reporterpb.ReportTypeVat}
 	name, err := suite.service.getTemplate(report)
 
 	assert.NoError(suite.T(), err)
@@ -152,7 +152,7 @@ func (suite *ReportTestSuite) TestReport_getTemplate_DefaultVatTransactionsTempl
 	suite.service.cfg.DG = config.DocumentGeneratorConfig{
 		VatTransactionsTemplate: "vat_transactions",
 	}
-	report := &reporterpb.ReportFile{ReportType: pkg.ReportTypeVatTransactions}
+	report := &reporterpb.ReportFile{ReportType: reporterpb.ReportTypeVatTransactions}
 	name, err := suite.service.getTemplate(report)
 
 	assert.NoError(suite.T(), err)
@@ -163,7 +163,7 @@ func (suite *ReportTestSuite) TestReport_getTemplate_DefaultTransactionsTemplate
 	suite.service.cfg.DG = config.DocumentGeneratorConfig{
 		TransactionsTemplate: "transactions",
 	}
-	report := &reporterpb.ReportFile{ReportType: pkg.ReportTypeTransactions}
+	report := &reporterpb.ReportFile{ReportType: reporterpb.ReportTypeTransactions}
 	name, err := suite.service.getTemplate(report)
 
 	assert.NoError(suite.T(), err)

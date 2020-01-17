@@ -7,7 +7,6 @@ import (
 	"github.com/paysuper/paysuper-proto/go/billingpb"
 	billingMocks "github.com/paysuper/paysuper-proto/go/billingpb/mocks"
 	"github.com/paysuper/paysuper-proto/go/reporterpb"
-	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	mock2 "github.com/stretchr/testify/mock"
@@ -27,7 +26,7 @@ func Test_RoyaltyTransactionsBuilder(t *testing.T) {
 
 func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder_Validate_Error_MerchantIdNotFound() {
 	params, _ := json.Marshal(map[string]interface{}{
-		pkg.ParamsFieldId: bson.NewObjectId().Hex(),
+		reporterpb.ParamsFieldId: bson.NewObjectId().Hex(),
 	})
 	h := newRoyaltyHandler(&Handler{
 		report: &reporterpb.ReportFile{Params: params},
@@ -47,7 +46,7 @@ func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder
 
 func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder_Validate_Ok() {
 	params, _ := json.Marshal(map[string]interface{}{
-		pkg.ParamsFieldId: bson.NewObjectId().Hex(),
+		reporterpb.ParamsFieldId: bson.NewObjectId().Hex(),
 	})
 	h := newRoyaltyHandler(&Handler{
 		report: &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},

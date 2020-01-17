@@ -7,6 +7,7 @@ import (
 	"github.com/globalsign/mgo/bson"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/paysuper/paysuper-proto/go/billingpb"
+	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
 	"go.uber.org/zap"
@@ -30,11 +31,11 @@ func (h *Royalty) Validate() error {
 		return errors.New(errs.ErrorParamMerchantIdNotFound.Message)
 	}
 
-	if _, ok := params[pkg.ParamsFieldId]; !ok {
+	if _, ok := params[reporterpb.ParamsFieldId]; !ok {
 		return errors.New(errs.ErrorParamIdNotFound.Message)
 	}
 
-	if !bson.IsObjectIdHex(fmt.Sprintf("%s", params[pkg.ParamsFieldId])) {
+	if !bson.IsObjectIdHex(fmt.Sprintf("%s", params[reporterpb.ParamsFieldId])) {
 		return errors.New(errs.ErrorParamIdNotFound.Message)
 	}
 
@@ -44,7 +45,7 @@ func (h *Royalty) Validate() error {
 func (h *Royalty) Build() (interface{}, error) {
 	ctx := context.TODO()
 	params, _ := h.GetParams()
-	royaltyId := fmt.Sprintf("%s", params[pkg.ParamsFieldId])
+	royaltyId := fmt.Sprintf("%s", params[reporterpb.ParamsFieldId])
 
 	royaltyRequest := &billingpb.GetRoyaltyReportRequest{ReportId: royaltyId, MerchantId: h.report.MerchantId}
 	royalty, err := h.billing.GetRoyaltyReport(ctx, royaltyRequest)
@@ -233,7 +234,7 @@ func (h *Royalty) PostProcess(
 
 	req := &billingpb.RoyaltyReportPdfUploadedRequest{
 		Id:              id,
-		RoyaltyReportId: fmt.Sprintf("%s", params[pkg.ParamsFieldId]),
+		RoyaltyReportId: fmt.Sprintf("%s", params[reporterpb.ParamsFieldId]),
 		Filename:        fileName,
 		RetentionTime:   int32(retentionTime),
 		Content:         content,

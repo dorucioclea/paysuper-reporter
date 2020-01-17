@@ -15,24 +15,24 @@ import (
 
 var (
 	reportTypes = []string{
-		pkg.ReportTypeVat,
-		pkg.ReportTypeVatTransactions,
-		pkg.ReportTypeRoyalty,
-		pkg.ReportTypeRoyaltyTransactions,
-		pkg.ReportTypeTransactions,
-		pkg.ReportTypeAgreement,
+		reporterpb.ReportTypeVat,
+		reporterpb.ReportTypeVatTransactions,
+		reporterpb.ReportTypeRoyalty,
+		reporterpb.ReportTypeRoyaltyTransactions,
+		reporterpb.ReportTypeTransactions,
+		reporterpb.ReportTypeAgreement,
 	}
 
 	reportFileContentTypes = map[string]string{
-		pkg.OutputExtensionXlsx: pkg.OutputContentTypeXlsx,
-		pkg.OutputExtensionCsv:  pkg.OutputContentTypeCsv,
-		pkg.OutputExtensionPdf:  pkg.OutputContentTypePdf,
+		reporterpb.OutputExtensionXlsx: pkg.OutputContentTypeXlsx,
+		reporterpb.OutputExtensionCsv:  pkg.OutputContentTypeCsv,
+		reporterpb.OutputExtensionPdf:  pkg.OutputContentTypePdf,
 	}
 
 	reportFileRecipes = map[string]string{
-		pkg.OutputExtensionXlsx: pkg.RecipeXlsx,
-		pkg.OutputExtensionCsv:  pkg.RecipeCsv,
-		pkg.OutputExtensionPdf:  pkg.RecipePdf,
+		reporterpb.OutputExtensionXlsx: pkg.RecipeXlsx,
+		reporterpb.OutputExtensionCsv:  pkg.RecipeCsv,
+		reporterpb.OutputExtensionPdf:  pkg.RecipePdf,
 	}
 )
 
@@ -125,19 +125,19 @@ func (app *Application) getTemplate(file *reporterpb.ReportFile) (string, error)
 	}
 
 	switch file.ReportType {
-	case pkg.ReportTypeRoyalty:
+	case reporterpb.ReportTypeRoyalty:
 		return app.cfg.DG.RoyaltyTemplate, nil
-	case pkg.ReportTypeRoyaltyTransactions:
+	case reporterpb.ReportTypeRoyaltyTransactions:
 		return app.cfg.DG.RoyaltyTransactionsTemplate, nil
-	case pkg.ReportTypeVat:
+	case reporterpb.ReportTypeVat:
 		return app.cfg.DG.VatTemplate, nil
-	case pkg.ReportTypeVatTransactions:
+	case reporterpb.ReportTypeVatTransactions:
 		return app.cfg.DG.VatTransactionsTemplate, nil
-	case pkg.ReportTypeTransactions:
+	case reporterpb.ReportTypeTransactions:
 		return app.cfg.DG.TransactionsTemplate, nil
-	case pkg.ReportTypeAgreement:
+	case reporterpb.ReportTypeAgreement:
 		return app.cfg.DG.AgreementTemplate, nil
-	case pkg.ReportTypePayout:
+	case reporterpb.ReportTypePayout:
 		return app.cfg.DG.PayoutTemplate, nil
 	}
 

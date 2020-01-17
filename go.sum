@@ -589,6 +589,10 @@ github.com/paysuper/paysuper-proto/go/reporterpb v0.0.0-20200113130036-a29295b4b
 github.com/paysuper/paysuper-proto/go/reporterpb v0.0.0-20200113130036-a29295b4b67a/go.mod h1:FyebbnM6jnm6lkqm0iQOpooeJtGmX+T1sTpACJm02MM=
 github.com/paysuper/paysuper-proto/go/reporterpb v0.0.0-20200116234616-184ad6d9fc3c h1:TyYAI7wQJ/FSX1GtwDYynCLrFv7FpovZWLqHyFUkaQw=
 github.com/paysuper/paysuper-proto/go/reporterpb v0.0.0-20200116234616-184ad6d9fc3c/go.mod h1:zkeX5YanN9Y1829rTONRw4pXaPCnEZ3Ujic/Pl5ayS8=
+github.com/paysuper/paysuper-proto/go/reporterpb v0.0.0-20200117171514-c849b863407c h1:y20DmvnpFaUr3OlkzehPjTj7MWfYeS4Ot5vv9RSR6g0=
+github.com/paysuper/paysuper-proto/go/reporterpb v0.0.0-20200117171514-c849b863407c/go.mod h1:zkeX5YanN9Y1829rTONRw4pXaPCnEZ3Ujic/Pl5ayS8=
+github.com/paysuper/paysuper-proto/go/reporterpb v0.0.0-20200117172130-df1a443c1fe8 h1:ofsUc1nuJRSbvPKumCtop2S88G5qHMEyYMfwJYbFDko=
+github.com/paysuper/paysuper-proto/go/reporterpb v0.0.0-20200117172130-df1a443c1fe8/go.mod h1:zkeX5YanN9Y1829rTONRw4pXaPCnEZ3Ujic/Pl5ayS8=
 github.com/paysuper/paysuper-tools v0.0.0-20200115135413-15b9d03f5ec4 h1:k+SVG9hyrWLSgI2CEw7r4y/1kltAEayL6zkVMIU/K5M=
 github.com/paysuper/paysuper-tools v0.0.0-20200115135413-15b9d03f5ec4/go.mod h1:ANn6M5FEYlAKdWWB/3DH4YLGORcMJs2IP7kBEzNS8rg=
 github.com/pelletier/go-buffruneio v0.2.0/go.mod h1:JkE26KsDizTr40EUHkXVtNPvgGtbSNq5BcowyYOWdKo=

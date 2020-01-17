@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/paysuper/paysuper-proto/go/billingpb"
+	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
 	"go.uber.org/zap"
@@ -26,11 +27,11 @@ func (h *Vat) Validate() error {
 		return err
 	}
 
-	if _, ok := params[pkg.ParamsFieldCountry]; !ok {
+	if _, ok := params[reporterpb.ParamsFieldCountry]; !ok {
 		return errors.New(errs.ErrorParamCountryNotFound.Message)
 	}
 
-	if len(fmt.Sprintf("%s", params[pkg.ParamsFieldCountry])) != 2 {
+	if len(fmt.Sprintf("%s", params[reporterpb.ParamsFieldCountry])) != 2 {
 		return errors.New(errs.ErrorParamCountryNotFound.Message)
 	}
 
@@ -42,7 +43,7 @@ func (h *Vat) Build() (interface{}, error) {
 
 	ctx := context.TODO()
 	params, _ := h.GetParams()
-	country := fmt.Sprintf("%s", params[pkg.ParamsFieldCountry])
+	country := fmt.Sprintf("%s", params[reporterpb.ParamsFieldCountry])
 
 	vatsRequest := &billingpb.VatReportsRequest{Country: country, Offset: 0, Limit: 1000}
 	vats, err := h.billing.GetVatReportsForCountry(ctx, vatsRequest)

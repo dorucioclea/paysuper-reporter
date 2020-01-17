@@ -7,7 +7,6 @@ import (
 	"github.com/paysuper/paysuper-proto/go/billingpb"
 	billingMocks "github.com/paysuper/paysuper-proto/go/billingpb/mocks"
 	"github.com/paysuper/paysuper-proto/go/reporterpb"
-	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	mock2 "github.com/stretchr/testify/mock"
@@ -36,7 +35,7 @@ func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Validat
 
 func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Validate_Ok() {
 	params, _ := json.Marshal(map[string]interface{}{
-		pkg.ParamsFieldId: bson.NewObjectId().Hex(),
+		reporterpb.ParamsFieldId: bson.NewObjectId().Hex(),
 	})
 	h := newVatTransactionsHandler(&Handler{
 		report: &reporterpb.ReportFile{Params: params},

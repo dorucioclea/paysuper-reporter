@@ -10,7 +10,6 @@ import (
 	"github.com/paysuper/paysuper-proto/go/billingpb"
 	billingMocks "github.com/paysuper/paysuper-proto/go/billingpb/mocks"
 	"github.com/paysuper/paysuper-proto/go/reporterpb"
-	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -33,14 +32,14 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_NewAgreementBuilder
 
 func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Validate_Ok() {
 	params := map[string]interface{}{
-		pkg.RequestParameterAgreementNumber:             "123-TEST",
-		pkg.RequestParameterAgreementLegalName:          "Test",
-		pkg.RequestParameterAgreementAddress:            "Russia, St.Petersburg, Unit Test 1",
-		pkg.RequestParameterAgreementRegistrationNumber: "0000000000000000000000001",
-		pkg.RequestParameterAgreementPayoutCost:         10,
-		pkg.RequestParameterAgreementMinimalPayoutLimit: 10000,
-		pkg.RequestParameterAgreementPayoutCurrency:     "USD",
-		pkg.RequestParameterAgreementPSRate: []*billingpb.MerchantTariffRatesPayment{
+		reporterpb.RequestParameterAgreementNumber:             "123-TEST",
+		reporterpb.RequestParameterAgreementLegalName:          "Test",
+		reporterpb.RequestParameterAgreementAddress:            "Russia, St.Petersburg, Unit Test 1",
+		reporterpb.RequestParameterAgreementRegistrationNumber: "0000000000000000000000001",
+		reporterpb.RequestParameterAgreementPayoutCost:         10,
+		reporterpb.RequestParameterAgreementMinimalPayoutLimit: 10000,
+		reporterpb.RequestParameterAgreementPayoutCurrency:     "USD",
+		reporterpb.RequestParameterAgreementPSRate: []*billingpb.MerchantTariffRatesPayment{
 			{
 				MinAmount:              0,
 				MaxAmount:              4.99,
@@ -68,14 +67,14 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Validate_Ok() {
 				PayerRegion:            "europe",
 			},
 		},
-		pkg.RequestParameterAgreementHomeRegion:                         "CIS",
-		pkg.RequestParameterAgreementMerchantAuthorizedName:             "Test Unit",
-		pkg.RequestParameterAgreementMerchantAuthorizedPosition:         "Unit test",
-		pkg.RequestParameterAgreementOperatingCompanyLegalName:          "Unit test",
-		pkg.RequestParameterAgreementOperatingCompanyAddress:            "Unit test",
-		pkg.RequestParameterAgreementOperatingCompanyRegistrationNumber: "Unit test",
-		pkg.RequestParameterAgreementOperatingCompanyAuthorizedName:     "Unit test",
-		pkg.RequestParameterAgreementOperatingCompanyAuthorizedPosition: "Unit test",
+		reporterpb.RequestParameterAgreementHomeRegion:                         "CIS",
+		reporterpb.RequestParameterAgreementMerchantAuthorizedName:             "Test Unit",
+		reporterpb.RequestParameterAgreementMerchantAuthorizedPosition:         "Unit test",
+		reporterpb.RequestParameterAgreementOperatingCompanyLegalName:          "Unit test",
+		reporterpb.RequestParameterAgreementOperatingCompanyAddress:            "Unit test",
+		reporterpb.RequestParameterAgreementOperatingCompanyRegistrationNumber: "Unit test",
+		reporterpb.RequestParameterAgreementOperatingCompanyAuthorizedName:     "Unit test",
+		reporterpb.RequestParameterAgreementOperatingCompanyAuthorizedPosition: "Unit test",
 	}
 	b, err := json.Marshal(params)
 	assert.NoError(suite.T(), err)
@@ -94,7 +93,7 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Validate_GetParams_
 
 func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Validate_ParamsWithoutRequiredField_Error() {
 	params := map[string]interface{}{
-		pkg.RequestParameterAgreementNumber: "123-TEST",
+		reporterpb.RequestParameterAgreementNumber: "123-TEST",
 	}
 	b, err := json.Marshal(params)
 	assert.NoError(suite.T(), err)
@@ -102,12 +101,12 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Validate_ParamsWith
 	builder := newAgreementHandler(handler)
 	err = builder.Validate()
 	assert.Error(suite.T(), err)
-	assert.Equal(suite.T(), fmt.Sprintf(errorRequestParameterIsRequired, pkg.RequestParameterAgreementLegalName), err.Error())
+	assert.Equal(suite.T(), fmt.Sprintf(errorRequestParameterIsRequired, reporterpb.RequestParameterAgreementLegalName), err.Error())
 }
 
 func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Validate_StringParamIsEmpty_Error() {
 	params := map[string]interface{}{
-		pkg.RequestParameterAgreementNumber: "",
+		reporterpb.RequestParameterAgreementNumber: "",
 	}
 	b, err := json.Marshal(params)
 	assert.NoError(suite.T(), err)
@@ -115,16 +114,16 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Validate_StringPara
 	builder := newAgreementHandler(handler)
 	err = builder.Validate()
 	assert.Error(suite.T(), err)
-	assert.Equal(suite.T(), fmt.Sprintf(errorRequestParameterIsEmpty, pkg.RequestParameterAgreementNumber), err.Error())
+	assert.Equal(suite.T(), fmt.Sprintf(errorRequestParameterIsEmpty, reporterpb.RequestParameterAgreementNumber), err.Error())
 }
 
 func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Validate_NumericParamIsEmpty_Error() {
 	params := map[string]interface{}{
-		pkg.RequestParameterAgreementNumber:             "123-TEST",
-		pkg.RequestParameterAgreementLegalName:          "Test",
-		pkg.RequestParameterAgreementAddress:            "Russia, St.Petersburg, Unit Test 1",
-		pkg.RequestParameterAgreementRegistrationNumber: "0000000000000000000000001",
-		pkg.RequestParameterAgreementPayoutCost:         int32(0),
+		reporterpb.RequestParameterAgreementNumber:             "123-TEST",
+		reporterpb.RequestParameterAgreementLegalName:          "Test",
+		reporterpb.RequestParameterAgreementAddress:            "Russia, St.Petersburg, Unit Test 1",
+		reporterpb.RequestParameterAgreementRegistrationNumber: "0000000000000000000000001",
+		reporterpb.RequestParameterAgreementPayoutCost:         int32(0),
 	}
 	b, err := json.Marshal(params)
 	assert.NoError(suite.T(), err)
@@ -132,7 +131,7 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Validate_NumericPar
 	builder := newAgreementHandler(handler)
 	err = builder.Validate()
 	assert.Error(suite.T(), err)
-	assert.Equal(suite.T(), fmt.Sprintf(errorRequestParameterIsEmpty, pkg.RequestParameterAgreementPayoutCost), err.Error())
+	assert.Equal(suite.T(), fmt.Sprintf(errorRequestParameterIsEmpty, reporterpb.RequestParameterAgreementPayoutCost), err.Error())
 }
 
 func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Build_Ok() {
@@ -186,7 +185,7 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Build_Ok() {
 	builder := newAgreementHandler(handler)
 	params, err := builder.Build()
 	assert.NoError(suite.T(), err)
-	assert.Contains(suite.T(), params, pkg.RequestParameterAgreementNumber)
+	assert.Contains(suite.T(), params, reporterpb.RequestParameterAgreementNumber)
 }
 
 func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_PostProcess_Ok() {
