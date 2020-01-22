@@ -13,7 +13,6 @@ import (
 	awsWrapper "github.com/paysuper/paysuper-aws-manager"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg"
 	billingGrpc "github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
-	mongodb "github.com/paysuper/paysuper-database-mongo"
 	"github.com/paysuper/paysuper-reporter/internal/builder"
 	"github.com/paysuper/paysuper-reporter/internal/config"
 	"github.com/paysuper/paysuper-reporter/internal/repository"
@@ -23,6 +22,7 @@ import (
 	"github.com/streadway/amqp"
 	"go.uber.org/zap"
 	rabbitmq "gopkg.in/ProtocolONE/rabbitmq.v1/pkg"
+	mongodb "gopkg.in/paysuper/paysuper-database-mongo.v2"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -33,7 +33,7 @@ import (
 type Application struct {
 	cfg                    *config.Config
 	log                    *zap.Logger
-	database               *mongodb.Source
+	database               mongodb.SourceInterface
 	s3                     awsWrapper.AwsManagerInterface
 	s3Agreement            awsWrapper.AwsManagerInterface
 	centrifugo             CentrifugoInterface
@@ -53,7 +53,7 @@ type Application struct {
 }
 
 type appHealthCheck struct {
-	db *mongodb.Source
+	db mongodb.SourceInterface
 }
 
 func NewApplication() *Application {
@@ -132,7 +132,7 @@ func (app *Application) initConfig() {
 func (app *Application) initDatabase() {
 	var err error
 
-	app.database, err = mongodb.NewDatabase(mongodb.Mode(app.cfg.Db.MongoMode))
+	app.database, err = mongodb.NewDatabase()
 
 	if err != nil {
 		app.fatalFn("Database connection failed", zap.Error(err))

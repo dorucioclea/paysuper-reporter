@@ -18,6 +18,7 @@ var (
 	ErrorParamIdNotFound              = newErrorMsg("rf000012", "unable to find the param <id>.")
 	ErrorParamMerchantIdNotFound      = newErrorMsg("rf000012", "unable to find the param <merchant_id>.")
 	ErrorDatabaseQueryFailed          = newErrorMsg("rf000013", "query to database collection failed")
+	ErrorMongoDbOidIncorrect          = newErrorMsg("rf000014", "mongodb object id incorrect")
 )
 
 func newErrorMsg(code, msg string, details ...string) *proto.ResponseErrorMessage {

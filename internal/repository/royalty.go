@@ -3,9 +3,9 @@ package repository
 import (
 	"github.com/globalsign/mgo/bson"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
-	database "github.com/paysuper/paysuper-database-mongo"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
 	"go.uber.org/zap"
+	database "gopkg.in/paysuper/paysuper-database-mongo.v2"
 )
 
 const (
@@ -16,7 +16,7 @@ type RoyaltyRepositoryInterface interface {
 	GetById(string) (*billingProto.MgoRoyaltyReport, error)
 }
 
-func NewRoyaltyReportRepository(db *database.Source) RoyaltyRepositoryInterface {
+func NewRoyaltyReportRepository(db database.SourceInterface) RoyaltyRepositoryInterface {
 	s := &RoyaltyRepository{db: db}
 	return s
 }

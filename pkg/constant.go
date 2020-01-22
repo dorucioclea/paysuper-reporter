@@ -66,4 +66,11 @@ const (
 
 	BrokerGenerateReportTopicName = "reporter-generate"
 	BrokerPostProcessTopicName    = "reporter-post-process"
+
+	ErrorDatabaseQueryFailed        = "Query to database collection failed"
+	ErrorDatabaseInvalidObjectId    = "String is not a valid ObjectID"
+	ErrorQueryCursorExecutionFailed = "Execute result from query cursor failed"
+	ErrorDatabaseFieldCollection    = "collection"
+	ErrorDatabaseFieldQuery         = "query"
+	ErrorDatabaseFieldObjectId      = "object_id"
 )

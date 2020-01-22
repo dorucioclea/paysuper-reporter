@@ -1,11 +1,11 @@
 package repository
 
 import (
-	database "github.com/paysuper/paysuper-database-mongo"
+	database "gopkg.in/paysuper/paysuper-database-mongo.v2"
 )
 
 type Repository struct {
-	db *database.Source
+	db database.SourceInterface
 }
 
 type RoyaltyRepository Repository

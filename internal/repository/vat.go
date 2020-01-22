@@ -1,11 +1,13 @@
 package repository
 
 import (
-	"github.com/globalsign/mgo/bson"
+	"context"
+	"github.com/mongodb/mongo-go-driver/bson/primitive"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
-	database "github.com/paysuper/paysuper-database-mongo"
-	"github.com/paysuper/paysuper-reporter/pkg/errors"
+	"github.com/paysuper/paysuper-reporter/pkg"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.uber.org/zap"
+	database "gopkg.in/paysuper/paysuper-database-mongo.v2"
 )
 
 const (
@@ -17,22 +19,34 @@ type VatRepositoryInterface interface {
 	GetByCountry(string) ([]*billingProto.MgoVatReport, error)
 }
 
-func NewVatRepository(db *database.Source) VatRepositoryInterface {
+func NewVatRepository(db database.SourceInterface) VatRepositoryInterface {
 	s := &VatRepository{db: db}
 	return s
 }
 
 func (h *VatRepository) GetById(id string) (*billingProto.MgoVatReport, error) {
-	var report *billingProto.MgoVatReport
-
-	err := h.db.Collection(collectionVat).FindId(bson.ObjectIdHex(id)).One(&report)
+	oid, err := primitive.ObjectIDFromHex(id)
 
 	if err != nil {
 		zap.L().Error(
-			errors.ErrorDatabaseQueryFailed.Message,
+			pkg.ErrorDatabaseInvalidObjectId,
 			zap.Error(err),
-			zap.String("collection", collectionVat),
-			zap.String("id", id),
+			zap.String(pkg.ErrorDatabaseFieldCollection, collectionVat),
+			zap.String(pkg.ErrorDatabaseFieldObjectId, id),
+		)
+		return nil, err
+	}
+
+	report := new(billingProto.MgoVatReport)
+	filter := bson.M{"_id": oid}
+	err = h.db.Collection(collectionVat).FindOne(context.Background(), filter).Decode(&report)
+
+	if err != nil {
+		zap.L().Error(
+			pkg.ErrorDatabaseQueryFailed,
+			zap.Error(err),
+			zap.String(pkg.ErrorDatabaseFieldCollection, collectionVat),
+			zap.Any(pkg.ErrorDatabaseFieldQuery, filter),
 		)
 	}
 
@@ -40,17 +54,30 @@ func (h *VatRepository) GetById(id string) (*billingProto.MgoVatReport, error) {
 }
 
 func (h *VatRepository) GetByCountry(country string) ([]*billingProto.MgoVatReport, error) {
-	var report []*billingProto.MgoVatReport
-
-	err := h.db.Collection(collectionVat).Find(bson.M{"country": country}).All(&report)
+	filter := bson.M{"country": country}
+	cursor, err := h.db.Collection(collectionVat).Find(context.Background(), filter)
 
 	if err != nil {
 		zap.L().Error(
-			errors.ErrorDatabaseQueryFailed.Message,
+			pkg.ErrorDatabaseQueryFailed,
 			zap.Error(err),
-			zap.String("collection", collectionVat),
-			zap.String("country", country),
+			zap.String(pkg.ErrorDatabaseFieldCollection, collectionVat),
+			zap.Any(pkg.ErrorDatabaseFieldQuery, filter),
 		)
+		return nil, err
+	}
+
+	report := make([]*billingProto.MgoVatReport, 0)
+	err = cursor.All(context.Background(), &report)
+
+	if err != nil {
+		zap.L().Error(
+			pkg.ErrorQueryCursorExecutionFailed,
+			zap.Error(err),
+			zap.String(pkg.ErrorDatabaseFieldCollection, collectionVat),
+			zap.Any(pkg.ErrorDatabaseFieldQuery, filter),
+		)
+		return nil, err
 	}
 
 	return report, err

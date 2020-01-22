@@ -1,11 +1,13 @@
 package repository
 
 import (
-	"github.com/globalsign/mgo/bson"
+	"context"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
-	database "github.com/paysuper/paysuper-database-mongo"
-	"github.com/paysuper/paysuper-reporter/pkg/errors"
+	"github.com/paysuper/paysuper-reporter/pkg"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.uber.org/zap"
+	database "gopkg.in/paysuper/paysuper-database-mongo.v2"
 )
 
 const (
@@ -16,23 +18,36 @@ type MerchantRepositoryInterface interface {
 	GetById(string) (*billingProto.MgoMerchant, error)
 }
 
-func NewMerchantRepository(db *database.Source) MerchantRepositoryInterface {
+func NewMerchantRepository(db database.SourceInterface) MerchantRepositoryInterface {
 	s := &MerchantRepository{db: db}
 	return s
 }
 
 func (h *MerchantRepository) GetById(id string) (*billingProto.MgoMerchant, error) {
-	var merchant *billingProto.MgoMerchant
-
-	err := h.db.Collection(collectionMerchant).FindId(bson.ObjectIdHex(id)).One(&merchant)
+	oid, err := primitive.ObjectIDFromHex(id)
 
 	if err != nil {
 		zap.L().Error(
-			errors.ErrorDatabaseQueryFailed.Message,
+			pkg.ErrorDatabaseInvalidObjectId,
 			zap.Error(err),
-			zap.String("collection", collectionPayout),
-			zap.String("id", id),
+			zap.String(pkg.ErrorDatabaseFieldCollection, collectionMerchant),
+			zap.String(pkg.ErrorDatabaseFieldObjectId, id),
 		)
+		return nil, err
+	}
+
+	merchant := new(billingProto.MgoMerchant)
+	filter := bson.M{"_id": oid}
+	err = h.db.Collection(collectionMerchant).FindOne(context.Background(), filter).Decode(&merchant)
+
+	if err != nil {
+		zap.L().Error(
+			pkg.ErrorDatabaseQueryFailed,
+			zap.Error(err),
+			zap.String(pkg.ErrorDatabaseFieldCollection, collectionPayout),
+			zap.String(pkg.ErrorDatabaseFieldObjectId, id),
+		)
+		return nil, err
 	}
 
 	return merchant, err

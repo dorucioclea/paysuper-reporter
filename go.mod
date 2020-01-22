@@ -11,6 +11,7 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/micro/go-micro v1.8.0
 	github.com/micro/go-plugins v1.2.0
+	github.com/mongodb/mongo-go-driver v0.3.0
 	github.com/nats-io/stan.go v0.5.0
 	github.com/paysuper/paysuper-aws-manager v0.0.1
 	github.com/paysuper/paysuper-billing-server v0.0.0-20191114134535-c158b5075a9a
@@ -18,9 +19,10 @@ require (
 	github.com/paysuper/paysuper-recurring-repository v1.0.126
 	github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271
 	github.com/stretchr/testify v1.4.0
-	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5 // indirect
+	go.mongodb.org/mongo-driver v1.1.3
 	go.uber.org/zap v1.10.0
 	gopkg.in/ProtocolONE/rabbitmq.v1 v1.0.0-20191130200733-22b27ffa73aa
+	gopkg.in/paysuper/paysuper-database-mongo.v2 v2.0.0-20200116095540-a477bfd0ce4c
 )
 
 replace (
