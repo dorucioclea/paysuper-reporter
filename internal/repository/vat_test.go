@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"github.com/globalsign/mgo/bson"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/mongodb"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -63,7 +62,7 @@ func (suite *VatRepositoryTestSuite) TearDownTest() {
 }
 
 func (suite *VatRepositoryTestSuite) TestVatRepository_GetById_Error() {
-	_, err := suite.service.GetById(bson.NewObjectId().Hex())
+	_, err := suite.service.GetById("ffffffffffffffffffffffff")
 	assert.Error(suite.T(), err)
 }
 
