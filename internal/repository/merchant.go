@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"context"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"go.mongodb.org/mongo-driver/bson"
@@ -19,7 +18,7 @@ type MerchantRepositoryInterface interface {
 }
 
 func NewMerchantRepository(db database.SourceInterface) MerchantRepositoryInterface {
-	s := &MerchantRepository{db: db}
+	s := &MerchantRepository{Repository: &Repository{db: db}}
 	return s
 }
 
@@ -38,7 +37,7 @@ func (h *MerchantRepository) GetById(id string) (*billingProto.MgoMerchant, erro
 
 	merchant := new(billingProto.MgoMerchant)
 	filter := bson.M{"_id": oid}
-	err = h.db.Collection(collectionMerchant).FindOne(context.Background(), filter).Decode(&merchant)
+	err = h.db.Collection(collectionMerchant).FindOne(h.getContext(), filter).Decode(&merchant)
 
 	if err != nil {
 		zap.L().Error(

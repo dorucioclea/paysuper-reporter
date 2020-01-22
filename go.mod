@@ -2,10 +2,7 @@ module github.com/paysuper/paysuper-reporter
 
 require (
 	github.com/InVisionApp/go-health v2.1.0+incompatible
-	github.com/ProtocolONE/nats v0.0.0-20190909153110-738ec68e5d7c
 	github.com/centrifugal/gocent v2.0.2+incompatible
-	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8
-	github.com/golang-migrate/migrate/v4 v4.6.2
 	github.com/golang/protobuf v1.3.2
 	github.com/jinzhu/now v1.0.1
 	github.com/kelseyhightower/envconfig v1.4.0
@@ -14,9 +11,9 @@ require (
 	github.com/mongodb/mongo-go-driver v0.3.0
 	github.com/nats-io/stan.go v0.5.0
 	github.com/paysuper/paysuper-aws-manager v0.0.1
-	github.com/paysuper/paysuper-billing-server v0.0.0-20191114134535-c158b5075a9a
+	github.com/paysuper/paysuper-billing-server v1.1.0
 	github.com/paysuper/paysuper-database-mongo v0.1.3
-	github.com/paysuper/paysuper-recurring-repository v1.0.126
+	github.com/paysuper/paysuper-recurring-repository v1.0.128
 	github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271
 	github.com/stretchr/testify v1.4.0
 	go.mongodb.org/mongo-driver v1.1.3

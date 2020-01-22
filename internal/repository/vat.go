@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"context"
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
 	"github.com/paysuper/paysuper-reporter/pkg"
@@ -20,7 +19,7 @@ type VatRepositoryInterface interface {
 }
 
 func NewVatRepository(db database.SourceInterface) VatRepositoryInterface {
-	s := &VatRepository{db: db}
+	s := &VatRepository{Repository: &Repository{db: db}}
 	return s
 }
 
@@ -39,7 +38,7 @@ func (h *VatRepository) GetById(id string) (*billingProto.MgoVatReport, error) {
 
 	report := new(billingProto.MgoVatReport)
 	filter := bson.M{"_id": oid}
-	err = h.db.Collection(collectionVat).FindOne(context.Background(), filter).Decode(&report)
+	err = h.db.Collection(collectionVat).FindOne(h.getContext(), filter).Decode(&report)
 
 	if err != nil {
 		zap.L().Error(
@@ -48,6 +47,7 @@ func (h *VatRepository) GetById(id string) (*billingProto.MgoVatReport, error) {
 			zap.String(pkg.ErrorDatabaseFieldCollection, collectionVat),
 			zap.Any(pkg.ErrorDatabaseFieldQuery, filter),
 		)
+		return nil, err
 	}
 
 	return report, err
@@ -55,7 +55,7 @@ func (h *VatRepository) GetById(id string) (*billingProto.MgoVatReport, error) {
 
 func (h *VatRepository) GetByCountry(country string) ([]*billingProto.MgoVatReport, error) {
 	filter := bson.M{"country": country}
-	cursor, err := h.db.Collection(collectionVat).Find(context.Background(), filter)
+	cursor, err := h.db.Collection(collectionVat).Find(h.getContext(), filter)
 
 	if err != nil {
 		zap.L().Error(
@@ -68,7 +68,7 @@ func (h *VatRepository) GetByCountry(country string) ([]*billingProto.MgoVatRepo
 	}
 
 	report := make([]*billingProto.MgoVatReport, 0)
-	err = cursor.All(context.Background(), &report)
+	err = cursor.All(h.getContext(), &report)
 
 	if err != nil {
 		zap.L().Error(

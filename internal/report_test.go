@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	errs "errors"
-	"github.com/globalsign/mgo/bson"
 	"github.com/paysuper/paysuper-reporter/internal/config"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
@@ -54,7 +53,7 @@ func (suite *ReportTestSuite) TestReport_CreateFile_Error_BuilderValidate() {
 	report := &proto.ReportFile{
 		ReportType: pkg.ReportTypeVat,
 		FileType:   pkg.OutputExtensionPdf,
-		MerchantId: bson.NewObjectId().Hex(),
+		MerchantId: "ffffffffffffffffffffffff",
 	}
 	err := suite.service.CreateFile(context.TODO(), report, res)
 
@@ -70,7 +69,7 @@ func (suite *ReportTestSuite) TestReport_CreateFile_Error_Publish() {
 	report := &proto.ReportFile{
 		FileType:   pkg.OutputExtensionPdf,
 		ReportType: pkg.ReportTypeVat,
-		MerchantId: bson.NewObjectId().Hex(),
+		MerchantId: "ffffffffffffffffffffffff",
 		Params:     params,
 	}
 
@@ -92,7 +91,7 @@ func (suite *ReportTestSuite) TestReport_CreateFile_Ok() {
 	report := &proto.ReportFile{
 		ReportType: pkg.ReportTypeVat,
 		FileType:   pkg.OutputExtensionPdf,
-		MerchantId: bson.NewObjectId().Hex(),
+		MerchantId: "ffffffffffffffffffffffff",
 		Params:     params,
 	}
 

@@ -3,7 +3,6 @@ package builder
 import (
 	"encoding/json"
 	errs "errors"
-	"github.com/globalsign/mgo/bson"
 	billPkg "github.com/paysuper/paysuper-billing-server/pkg"
 	billMocks "github.com/paysuper/paysuper-billing-server/pkg/mocks"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
@@ -15,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	mock2 "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"testing"
 	"time"
 )
@@ -76,7 +76,7 @@ func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Build_Ok() {
 
 	datetime := time.Now()
 	report := &billingProto.MgoRoyaltyReport{
-		Id:         bson.NewObjectId(),
+		Id:         primitive.NewObjectID(),
 		PeriodFrom: datetime,
 		PeriodTo:   datetime,
 		PayoutDate: datetime,
@@ -111,7 +111,7 @@ func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Build_Ok() {
 		On("GetById", mock2.Anything).
 		Return(
 			&billingProto.MgoMerchant{
-				Id:      bson.NewObjectId(),
+				Id:      primitive.NewObjectID(),
 				Company: &billingProto.MerchantCompanyInfo{Name: "", Address: ""},
 			},
 			nil,
@@ -140,7 +140,7 @@ func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Build_Error_GetOperatin
 
 	datetime := time.Now()
 	report := &billingProto.MgoRoyaltyReport{
-		Id:         bson.NewObjectId(),
+		Id:         primitive.NewObjectID(),
 		PeriodFrom: datetime,
 		PeriodTo:   datetime,
 		PayoutDate: datetime,
@@ -175,7 +175,7 @@ func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Build_Error_GetOperatin
 		On("GetById", mock2.Anything).
 		Return(
 			&billingProto.MgoMerchant{
-				Id:      bson.NewObjectId(),
+				Id:      primitive.NewObjectID(),
 				Company: &billingProto.MerchantCompanyInfo{Name: "", Address: ""},
 			},
 			nil,

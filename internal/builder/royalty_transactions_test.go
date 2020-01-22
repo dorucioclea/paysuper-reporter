@@ -3,7 +3,6 @@ package builder
 import (
 	"encoding/json"
 	errs "errors"
-	"github.com/globalsign/mgo/bson"
 	billPkg "github.com/paysuper/paysuper-billing-server/pkg"
 	billMocks "github.com/paysuper/paysuper-billing-server/pkg/mocks"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
@@ -15,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	mock2 "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"testing"
 	"time"
 )
@@ -63,7 +63,7 @@ func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder
 }
 
 func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder_Build_Error_GetByVat() {
-	report := &billingProto.MgoRoyaltyReport{Id: bson.NewObjectId()}
+	report := &billingProto.MgoRoyaltyReport{Id: primitive.NewObjectID()}
 	royaltyRep := mocks.RoyaltyRepositoryInterface{}
 	royaltyRep.On("GetById", mock2.Anything).Return(report, nil)
 
@@ -75,7 +75,7 @@ func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder
 		On("GetById", mock2.Anything).
 		Return(
 			&billingProto.MgoMerchant{
-				Id:      bson.NewObjectId(),
+				Id:      primitive.NewObjectID(),
 				Company: &billingProto.MerchantCompanyInfo{Name: "", Address: ""},
 			},
 			nil,
@@ -105,9 +105,9 @@ func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder
 	}
 	bs.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(response, nil)
 
-	report := &billingProto.MgoRoyaltyReport{Id: bson.NewObjectId()}
+	report := &billingProto.MgoRoyaltyReport{Id: primitive.NewObjectID()}
 	orders := []*billingProto.MgoOrderViewPublic{{
-		Id:          bson.NewObjectId(),
+		Id:          primitive.NewObjectID(),
 		Transaction: "1",
 		CountryCode: "RU",
 		Currency:    "RUB",
@@ -131,7 +131,7 @@ func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder
 		On("GetById", mock2.Anything).
 		Return(
 			&billingProto.MgoMerchant{
-				Id:      bson.NewObjectId(),
+				Id:      primitive.NewObjectID(),
 				Company: &billingProto.MerchantCompanyInfo{Name: "", Address: ""},
 			},
 			nil,
@@ -158,9 +158,9 @@ func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder
 	}
 	bs.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(response, nil)
 
-	report := &billingProto.MgoRoyaltyReport{Id: bson.NewObjectId()}
+	report := &billingProto.MgoRoyaltyReport{Id: primitive.NewObjectID()}
 	orders := []*billingProto.MgoOrderViewPublic{{
-		Id:          bson.NewObjectId(),
+		Id:          primitive.NewObjectID(),
 		Transaction: "1",
 		CountryCode: "RU",
 		Currency:    "RUB",
@@ -184,7 +184,7 @@ func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder
 		On("GetById", mock2.Anything).
 		Return(
 			&billingProto.MgoMerchant{
-				Id:      bson.NewObjectId(),
+				Id:      primitive.NewObjectID(),
 				Company: &billingProto.MerchantCompanyInfo{Name: "", Address: ""},
 			},
 			nil,

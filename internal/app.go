@@ -511,9 +511,11 @@ func (app *Application) getProcessResult(
 }
 
 func (c *appHealthCheck) Status() (interface{}, error) {
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+
 	// INFO: Always is fail on locally if your DB don't have secondary members of the replica set
 	// and use secondary mode of database connection
-	if err := c.db.Ping(); err != nil {
+	if err := c.db.Ping(ctx); err != nil {
 		return "fail", err
 	}
 

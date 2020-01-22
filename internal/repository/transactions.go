@@ -1,13 +1,15 @@
 package repository
 
 import (
-	"github.com/globalsign/mgo/bson"
 	"github.com/jinzhu/now"
+	"github.com/mongodb/mongo-go-driver/bson/primitive"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
-	database "github.com/paysuper/paysuper-database-mongo"
 	"github.com/paysuper/paysuper-recurring-repository/pkg/constant"
-	"github.com/paysuper/paysuper-reporter/pkg/errors"
+	"github.com/paysuper/paysuper-reporter/pkg"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
+	database "gopkg.in/paysuper/paysuper-database-mongo.v2"
 	"time"
 )
 
@@ -21,15 +23,13 @@ type TransactionsRepositoryInterface interface {
 	FindByMerchant(string, []string, []string, int64, int64) ([]*billingProto.MgoOrderViewPublic, error)
 }
 
-func NewTransactionsRepository(db *database.Source) TransactionsRepositoryInterface {
-	s := &TransactionsRepository{db: db}
+func NewTransactionsRepository(db database.SourceInterface) TransactionsRepositoryInterface {
+	s := &TransactionsRepository{Repository: &Repository{db: db}}
 	return s
 }
 
 func (h *TransactionsRepository) GetByRoyalty(report *billingProto.MgoRoyaltyReport) ([]*billingProto.MgoOrderViewPublic, error) {
-	var result []*billingProto.MgoOrderViewPublic
-
-	match := bson.M{
+	filter := bson.M{
 		"merchant_id":         report.MerchantId,
 		"pm_order_close_date": bson.M{"$gte": report.PeriodFrom, "$lte": report.PeriodTo},
 		"status": bson.M{"$in": []string{
@@ -38,14 +38,28 @@ func (h *TransactionsRepository) GetByRoyalty(report *billingProto.MgoRoyaltyRep
 			constant.OrderPublicStatusChargeback,
 		}},
 	}
-	err := h.db.Collection(collectionOrderView).Find(match).Sort("created_at").All(&result)
+	opts := options.Find().SetSort(bson.M{"created_at": 1})
+	cursor, err := h.db.Collection(collectionOrderView).Find(h.getContext(), filter, opts)
 
 	if err != nil {
 		zap.L().Error(
-			errors.ErrorDatabaseQueryFailed.Message,
+			pkg.ErrorDatabaseQueryFailed,
 			zap.Error(err),
-			zap.String("collection", collectionOrderView),
-			zap.Any("match", match),
+			zap.String(pkg.ErrorDatabaseFieldCollection, collectionOrderView),
+			zap.Any(pkg.ErrorDatabaseFieldQuery, filter),
+		)
+		return nil, err
+	}
+
+	result := make([]*billingProto.MgoOrderViewPublic, 0)
+	err = cursor.All(h.getContext(), &result)
+
+	if err != nil {
+		zap.L().Error(
+			pkg.ErrorQueryCursorExecutionFailed,
+			zap.Error(err),
+			zap.String(pkg.ErrorDatabaseFieldCollection, collectionOrderView),
+			zap.Any(pkg.ErrorDatabaseFieldQuery, filter),
 		)
 		return nil, err
 	}
@@ -54,23 +68,35 @@ func (h *TransactionsRepository) GetByRoyalty(report *billingProto.MgoRoyaltyRep
 }
 
 func (h *TransactionsRepository) GetByVat(report *billingProto.MgoVatReport) ([]*billingProto.MgoOrderViewPrivate, error) {
-	var result []*billingProto.MgoOrderViewPrivate
-
-	match := bson.M{
+	filter := bson.M{
 		"pm_order_close_date": bson.M{
 			"$gte": now.New(report.DateFrom).BeginningOfDay(),
 			"$lte": now.New(report.DateTo).EndOfDay(),
 		},
 		"country_code": report.Country,
 	}
-	err := h.db.Collection(collectionOrderView).Find(match).Sort("created_at").All(&result)
+	opts := options.Find().SetSort(bson.M{"created_at": 1})
+	cursor, err := h.db.Collection(collectionOrderView).Find(h.getContext(), filter, opts)
 
 	if err != nil {
 		zap.L().Error(
-			errors.ErrorDatabaseQueryFailed.Message,
+			pkg.ErrorDatabaseQueryFailed,
 			zap.Error(err),
-			zap.String("collection", collectionOrderView),
-			zap.Any("match", match),
+			zap.String(pkg.ErrorDatabaseFieldCollection, collectionOrderView),
+			zap.Any(pkg.ErrorDatabaseFieldQuery, filter),
+		)
+		return nil, err
+	}
+
+	result := make([]*billingProto.MgoOrderViewPrivate, 0)
+	err = cursor.All(h.getContext(), &result)
+
+	if err != nil {
+		zap.L().Error(
+			pkg.ErrorQueryCursorExecutionFailed,
+			zap.Error(err),
+			zap.String(pkg.ErrorDatabaseFieldCollection, collectionOrderView),
+			zap.Any(pkg.ErrorDatabaseFieldQuery, filter),
 		)
 		return nil, err
 	}
@@ -85,23 +111,45 @@ func (h *TransactionsRepository) FindByMerchant(
 	dateFrom int64,
 	dateTo int64,
 ) ([]*billingProto.MgoOrderViewPublic, error) {
-	var result []*billingProto.MgoOrderViewPublic
+	oid, err := primitive.ObjectIDFromHex(merchantId)
 
-	query := make(bson.M)
-	query["merchant_id"] = bson.ObjectIdHex(merchantId)
+	if err != nil {
+		zap.L().Error(
+			pkg.ErrorDatabaseInvalidObjectId,
+			zap.Error(err),
+			zap.String(pkg.ErrorDatabaseFieldCollection, collectionVat),
+			zap.String("merchant_id", merchantId),
+		)
+		return nil, err
+	}
+
+	filter := make(bson.M)
+	filter["merchant_id"] = oid
 
 	if len(paymentMethods) > 0 {
-		var paymentMethod []bson.ObjectId
+		var paymentMethod []primitive.ObjectID
 
 		for _, v := range paymentMethods {
-			paymentMethod = append(paymentMethod, bson.ObjectIdHex(v))
+			oid, err = primitive.ObjectIDFromHex(v)
+
+			if err != nil {
+				zap.L().Error(
+					pkg.ErrorDatabaseInvalidObjectId,
+					zap.Error(err),
+					zap.String(pkg.ErrorDatabaseFieldCollection, collectionVat),
+					zap.String("payment_method_id", v),
+				)
+				continue
+			}
+
+			paymentMethod = append(paymentMethod, oid)
 		}
 
-		query["payment_method._id"] = bson.M{"$in": paymentMethod}
+		filter["payment_method._id"] = bson.M{"$in": paymentMethod}
 	}
 
 	if len(status) > 0 {
-		query["status"] = bson.M{"$in": status}
+		filter["status"] = bson.M{"$in": status}
 	}
 
 	pmDates := make(bson.M)
@@ -115,17 +163,31 @@ func (h *TransactionsRepository) FindByMerchant(
 	}
 
 	if len(pmDates) > 0 {
-		query["pm_order_close_date"] = pmDates
+		filter["pm_order_close_date"] = pmDates
 	}
 
-	err := h.db.Collection(collectionOrderView).Find(query).Sort("-created_at").All(&result)
+	opts := options.Find().SetSort(bson.M{"created_at": -1})
+	cursor, err := h.db.Collection(collectionOrderView).Find(h.getContext(), filter, opts)
 
 	if err != nil {
 		zap.L().Error(
-			errors.ErrorDatabaseQueryFailed.Message,
+			pkg.ErrorDatabaseQueryFailed,
 			zap.Error(err),
-			zap.String("collection", collectionOrderView),
-			zap.Any("match", nil),
+			zap.String(pkg.ErrorDatabaseFieldCollection, collectionOrderView),
+			zap.Any(pkg.ErrorDatabaseFieldQuery, filter),
+		)
+		return nil, err
+	}
+
+	result := make([]*billingProto.MgoOrderViewPublic, 0)
+	err = cursor.All(h.getContext(), &result)
+
+	if err != nil {
+		zap.L().Error(
+			pkg.ErrorQueryCursorExecutionFailed,
+			zap.Error(err),
+			zap.String(pkg.ErrorDatabaseFieldCollection, collectionOrderView),
+			zap.Any(pkg.ErrorDatabaseFieldQuery, filter),
 		)
 		return nil, err
 	}

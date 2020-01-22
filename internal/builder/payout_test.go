@@ -3,7 +3,6 @@ package builder
 import (
 	"encoding/json"
 	errs "errors"
-	"github.com/globalsign/mgo/bson"
 	billPkg "github.com/paysuper/paysuper-billing-server/pkg"
 	billMocks "github.com/paysuper/paysuper-billing-server/pkg/mocks"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
@@ -15,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	mock2 "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"testing"
 )
 
@@ -73,7 +73,7 @@ func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Build_Ok() {
 	bs.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(response, nil)
 
 	report := &billingProto.MgoPayoutDocument{
-		Id: bson.NewObjectId(),
+		Id: primitive.NewObjectID(),
 		Destination: &billingProto.MerchantBanking{
 			Address: "",
 			Details: "",
@@ -87,7 +87,7 @@ func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Build_Ok() {
 
 	merchantRep := mocks.MerchantRepositoryInterface{}
 	merchant := &billingProto.MgoMerchant{
-		Id:      bson.NewObjectId(),
+		Id:      primitive.NewObjectID(),
 		Company: &billingProto.MerchantCompanyInfo{Name: "", Address: "", TaxId: ""},
 	}
 	merchantRep.On("GetById", mock2.Anything).Return(merchant, nil)
@@ -114,7 +114,7 @@ func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Build_Error_GetOperatingC
 	bs.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(response, nil)
 
 	report := &billingProto.MgoPayoutDocument{
-		Id: bson.NewObjectId(),
+		Id: primitive.NewObjectID(),
 		Destination: &billingProto.MerchantBanking{
 			Address: "",
 			Details: "",
@@ -128,7 +128,7 @@ func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Build_Error_GetOperatingC
 
 	merchantRep := mocks.MerchantRepositoryInterface{}
 	merchant := &billingProto.MgoMerchant{
-		Id:      bson.NewObjectId(),
+		Id:      primitive.NewObjectID(),
 		Company: &billingProto.MerchantCompanyInfo{Name: "", Address: "", TaxId: ""},
 	}
 	merchantRep.On("GetById", mock2.Anything).Return(merchant, nil)

@@ -3,7 +3,6 @@ package builder
 import (
 	"encoding/json"
 	errs "errors"
-	"github.com/globalsign/mgo/bson"
 	billPkg "github.com/paysuper/paysuper-billing-server/pkg"
 	billMocks "github.com/paysuper/paysuper-billing-server/pkg/mocks"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
@@ -15,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	mock2 "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"testing"
 )
 
@@ -62,7 +62,7 @@ func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_E
 }
 
 func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_Error_GetByVat() {
-	report := &billingProto.MgoVatReport{Id: bson.NewObjectId()}
+	report := &billingProto.MgoVatReport{Id: primitive.NewObjectID()}
 	vatRep := mocks.VatRepositoryInterface{}
 	vatRep.On("GetById", mock2.Anything).Return(report, nil)
 	transRep := mocks.TransactionsRepositoryInterface{}
@@ -91,9 +91,9 @@ func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_O
 	}
 	bs.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(response, nil)
 
-	report := &billingProto.MgoVatReport{Id: bson.NewObjectId()}
+	report := &billingProto.MgoVatReport{Id: primitive.NewObjectID()}
 	orders := []*billingProto.MgoOrderViewPrivate{{
-		Id: bson.NewObjectId(),
+		Id: primitive.NewObjectID(),
 		PaymentMethod: &billingProto.MgoOrderPaymentMethod{
 			Name: "card",
 		},
@@ -132,9 +132,9 @@ func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_E
 	}
 	bs.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(response, nil)
 
-	report := &billingProto.MgoVatReport{Id: bson.NewObjectId()}
+	report := &billingProto.MgoVatReport{Id: primitive.NewObjectID()}
 	orders := []*billingProto.MgoOrderViewPrivate{{
-		Id: bson.NewObjectId(),
+		Id: primitive.NewObjectID(),
 		PaymentMethod: &billingProto.MgoOrderPaymentMethod{
 			Name: "card",
 		},

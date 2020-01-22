@@ -1,24 +1,24 @@
 package repository
 
 import (
-	"github.com/globalsign/mgo/bson"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/mongodb"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
-	mongodb "github.com/paysuper/paysuper-database-mongo"
 	"github.com/paysuper/paysuper-recurring-repository/pkg/constant"
 	"github.com/paysuper/paysuper-reporter/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.uber.org/zap"
+	mongodb "gopkg.in/paysuper/paysuper-database-mongo.v2"
 	"testing"
 	"time"
 )
 
 type TransactionsRepositoryTestSuite struct {
 	suite.Suite
-	db      *mongodb.Source
+	db      mongodb.SourceInterface
 	service TransactionsRepositoryInterface
 	log     *zap.Logger
 }
@@ -61,12 +61,14 @@ func (suite *TransactionsRepositoryTestSuite) TearDownTest() {
 		suite.FailNow("Database deletion failed", "%v", err)
 	}
 
-	suite.db.Close()
+	_ = suite.db.Close()
 }
 
 func (suite *TransactionsRepositoryTestSuite) TestTransactionsRepository_GetByRoyalty_Ok() {
+	oid, err := primitive.ObjectIDFromHex("5ced34d689fce60bf444082a")
+	assert.NoError(suite.T(), err)
 	report := &billingProto.MgoRoyaltyReport{
-		MerchantId: bson.ObjectIdHex("5ced34d689fce60bf444082a"),
+		MerchantId: oid,
 		PeriodFrom: time.Unix(1562258329, 0).AddDate(0, 0, -1),
 		PeriodTo:   time.Unix(1562258329, 0).AddDate(0, 0, 1),
 	}
@@ -78,13 +80,13 @@ func (suite *TransactionsRepositoryTestSuite) TestTransactionsRepository_GetByRo
 
 func (suite *TransactionsRepositoryTestSuite) TestTransactionsRepository_GetByRoyalty_Error_RangeDates() {
 	order := &billingProto.MgoOrderViewPublic{
-		Id:              bson.NewObjectId(),
-		MerchantId:      bson.NewObjectId(),
+		Id:              primitive.NewObjectID(),
+		MerchantId:      primitive.NewObjectID(),
 		TransactionDate: time.Unix(1562258329, 0),
 		Status:          constant.OrderPublicStatusProcessed,
 	}
 	report := &billingProto.MgoRoyaltyReport{
-		Id:         bson.NewObjectId(),
+		Id:         primitive.NewObjectID(),
 		MerchantId: order.MerchantId,
 		PeriodFrom: time.Now().AddDate(0, -1, -1),
 		PeriodTo:   time.Now().AddDate(0, 0, -1),
@@ -97,13 +99,13 @@ func (suite *TransactionsRepositoryTestSuite) TestTransactionsRepository_GetByRo
 
 func (suite *TransactionsRepositoryTestSuite) TestTransactionsRepository_GetByRoyalty_Error_UnexistsStatus() {
 	order := &billingProto.MgoOrderViewPrivate{
-		Id:              bson.NewObjectId(),
-		MerchantId:      bson.NewObjectId(),
+		Id:              primitive.NewObjectID(),
+		MerchantId:      primitive.NewObjectID(),
 		TransactionDate: time.Unix(1562258329, 0),
 		Status:          constant.OrderPublicStatusCreated,
 	}
 	report := &billingProto.MgoRoyaltyReport{
-		Id:         bson.NewObjectId(),
+		Id:         primitive.NewObjectID(),
 		MerchantId: order.MerchantId,
 		PeriodFrom: time.Now().AddDate(0, 0, -1),
 		PeriodTo:   time.Now().AddDate(0, 0, 1),
@@ -115,8 +117,10 @@ func (suite *TransactionsRepositoryTestSuite) TestTransactionsRepository_GetByRo
 }
 
 func (suite *TransactionsRepositoryTestSuite) TestTransactionsRepository_GetByVat_Ok() {
+	oid, err := primitive.ObjectIDFromHex("5ced34d689fce60bf4440829")
+	assert.NoError(suite.T(), err)
 	report := &billingProto.MgoVatReport{
-		Id:       bson.ObjectIdHex("5ced34d689fce60bf4440829"),
+		Id:       oid,
 		DateFrom: time.Unix(1562258329, 0),
 		DateTo:   time.Unix(1562258329, 0),
 		Country:  "RU",
@@ -129,7 +133,7 @@ func (suite *TransactionsRepositoryTestSuite) TestTransactionsRepository_GetByVa
 
 func (suite *TransactionsRepositoryTestSuite) TestTransactionsRepository_GetByVat_Error_RangeDate() {
 	report := &billingProto.MgoVatReport{
-		Id:       bson.NewObjectId(),
+		Id:       primitive.NewObjectID(),
 		DateFrom: time.Now().AddDate(0, 0, -2),
 		DateTo:   time.Now().AddDate(0, 0, -1),
 		Country:  "RU",
@@ -142,7 +146,7 @@ func (suite *TransactionsRepositoryTestSuite) TestTransactionsRepository_GetByVa
 
 func (suite *TransactionsRepositoryTestSuite) TestTransactionsRepository_GetByVat_Error_Country() {
 	report := &billingProto.MgoVatReport{
-		Id:       bson.NewObjectId(),
+		Id:       primitive.NewObjectID(),
 		DateFrom: time.Now(),
 		DateTo:   time.Now(),
 		Country:  "RU",

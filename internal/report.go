@@ -3,12 +3,12 @@ package internal
 import (
 	"context"
 	errs "errors"
-	"github.com/globalsign/mgo/bson"
 	"github.com/paysuper/paysuper-reporter/internal/builder"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
 	"github.com/paysuper/paysuper-reporter/pkg/proto"
 	"github.com/streadway/amqp"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.uber.org/zap"
 	"sort"
 )
@@ -44,7 +44,7 @@ type ReportFileTemplate struct {
 	Group      string
 }
 
-func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, res *proto.CreateFileResponse) error {
+func (app *Application) CreateFile(_ context.Context, file *proto.ReportFile, res *proto.CreateFileResponse) error {
 	var err error
 
 	if _, ok := reportFileContentTypes[file.FileType]; !ok {
@@ -72,7 +72,7 @@ func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, 
 		return nil
 	}
 
-	file.Id = bson.NewObjectId().Hex()
+	file.Id = primitive.NewObjectID().Hex()
 
 	h := builder.NewBuilder(
 		app.service,

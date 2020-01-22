@@ -3,7 +3,6 @@ package builder
 import (
 	"encoding/json"
 	errs "errors"
-	"github.com/globalsign/mgo/bson"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
 	"github.com/paysuper/paysuper-reporter/internal/mocks"
 	"github.com/paysuper/paysuper-reporter/pkg"
@@ -36,7 +35,7 @@ func (suite *TransactionsBuilderTestSuite) TestTransactionsBuilder_Validate_Erro
 
 func (suite *TransactionsBuilderTestSuite) TestTransactionsBuilder_Validate_Ok() {
 	h := newTransactionsHandler(&Handler{
-		report: &proto.ReportFile{MerchantId: bson.NewObjectId().Hex()},
+		report: &proto.ReportFile{MerchantId: "ffffffffffffffffffffffff"},
 	})
 
 	assert.NoError(suite.T(), h.Validate())
@@ -62,7 +61,7 @@ func (suite *TransactionsBuilderTestSuite) TestTransactionsBuilder_Build_Ok() {
 	var status []string
 	var paymentMethods []string
 
-	merchantId := bson.NewObjectId().Hex()
+	merchantId := "ffffffffffffffffffffffff"
 
 	rep := mocks.TransactionsRepositoryInterface{}
 	rep.

@@ -6,17 +6,18 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/mongodb"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
-	mongodb "github.com/paysuper/paysuper-database-mongo"
 	"github.com/paysuper/paysuper-reporter/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.uber.org/zap"
+	mongodb "gopkg.in/paysuper/paysuper-database-mongo.v2"
 	"testing"
 )
 
 type VatRepositoryTestSuite struct {
 	suite.Suite
-	db      *mongodb.Source
+	db      mongodb.SourceInterface
 	service VatRepositoryInterface
 	log     *zap.Logger
 }
@@ -59,7 +60,7 @@ func (suite *VatRepositoryTestSuite) TearDownTest() {
 		suite.FailNow("Database deletion failed", "%v", err)
 	}
 
-	suite.db.Close()
+	_ = suite.db.Close()
 }
 
 func (suite *VatRepositoryTestSuite) TestVatRepository_GetById_Error() {
@@ -68,9 +69,9 @@ func (suite *VatRepositoryTestSuite) TestVatRepository_GetById_Error() {
 }
 
 func (suite *VatRepositoryTestSuite) TestVatRepository_GetById_Ok() {
-	report := &billingProto.MgoVatReport{
-		Id: bson.ObjectIdHex("5ced34d689fce60bf4440829"),
-	}
+	oid, err := primitive.ObjectIDFromHex("5ced34d689fce60bf4440829")
+	assert.NoError(suite.T(), err)
+	report := &billingProto.MgoVatReport{Id: oid}
 
 	rep, err := suite.service.GetById(report.Id.Hex())
 	assert.NoError(suite.T(), err, "unable to get the vat report")

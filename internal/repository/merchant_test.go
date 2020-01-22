@@ -1,21 +1,21 @@
 package repository
 
 import (
-	"github.com/globalsign/mgo/bson"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/mongodb"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	mongodb "github.com/paysuper/paysuper-database-mongo"
 	"github.com/paysuper/paysuper-reporter/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.uber.org/zap"
+	mongodb "gopkg.in/paysuper/paysuper-database-mongo.v2"
 	"testing"
 )
 
 type MerchantRepositoryTestSuite struct {
 	suite.Suite
-	db      *mongodb.Source
+	db      mongodb.SourceInterface
 	service MerchantRepositoryInterface
 	log     *zap.Logger
 }
@@ -58,18 +58,19 @@ func (suite *MerchantRepositoryTestSuite) TearDownTest() {
 		suite.FailNow("Database deletion failed", "%v", err)
 	}
 
-	suite.db.Close()
+	_ = suite.db.Close()
 }
 
 func (suite *MerchantRepositoryTestSuite) TestMerchantRepository_GetById_Error() {
-	_, err := suite.service.GetById(bson.NewObjectId().Hex())
+	_, err := suite.service.GetById("ffffffffffffffffffffffff")
 	assert.Error(suite.T(), err)
 }
 
 func (suite *MerchantRepositoryTestSuite) TestMerchantRepository_GetById_Ok() {
-	id := bson.ObjectIdHex("5ced34d689fce60bf4440829")
-	rep, err := suite.service.GetById(id.Hex())
+	oid, err := primitive.ObjectIDFromHex("5ced34d689fce60bf4440829")
+	assert.NoError(suite.T(), err)
+	rep, err := suite.service.GetById(oid.Hex())
 
 	assert.NoError(suite.T(), err, "unable to get the merchant")
-	assert.Equal(suite.T(), id, rep.Id)
+	assert.Equal(suite.T(), oid, rep.Id)
 }

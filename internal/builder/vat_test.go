@@ -3,7 +3,6 @@ package builder
 import (
 	"encoding/json"
 	errs "errors"
-	"github.com/globalsign/mgo/bson"
 	billPkg "github.com/paysuper/paysuper-billing-server/pkg"
 	billMocks "github.com/paysuper/paysuper-billing-server/pkg/mocks"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
@@ -15,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	mock2 "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"testing"
 )
 
@@ -86,7 +86,7 @@ func (suite *VatBuilderTestSuite) TestVatBuilder_Build_Ok() {
 	}
 	bs.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(response, nil)
 
-	report := []*billingProto.MgoVatReport{{Id: bson.NewObjectId()}}
+	report := []*billingProto.MgoVatReport{{Id: primitive.NewObjectID()}}
 	vatRep := mocks.VatRepositoryInterface{}
 	vatRep.On("GetByCountry", mock2.Anything).Return(report, nil)
 
@@ -113,7 +113,7 @@ func (suite *VatBuilderTestSuite) TestVatBuilder_Build_Error_GetOperatingCompany
 	}
 	bs.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(response, nil)
 
-	report := []*billingProto.MgoVatReport{{Id: bson.NewObjectId()}}
+	report := []*billingProto.MgoVatReport{{Id: primitive.NewObjectID()}}
 	vatRep := mocks.VatRepositoryInterface{}
 	vatRep.On("GetByCountry", mock2.Anything).Return(report, nil)
 

@@ -4,6 +4,13 @@ import (
 	"github.com/kelseyhightower/envconfig"
 )
 
+// MongoConfig defines the parameters for connecting to the MongoDB.
+type MongoConfig struct {
+	Dsn         string `envconfig:"MONGO_DSN" required:"true"`
+	DialTimeout string `envconfig:"MONGO_DIAL_TIMEOUT" required:"false" default:"10"`
+	MongoMode   string `envconfig:"MONGO_MODE" required:"false" default:"4"`
+}
+
 // AWS defines the parameters for connecting to the NATS streaming server.
 type S3Config struct {
 	AccessKeyId string `envconfig:"AWS_ACCESS_KEY_ID" required:"true"`
@@ -40,6 +47,7 @@ type DocumentGeneratorConfig struct {
 }
 
 type Config struct {
+	Db               MongoConfig
 	S3               S3Config
 	DG               DocumentGeneratorConfig
 	CentrifugoConfig CentrifugoConfig
