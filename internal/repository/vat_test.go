@@ -9,7 +9,6 @@ import (
 	"github.com/paysuper/paysuper-reporter/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.uber.org/zap"
 	mongodb "gopkg.in/paysuper/paysuper-database-mongo.v2"
 	"testing"
@@ -69,13 +68,10 @@ func (suite *VatRepositoryTestSuite) TestVatRepository_GetById_Error() {
 }
 
 func (suite *VatRepositoryTestSuite) TestVatRepository_GetById_Ok() {
-	oid, err := primitive.ObjectIDFromHex("5ced34d689fce60bf4440829")
-	assert.NoError(suite.T(), err)
-	report := &billingProto.MgoVatReport{Id: oid}
-
-	rep, err := suite.service.GetById(report.Id.Hex())
+	id := "5ced34d689fce60bf4440829"
+	rep, err := suite.service.GetById(id)
 	assert.NoError(suite.T(), err, "unable to get the vat report")
-	assert.Equal(suite.T(), report.Id, rep.Id)
+	assert.Equal(suite.T(), id, rep.Id.Hex())
 }
 
 func (suite *VatRepositoryTestSuite) TestVatRepository_GetByCountry_Error() {

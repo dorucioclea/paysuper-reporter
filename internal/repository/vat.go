@@ -1,10 +1,10 @@
 package repository
 
 import (
-	"github.com/mongodb/mongo-go-driver/bson/primitive"
 	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.uber.org/zap"
 	database "gopkg.in/paysuper/paysuper-database-mongo.v2"
 )
