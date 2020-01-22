@@ -8,7 +8,7 @@ import (
 	"github.com/paysuper/paysuper-reporter/pkg"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
 	"github.com/paysuper/paysuper-reporter/pkg/proto"
-	"github.com/paysuper/paysuper-tools"
+	tools "github.com/paysuper/paysuper-tools/http"
 	"go.uber.org/zap"
 	"io/ioutil"
 	"net/http"

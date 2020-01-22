@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"github.com/centrifugal/gocent"
 	"github.com/paysuper/paysuper-reporter/internal/config"
-	"github.com/paysuper/paysuper-tools"
+	tools "github.com/paysuper/paysuper-tools/http"
 	"go.uber.org/zap"
 )
 
