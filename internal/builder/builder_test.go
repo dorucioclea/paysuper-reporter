@@ -1,11 +1,9 @@
 package builder
 
 import (
-	mocks2 "github.com/paysuper/paysuper-billing-server/pkg/mocks"
-	"github.com/paysuper/paysuper-reporter/internal/mocks"
-	"github.com/paysuper/paysuper-reporter/pkg"
+	billingMocks "github.com/paysuper/paysuper-proto/go/billingpb/mocks"
+	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
-	"github.com/paysuper/paysuper-reporter/pkg/proto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"testing"
@@ -22,13 +20,8 @@ func Test_Builder(t *testing.T) {
 func (suite *BuilderTestSuite) TestBuilder_NewBuilder_Ok() {
 	builder := NewBuilder(
 		nil,
-		&proto.ReportFile{},
-		&mocks.RoyaltyRepositoryInterface{},
-		&mocks.VatRepositoryInterface{},
-		&mocks.TransactionsRepositoryInterface{},
-		&mocks.PayoutRepositoryInterface{},
-		&mocks.MerchantRepositoryInterface{},
-		&mocks2.BillingService{},
+		&reporterpb.ReportFile{},
+		&billingMocks.BillingService{},
 	)
 
 	assert.IsType(suite.T(), &Handler{}, builder)
@@ -37,13 +30,8 @@ func (suite *BuilderTestSuite) TestBuilder_NewBuilder_Ok() {
 func (suite *BuilderTestSuite) TestBuilder_GetBuilder_Error_NotFound() {
 	builder := NewBuilder(
 		nil,
-		&proto.ReportFile{ReportType: "unknown"},
-		&mocks.RoyaltyRepositoryInterface{},
-		&mocks.VatRepositoryInterface{},
-		&mocks.TransactionsRepositoryInterface{},
-		&mocks.PayoutRepositoryInterface{},
-		&mocks.MerchantRepositoryInterface{},
-		&mocks2.BillingService{},
+		&reporterpb.ReportFile{ReportType: "unknown"},
+		&billingMocks.BillingService{},
 	)
 	_, err := builder.GetBuilder()
 
@@ -53,13 +41,8 @@ func (suite *BuilderTestSuite) TestBuilder_GetBuilder_Error_NotFound() {
 func (suite *BuilderTestSuite) TestBuilder_GetBuilder_Ok() {
 	builder := NewBuilder(
 		nil,
-		&proto.ReportFile{ReportType: pkg.ReportTypeVat},
-		&mocks.RoyaltyRepositoryInterface{},
-		&mocks.VatRepositoryInterface{},
-		&mocks.TransactionsRepositoryInterface{},
-		&mocks.PayoutRepositoryInterface{},
-		&mocks.MerchantRepositoryInterface{},
-		&mocks2.BillingService{},
+		&reporterpb.ReportFile{ReportType: reporterpb.ReportTypeVat},
+		&billingMocks.BillingService{},
 	)
 	bldr, err := builder.GetBuilder()
 

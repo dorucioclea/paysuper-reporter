@@ -19,7 +19,7 @@ jobs:
       install: true
       cache:
         directories:
-          - $GOPATH/pkg/mod      
+          - $GOPATH/pkg/mod
       env:
         - GO111MODULE=on
         - MONGO_DSN=mongodb://127.0.0.1:27017/paysuper_test

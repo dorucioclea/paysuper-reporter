@@ -8,4 +8,3 @@ fi
 
 PROTOTOOL_IMAGE=p1hub/prototool
 PROTOTOOL_IMAGE_TAG=latest
-PROTO_GEN_PATH=${ROOT_DIR}/pkg/proto

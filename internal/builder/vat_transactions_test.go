@@ -2,20 +2,17 @@ package builder
 
 import (
 	"encoding/json"
-	errs "errors"
 	"github.com/globalsign/mgo/bson"
-	billPkg "github.com/paysuper/paysuper-billing-server/pkg"
-	billMocks "github.com/paysuper/paysuper-billing-server/pkg/mocks"
-	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
-	"github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
-	"github.com/paysuper/paysuper-reporter/internal/mocks"
-	"github.com/paysuper/paysuper-reporter/pkg"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/paysuper/paysuper-proto/go/billingpb"
+	billingMocks "github.com/paysuper/paysuper-proto/go/billingpb/mocks"
+	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
-	"github.com/paysuper/paysuper-reporter/pkg/proto"
 	"github.com/stretchr/testify/assert"
 	mock2 "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"testing"
+	"time"
 )
 
 type VatTransactionsBuilderTestSuite struct {
@@ -30,7 +27,7 @@ func Test_VatTransactionsBuilder(t *testing.T) {
 func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Validate_Error_IdNotFound() {
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newVatTransactionsHandler(&Handler{
-		report: &proto.ReportFile{Params: params},
+		report: &reporterpb.ReportFile{Params: params},
 	})
 
 	assert.Errorf(suite.T(), h.Validate(), errors.ErrorParamIdNotFound.Message)
@@ -38,129 +35,186 @@ func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Validat
 
 func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Validate_Ok() {
 	params, _ := json.Marshal(map[string]interface{}{
-		pkg.ParamsFieldId: "5ced34d689fce60bf4440829",
+		reporterpb.ParamsFieldId: bson.NewObjectId().Hex(),
 	})
 	h := newVatTransactionsHandler(&Handler{
-		report: &proto.ReportFile{Params: params},
+		report: &reporterpb.ReportFile{Params: params},
 	})
 
 	assert.NoError(suite.T(), h.Validate())
 }
 
-func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_Error_GetById() {
-	vatRep := mocks.VatRepositoryInterface{}
-	vatRep.On("GetById", mock2.Anything).Return(nil, errs.New("not found"))
-
-	params, _ := json.Marshal(map[string]interface{}{})
-	h := newVatTransactionsHandler(&Handler{
-		vatRepository: &vatRep,
-		report:        &proto.ReportFile{Params: params},
-	})
-
-	_, err := h.Build()
-	assert.Error(suite.T(), err)
-}
-
-func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_Error_GetByVat() {
-	report := &billingProto.MgoVatReport{Id: bson.NewObjectId()}
-	vatRep := mocks.VatRepositoryInterface{}
-	vatRep.On("GetById", mock2.Anything).Return(report, nil)
-	transRep := mocks.TransactionsRepositoryInterface{}
-	transRep.On("GetByVat", mock2.Anything).Return(nil, errs.New("not found"))
-
-	params, _ := json.Marshal(map[string]interface{}{})
-	h := newVatTransactionsHandler(&Handler{
-		vatRepository:          &vatRep,
-		transactionsRepository: &transRep,
-		report:                 &proto.ReportFile{Params: params},
-	})
-
-	_, err := h.Build()
-	assert.Error(suite.T(), err)
-}
-
 func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_Ok() {
-	bs := &billMocks.BillingService{}
-	response := &grpc.GetOperatingCompanyResponse{
-		Status: billPkg.ResponseStatusOk,
-		Company: &billingProto.OperatingCompany{
-			Name:      "Name",
-			Address:   "Address",
-			VatNumber: "VatNumber",
+	billing := &billingMocks.BillingService{}
+
+	vatResponse := &billingpb.VatReportResponse{
+		Status: billingpb.ResponseStatusOk,
+		Vat:    suite.getVatTemplate(),
+	}
+	billing.On("GetVatReport", mock2.Anything, mock2.Anything).Return(vatResponse, nil)
+
+	ordersResponse := &billingpb.PrivateTransactionsResponse{
+		Status: billingpb.ResponseStatusOk,
+		Data: &billingpb.PrivateTransactionsPaginate{
+			Items: suite.getOrdersTemplate(),
 		},
 	}
-	bs.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(response, nil)
+	billing.On("GetVatReportTransactions", mock2.Anything, mock2.Anything).Return(ordersResponse, nil)
 
-	report := &billingProto.MgoVatReport{Id: bson.NewObjectId()}
-	orders := []*billingProto.MgoOrderViewPrivate{{
-		Id: bson.NewObjectId(),
-		PaymentMethod: &billingProto.MgoOrderPaymentMethod{
-			Name: "card",
-		},
-		TaxFeeTotal: &billingProto.OrderViewMoney{
-			Amount: float64(1),
-		},
-		FeesTotal: &billingProto.OrderViewMoney{
-			Amount: float64(1),
-		},
-		GrossRevenue: &billingProto.OrderViewMoney{
-			Amount: float64(1),
-		},
-	}}
-	vatRep := mocks.VatRepositoryInterface{}
-	vatRep.On("GetById", mock2.Anything).Return(report, nil)
-	transRep := mocks.TransactionsRepositoryInterface{}
-	transRep.On("GetByVat", report).Return(orders, nil)
+	ocResponse := &billingpb.GetOperatingCompanyResponse{
+		Status:  billingpb.ResponseStatusOk,
+		Company: suite.getOperatingCompanyTemplate(),
+	}
+	billing.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(ocResponse, nil)
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newVatTransactionsHandler(&Handler{
-		vatRepository:          &vatRep,
-		transactionsRepository: &transRep,
-		report:                 &proto.ReportFile{Params: params},
-		billing:                bs,
+		report:  &reporterpb.ReportFile{Params: params},
+		billing: billing,
 	})
 
 	_, err := h.Build()
 	assert.NoError(suite.T(), err)
 }
 
-func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_Error_GetOperatingCompany() {
-	bs := &billMocks.BillingService{}
-	response := &grpc.GetOperatingCompanyResponse{
-		Status:  billPkg.ResponseStatusBadData,
-		Message: &grpc.ResponseErrorMessage{Message: "some business logic error"},
-	}
-	bs.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(response, nil)
+func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_Error_GetVatReport() {
+	billing := &billingMocks.BillingService{}
 
-	report := &billingProto.MgoVatReport{Id: bson.NewObjectId()}
-	orders := []*billingProto.MgoOrderViewPrivate{{
-		Id: bson.NewObjectId(),
-		PaymentMethod: &billingProto.MgoOrderPaymentMethod{
-			Name: "card",
+	vatResponse := &billingpb.VatReportResponse{
+		Status:  billingpb.ResponseStatusNotFound,
+		Message: &billingpb.ResponseErrorMessage{Message: "error"},
+		Vat:     nil,
+	}
+	billing.On("GetVatReport", mock2.Anything, mock2.Anything).Return(vatResponse, nil)
+
+	ordersResponse := &billingpb.PrivateTransactionsResponse{
+		Status: billingpb.ResponseStatusOk,
+		Data: &billingpb.PrivateTransactionsPaginate{
+			Items: suite.getOrdersTemplate(),
 		},
-		TaxFeeTotal: &billingProto.OrderViewMoney{
-			Amount: float64(1),
-		},
-		FeesTotal: &billingProto.OrderViewMoney{
-			Amount: float64(1),
-		},
-		GrossRevenue: &billingProto.OrderViewMoney{
-			Amount: float64(1),
-		},
-	}}
-	vatRep := mocks.VatRepositoryInterface{}
-	vatRep.On("GetById", mock2.Anything).Return(report, nil)
-	transRep := mocks.TransactionsRepositoryInterface{}
-	transRep.On("GetByVat", report).Return(orders, nil)
+	}
+	billing.On("GetVatReportTransactions", mock2.Anything, mock2.Anything).Return(ordersResponse, nil)
+
+	ocResponse := &billingpb.GetOperatingCompanyResponse{
+		Status:  billingpb.ResponseStatusOk,
+		Company: suite.getOperatingCompanyTemplate(),
+	}
+	billing.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(ocResponse, nil)
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newVatTransactionsHandler(&Handler{
-		vatRepository:          &vatRep,
-		transactionsRepository: &transRep,
-		report:                 &proto.ReportFile{Params: params},
-		billing:                bs,
+		report:  &reporterpb.ReportFile{Params: params},
+		billing: billing,
 	})
 
 	_, err := h.Build()
-	assert.Errorf(suite.T(), err, "some business logic error")
+	assert.Error(suite.T(), err)
+}
+
+func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_Error_GetVatReportTransactions() {
+	billing := &billingMocks.BillingService{}
+
+	vatResponse := &billingpb.VatReportResponse{
+		Status: billingpb.ResponseStatusOk,
+		Vat:    suite.getVatTemplate(),
+	}
+	billing.On("GetVatReport", mock2.Anything, mock2.Anything).Return(vatResponse, nil)
+
+	ordersResponse := &billingpb.PrivateTransactionsResponse{
+		Status:  billingpb.ResponseStatusNotFound,
+		Message: &billingpb.ResponseErrorMessage{Message: "error"},
+		Data: &billingpb.PrivateTransactionsPaginate{
+			Items: nil,
+		},
+	}
+	billing.On("GetVatReportTransactions", mock2.Anything, mock2.Anything).Return(ordersResponse, nil)
+
+	ocResponse := &billingpb.GetOperatingCompanyResponse{
+		Status:  billingpb.ResponseStatusOk,
+		Company: suite.getOperatingCompanyTemplate(),
+	}
+	billing.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(ocResponse, nil)
+
+	params, _ := json.Marshal(map[string]interface{}{})
+	h := newVatTransactionsHandler(&Handler{
+		report:  &reporterpb.ReportFile{Params: params},
+		billing: billing,
+	})
+
+	_, err := h.Build()
+	assert.Error(suite.T(), err)
+}
+
+func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Build_Error_GetOperatingCompany() {
+	billing := &billingMocks.BillingService{}
+
+	vatResponse := &billingpb.VatReportResponse{
+		Status: billingpb.ResponseStatusOk,
+		Vat:    suite.getVatTemplate(),
+	}
+	billing.On("GetVatReport", mock2.Anything, mock2.Anything).Return(vatResponse, nil)
+
+	ordersResponse := &billingpb.PrivateTransactionsResponse{
+		Status: billingpb.ResponseStatusOk,
+		Data: &billingpb.PrivateTransactionsPaginate{
+			Items: suite.getOrdersTemplate(),
+		},
+	}
+	billing.On("GetVatReportTransactions", mock2.Anything, mock2.Anything).Return(ordersResponse, nil)
+
+	ocResponse := &billingpb.GetOperatingCompanyResponse{
+		Status:  billingpb.ResponseStatusNotFound,
+		Message: &billingpb.ResponseErrorMessage{Message: "error"},
+		Company: nil,
+	}
+	billing.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(ocResponse, nil)
+
+	params, _ := json.Marshal(map[string]interface{}{})
+	h := newVatTransactionsHandler(&Handler{
+		report:  &reporterpb.ReportFile{Params: params},
+		billing: billing,
+	})
+
+	_, err := h.Build()
+	assert.Error(suite.T(), err)
+}
+
+func (suite *VatTransactionsBuilderTestSuite) getVatTemplate() *billingpb.VatReport {
+	datetime, _ := ptypes.TimestampProto(time.Now())
+
+	return &billingpb.VatReport{
+		Id:        bson.NewObjectId().Hex(),
+		CreatedAt: datetime,
+		DateFrom:  datetime,
+		DateTo:    datetime,
+	}
+}
+
+func (suite *VatTransactionsBuilderTestSuite) getOrdersTemplate() []*billingpb.OrderViewPrivate {
+	datetime, _ := ptypes.TimestampProto(time.Now())
+
+	return []*billingpb.OrderViewPrivate{{
+		Id: bson.NewObjectId().Hex(),
+		PaymentMethod: &billingpb.PaymentMethodOrder{
+			Name: "card",
+		},
+		TaxFeeTotal: &billingpb.OrderViewMoney{
+			Amount: float64(1),
+		},
+		FeesTotal: &billingpb.OrderViewMoney{
+			Amount: float64(1),
+		},
+		GrossRevenue: &billingpb.OrderViewMoney{
+			Amount: float64(1),
+		},
+		TransactionDate: datetime,
+	}}
+}
+
+func (suite *VatTransactionsBuilderTestSuite) getOperatingCompanyTemplate() *billingpb.OperatingCompany {
+	return &billingpb.OperatingCompany{
+		Name:      "Name",
+		Address:   "Address",
+		VatNumber: "VatNumber",
+	}
 }

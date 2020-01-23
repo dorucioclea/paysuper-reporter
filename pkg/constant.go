@@ -1,9 +1,6 @@
 package pkg
 
 const (
-	ServiceName    = "p1payreporter"
-	ServiceVersion = "latest"
-
 	LoggerName = "PAYSUPER_REPORTER"
 
 	FileMask          = "report_%s_%s.%s"
@@ -18,18 +15,6 @@ const (
 	ResponseStatusNotFound    = int32(404)
 	ResponseStatusSystemError = int32(500)
 
-	ReportTypeTransactions        = "transactions"
-	ReportTypeVat                 = "vat"
-	ReportTypeVatTransactions     = "vat_transactions"
-	ReportTypeRoyalty             = "royalty"
-	ReportTypeRoyaltyTransactions = "royalty_transactions"
-	ReportTypePayout              = "payout"
-	ReportTypeAgreement           = "agreement"
-
-	OutputExtensionXlsx = "xlsx"
-	OutputExtensionCsv  = "csv"
-	OutputExtensionPdf  = "pdf"
-
 	OutputContentTypeXlsx = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 	OutputContentTypeCsv  = "text/csv"
 	OutputContentTypePdf  = "application/pdf"
@@ -37,30 +22,6 @@ const (
 	RecipeXlsx = "html-to-xlsx"
 	RecipeCsv  = "text"
 	RecipePdf  = "chrome-pdf"
-
-	ParamsFieldId            = "id"
-	ParamsFieldCountry       = "country"
-	ParamsFieldStatus        = "status"
-	ParamsFieldPaymentMethod = "payment_method"
-	ParamsFieldDateFrom      = "date_from"
-	ParamsFieldDateTo        = "date_to"
-
-	RequestParameterAgreementNumber                             = "number"
-	RequestParameterAgreementLegalName                          = "legal_name"
-	RequestParameterAgreementAddress                            = "address"
-	RequestParameterAgreementRegistrationNumber                 = "registration_number"
-	RequestParameterAgreementPayoutCost                         = "payout_cost"
-	RequestParameterAgreementMinimalPayoutLimit                 = "minimal_payout_limit"
-	RequestParameterAgreementPayoutCurrency                     = "payout_currency"
-	RequestParameterAgreementPSRate                             = "ps_rate"
-	RequestParameterAgreementHomeRegion                         = "home_region"
-	RequestParameterAgreementMerchantAuthorizedName             = "merchant_authorized_name"
-	RequestParameterAgreementMerchantAuthorizedPosition         = "merchant_authorized_position"
-	RequestParameterAgreementOperatingCompanyLegalName          = "oc_name"
-	RequestParameterAgreementOperatingCompanyAddress            = "oc_address"
-	RequestParameterAgreementOperatingCompanyRegistrationNumber = "oc_registration_number"
-	RequestParameterAgreementOperatingCompanyAuthorizedName     = "oc_authorized_name"
-	RequestParameterAgreementOperatingCompanyAuthorizedPosition = "oc_authorized_position"
 
 	BrokerMessageRetryMaxCount = 10
 

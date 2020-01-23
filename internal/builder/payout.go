@@ -5,8 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/globalsign/mgo/bson"
-	billingGrpc "github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
-	"github.com/paysuper/paysuper-reporter/pkg"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/paysuper/paysuper-proto/go/billingpb"
+	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
 	"go.uber.org/zap"
 	"math"
@@ -25,11 +26,11 @@ func (h *Payout) Validate() error {
 		return err
 	}
 
-	if _, ok := params[pkg.ParamsFieldId]; !ok {
+	if _, ok := params[reporterpb.ParamsFieldId]; !ok {
 		return errors.New(errs.ErrorParamIdNotFound.Message)
 	}
 
-	if !bson.IsObjectIdHex(fmt.Sprintf("%s", params[pkg.ParamsFieldId])) {
+	if !bson.IsObjectIdHex(fmt.Sprintf("%s", params[reporterpb.ParamsFieldId])) {
 		return errors.New(errs.ErrorParamIdNotFound.Message)
 	}
 
@@ -37,56 +38,112 @@ func (h *Payout) Validate() error {
 }
 
 func (h *Payout) Build() (interface{}, error) {
+	ctx := context.TODO()
 	params, _ := h.GetParams()
-	payout, err := h.payoutRepository.GetById(fmt.Sprintf("%s", params[pkg.ParamsFieldId]))
+	payoutId := fmt.Sprintf("%s", params[reporterpb.ParamsFieldId])
 
-	if err != nil {
-		return nil, err
-	}
+	payoutRequest := &billingpb.GetPayoutDocumentRequest{PayoutDocumentId: payoutId}
+	payout, err := h.billing.GetPayoutDocument(ctx, payoutRequest)
 
-	merchant, err := h.merchantRepository.GetById(payout.MerchantId.Hex())
-
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := h.billing.GetOperatingCompany(
-		context.Background(),
-		&billingGrpc.GetOperatingCompanyRequest{Id: payout.OperatingCompanyId},
-	)
-
-	if err != nil || res.Company == nil {
+	if err != nil || payout.Status != billingpb.ResponseStatusOk {
 		if err == nil {
-			err = errors.New(res.Message.Message)
+			err = errors.New(payout.Message.Message)
 		}
 
 		zap.L().Error(
-			"unable to get operating company",
+			"Unable to get payout document",
 			zap.Error(err),
-			zap.String("operating_company_id", payout.OperatingCompanyId),
+			zap.String("payout_id", payoutId),
 		)
 
 		return nil, err
 	}
 
+	merchantRequest := &billingpb.GetMerchantByRequest{MerchantId: payout.Item.MerchantId}
+	merchant, err := h.billing.GetMerchantBy(ctx, merchantRequest)
+
+	if err != nil || merchant.Status != billingpb.ResponseStatusOk {
+		if err == nil {
+			err = errors.New(merchant.Message.Message)
+		}
+
+		zap.L().Error(
+			"Unable to get merchant",
+			zap.Error(err),
+			zap.String("merchant_id", payout.Item.MerchantId),
+		)
+
+		return nil, err
+	}
+
+	ocRequest := &billingpb.GetOperatingCompanyRequest{Id: payout.Item.OperatingCompanyId}
+	operatingCompany, err := h.billing.GetOperatingCompany(ctx, ocRequest)
+
+	if err != nil || operatingCompany.Company == nil {
+		if err == nil {
+			err = errors.New(operatingCompany.Message.Message)
+		}
+
+		zap.L().Error(
+			"Unable to get operating company",
+			zap.Error(err),
+			zap.String("operating_company_id", payout.Item.OperatingCompanyId),
+		)
+
+		return nil, err
+	}
+
+	date, err := ptypes.Timestamp(payout.Item.CreatedAt)
+
+	if err != nil {
+		zap.L().Error(
+			"Unable to cast timestamp to time",
+			zap.Error(err),
+			zap.String("created_at", payout.Item.CreatedAt.String()),
+		)
+		return nil, err
+	}
+
+	periodFrom, err := ptypes.Timestamp(payout.Item.PeriodFrom)
+
+	if err != nil {
+		zap.L().Error(
+			"Unable to cast timestamp to time",
+			zap.Error(err),
+			zap.String("period_from", payout.Item.PeriodFrom.String()),
+		)
+		return nil, err
+	}
+
+	periodTo, err := ptypes.Timestamp(payout.Item.PeriodTo)
+
+	if err != nil {
+		zap.L().Error(
+			"Unable to cast timestamp to time",
+			zap.Error(err),
+			zap.String("period_to", payout.Item.PeriodTo.String()),
+		)
+		return nil, err
+	}
+
 	result := map[string]interface{}{
-		"id":                      payout.Id.Hex(),
-		"date":                    payout.CreatedAt.Format("2006-01-02"),
-		"merchant_legal_name":     merchant.Company.Name,
-		"merchant_address":        merchant.Company.Address,
-		"merchant_eu_vat_number":  merchant.Company.TaxId,
-		"merchant_bank_details":   payout.Destination.Details,
-		"period_from":             payout.PeriodFrom.Format("2006-01-02"),
-		"period_to":               payout.PeriodTo.Format("2006-01-02"),
-		"transactions_for_period": payout.TotalTransactions,
-		"agreement_number":        payout.MerchantAgreementNumber,
-		"total_fees":              math.Round(payout.TotalFees*100) / 100,
-		"balance":                 math.Round(payout.Balance*100) / 100,
-		"currency":                payout.Currency,
-		"oc_name":                 res.Company.Name,
-		"oc_address":              res.Company.Address,
-		"oc_vat_number":           res.Company.VatNumber,
-		"oc_vat_address":          res.Company.VatAddress,
+		"id":                      payout.Item.Id,
+		"date":                    date.Format("2006-01-02"),
+		"merchant_legal_name":     merchant.Item.Company.Name,
+		"merchant_address":        merchant.Item.Company.Address,
+		"merchant_eu_vat_number":  merchant.Item.Company.TaxId,
+		"merchant_bank_details":   payout.Item.Destination.Details,
+		"period_from":             periodFrom.Format("2006-01-02"),
+		"period_to":               periodTo.Format("2006-01-02"),
+		"transactions_for_period": payout.Item.TotalTransactions,
+		"agreement_number":        payout.Item.MerchantAgreementNumber,
+		"total_fees":              math.Round(payout.Item.TotalFees*100) / 100,
+		"balance":                 math.Round(payout.Item.Balance*100) / 100,
+		"currency":                payout.Item.Currency,
+		"oc_name":                 operatingCompany.Company.Name,
+		"oc_address":              operatingCompany.Company.Address,
+		"oc_vat_number":           operatingCompany.Company.VatNumber,
+		"oc_vat_address":          operatingCompany.Company.VatAddress,
 	}
 
 	return result, nil
@@ -101,9 +158,9 @@ func (h *Payout) PostProcess(
 ) error {
 	params, _ := h.GetParams()
 
-	req := &billingGrpc.PayoutDocumentPdfUploadedRequest{
+	req := &billingpb.PayoutDocumentPdfUploadedRequest{
 		Id:            id,
-		PayoutId:      fmt.Sprintf("%s", params[pkg.ParamsFieldId]),
+		PayoutId:      fmt.Sprintf("%s", params[reporterpb.ParamsFieldId]),
 		Filename:      fileName,
 		RetentionTime: int32(retentionTime),
 		Content:       content,

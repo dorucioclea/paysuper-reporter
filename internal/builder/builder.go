@@ -5,22 +5,20 @@ import (
 	"encoding/json"
 	errs "errors"
 	"github.com/micro/go-micro"
-	"github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
-	"github.com/paysuper/paysuper-reporter/internal/repository"
-	"github.com/paysuper/paysuper-reporter/pkg"
+	"github.com/paysuper/paysuper-proto/go/billingpb"
+	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
-	"github.com/paysuper/paysuper-reporter/pkg/proto"
 )
 
 var (
 	builders = map[string]func(*Handler) BuildInterface{
-		pkg.ReportTypeVat:                 newVatHandler,
-		pkg.ReportTypeVatTransactions:     newVatTransactionsHandler,
-		pkg.ReportTypeRoyalty:             newRoyaltyHandler,
-		pkg.ReportTypeRoyaltyTransactions: newRoyaltyTransactionsHandler,
-		pkg.ReportTypeTransactions:        newTransactionsHandler,
-		pkg.ReportTypePayout:              newPayoutHandler,
-		pkg.ReportTypeAgreement:           newAgreementHandler,
+		reporterpb.ReportTypeVat:                 newVatHandler,
+		reporterpb.ReportTypeVatTransactions:     newVatTransactionsHandler,
+		reporterpb.ReportTypeRoyalty:             newRoyaltyHandler,
+		reporterpb.ReportTypeRoyaltyTransactions: newRoyaltyTransactionsHandler,
+		reporterpb.ReportTypeTransactions:        newTransactionsHandler,
+		reporterpb.ReportTypePayout:              newPayoutHandler,
+		reporterpb.ReportTypeAgreement:           newAgreementHandler,
 	}
 )
 
@@ -31,14 +29,9 @@ type BuildInterface interface {
 }
 
 type Handler struct {
-	service                micro.Service
-	report                 *proto.ReportFile
-	royaltyRepository      repository.RoyaltyRepositoryInterface
-	vatRepository          repository.VatRepositoryInterface
-	transactionsRepository repository.TransactionsRepositoryInterface
-	payoutRepository       repository.PayoutRepositoryInterface
-	merchantRepository     repository.MerchantRepositoryInterface
-	billing                grpc.BillingService
+	service micro.Service
+	report  *reporterpb.ReportFile
+	billing billingpb.BillingService
 }
 
 type DefaultHandler struct {
@@ -47,23 +40,13 @@ type DefaultHandler struct {
 
 func NewBuilder(
 	service micro.Service,
-	report *proto.ReportFile,
-	royaltyRepository repository.RoyaltyRepositoryInterface,
-	vatRepository repository.VatRepositoryInterface,
-	transactionsRepository repository.TransactionsRepositoryInterface,
-	payoutRepository repository.PayoutRepositoryInterface,
-	merchantRepository repository.MerchantRepositoryInterface,
-	billing grpc.BillingService,
+	report *reporterpb.ReportFile,
+	billing billingpb.BillingService,
 ) *Handler {
 	return &Handler{
-		service:                service,
-		report:                 report,
-		royaltyRepository:      royaltyRepository,
-		vatRepository:          vatRepository,
-		transactionsRepository: transactionsRepository,
-		payoutRepository:       payoutRepository,
-		merchantRepository:     merchantRepository,
-		billing:                billing,
+		service: service,
+		report:  report,
+		billing: billing,
 	}
 }
 

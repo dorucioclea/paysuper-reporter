@@ -11,12 +11,11 @@ import (
 	"github.com/micro/go-plugins/client/selector/static"
 	"github.com/micro/go-plugins/wrapper/monitoring/prometheus"
 	awsWrapper "github.com/paysuper/paysuper-aws-manager"
-	billingProto "github.com/paysuper/paysuper-billing-server/pkg"
-	billingGrpc "github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
 	mongodb "github.com/paysuper/paysuper-database-mongo"
+	"github.com/paysuper/paysuper-proto/go/billingpb"
+	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	"github.com/paysuper/paysuper-reporter/internal/builder"
 	"github.com/paysuper/paysuper-reporter/internal/config"
-	"github.com/paysuper/paysuper-reporter/internal/repository"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
 	"github.com/paysuper/paysuper-reporter/pkg/proto"
@@ -31,20 +30,15 @@ import (
 )
 
 type Application struct {
-	cfg                    *config.Config
-	log                    *zap.Logger
-	database               *mongodb.Source
-	s3                     awsWrapper.AwsManagerInterface
-	s3Agreement            awsWrapper.AwsManagerInterface
-	centrifugo             CentrifugoInterface
-	documentGenerator      DocumentGeneratorInterface
-	royaltyRepository      repository.RoyaltyRepositoryInterface
-	vatRepository          repository.VatRepositoryInterface
-	transactionsRepository repository.TransactionsRepositoryInterface
-	payoutRepository       repository.PayoutRepositoryInterface
-	merchantRepository     repository.MerchantRepositoryInterface
-	service                micro.Service
-	billing                billingGrpc.BillingService
+	cfg               *config.Config
+	log               *zap.Logger
+	database          *mongodb.Source
+	s3                awsWrapper.AwsManagerInterface
+	s3Agreement       awsWrapper.AwsManagerInterface
+	centrifugo        CentrifugoInterface
+	documentGenerator DocumentGeneratorInterface
+	service           micro.Service
+	billing           billingpb.BillingService
 
 	generateReportBroker rabbitmq.BrokerInterface
 	postProcessBroker    rabbitmq.BrokerInterface
@@ -66,12 +60,6 @@ func NewApplication() *Application {
 	app.initDocumentGenerator()
 	app.initMessageBroker()
 	app.initHealth()
-
-	app.royaltyRepository = repository.NewRoyaltyReportRepository(app.database)
-	app.vatRepository = repository.NewVatRepository(app.database)
-	app.transactionsRepository = repository.NewTransactionsRepository(app.database)
-	app.payoutRepository = repository.NewPayoutRepository(app.database)
-	app.merchantRepository = repository.NewMerchantRepository(app.database)
 
 	return app
 }
@@ -225,8 +213,8 @@ func (app *Application) initMessageBroker() {
 
 func (app *Application) Run() {
 	options := []micro.Option{
-		micro.Name(pkg.ServiceName),
-		micro.Version(pkg.ServiceVersion),
+		micro.Name(reporterpb.ServiceName),
+		micro.Version(reporterpb.ServiceVersion),
 		micro.WrapHandler(prometheus.NewHandlerWrapper()),
 		micro.BeforeStart(func() error {
 			go func() {
@@ -266,9 +254,9 @@ func (app *Application) Run() {
 	app.service = micro.NewService(options...)
 	app.service.Init()
 
-	app.billing = billingGrpc.NewBillingService(billingProto.ServiceName, app.service.Client())
+	app.billing = billingpb.NewBillingService(billingpb.ServiceName, app.service.Client())
 
-	if err := proto.RegisterReporterServiceHandler(app.service.Server(), app); err != nil {
+	if err := reporterpb.RegisterReporterServiceHandler(app.service.Server(), app); err != nil {
 		app.fatalFn("Can`t register service in micro", zap.Error(err))
 	}
 
@@ -285,15 +273,10 @@ func (app *Application) Stop() {
 	}
 }
 
-func (app *Application) ExecuteProcess(payload *proto.ReportFile, d amqp.Delivery) error {
+func (app *Application) ExecuteProcess(payload *reporterpb.ReportFile, d amqp.Delivery) error {
 	h := builder.NewBuilder(
 		app.service,
 		payload,
-		app.royaltyRepository,
-		app.vatRepository,
-		app.transactionsRepository,
-		app.payoutRepository,
-		app.merchantRepository,
 		app.billing,
 	)
 	handler, err := h.GetBuilder()
@@ -339,7 +322,7 @@ func (app *Application) ExecuteProcess(payload *proto.ReportFile, d amqp.Deliver
 
 	fileName := fmt.Sprintf(pkg.FileMask, payload.UserId, payload.Id, payload.FileType)
 
-	if payload.ReportType == pkg.ReportTypeAgreement {
+	if payload.ReportType == reporterpb.ReportTypeAgreement {
 		fileName = fmt.Sprintf(pkg.FileMaskAgreement, payload.MerchantId, payload.FileType)
 	}
 
@@ -368,7 +351,7 @@ func (app *Application) ExecuteProcess(payload *proto.ReportFile, d amqp.Deliver
 	}
 	ctx, _ := context.WithTimeout(context.Background(), time.Second*10)
 
-	if payload.ReportType == pkg.ReportTypeAgreement {
+	if payload.ReportType == reporterpb.ReportTypeAgreement {
 		awsManager = app.s3Agreement
 	} else {
 		in.Expires = time.Now().Add(time.Duration(retentionTime) * time.Second)
@@ -411,7 +394,7 @@ func (app *Application) ExecuteProcess(payload *proto.ReportFile, d amqp.Deliver
 		return app.getProcessResult(app.generateReportBroker, pkg.BrokerGenerateReportTopicName, payload, d)
 	}
 
-	postProcessData := &proto.PostProcessRequest{
+	postProcessData := &reporterpb.PostProcessRequest{
 		ReportFile:    payload,
 		FileName:      fileName,
 		RetentionTime: retentionTime,
@@ -435,16 +418,11 @@ func (app *Application) ExecuteProcess(payload *proto.ReportFile, d amqp.Deliver
 	return nil
 }
 
-func (app *Application) ExecutePostProcess(payload *proto.PostProcessRequest, d amqp.Delivery) error {
+func (app *Application) ExecutePostProcess(payload *reporterpb.PostProcessRequest, d amqp.Delivery) error {
 	log.Println("2")
 	h := builder.NewBuilder(
 		app.service,
 		payload.ReportFile,
-		app.royaltyRepository,
-		app.vatRepository,
-		app.transactionsRepository,
-		app.payoutRepository,
-		app.merchantRepository,
 		app.billing,
 	)
 	handler, err := h.GetBuilder()

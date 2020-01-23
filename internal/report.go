@@ -4,10 +4,10 @@ import (
 	"context"
 	errs "errors"
 	"github.com/globalsign/mgo/bson"
+	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	"github.com/paysuper/paysuper-reporter/internal/builder"
 	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
-	"github.com/paysuper/paysuper-reporter/pkg/proto"
 	"github.com/streadway/amqp"
 	"go.uber.org/zap"
 	"sort"
@@ -15,24 +15,24 @@ import (
 
 var (
 	reportTypes = []string{
-		pkg.ReportTypeVat,
-		pkg.ReportTypeVatTransactions,
-		pkg.ReportTypeRoyalty,
-		pkg.ReportTypeRoyaltyTransactions,
-		pkg.ReportTypeTransactions,
-		pkg.ReportTypeAgreement,
+		reporterpb.ReportTypeVat,
+		reporterpb.ReportTypeVatTransactions,
+		reporterpb.ReportTypeRoyalty,
+		reporterpb.ReportTypeRoyaltyTransactions,
+		reporterpb.ReportTypeTransactions,
+		reporterpb.ReportTypeAgreement,
 	}
 
 	reportFileContentTypes = map[string]string{
-		pkg.OutputExtensionXlsx: pkg.OutputContentTypeXlsx,
-		pkg.OutputExtensionCsv:  pkg.OutputContentTypeCsv,
-		pkg.OutputExtensionPdf:  pkg.OutputContentTypePdf,
+		reporterpb.OutputExtensionXlsx: pkg.OutputContentTypeXlsx,
+		reporterpb.OutputExtensionCsv:  pkg.OutputContentTypeCsv,
+		reporterpb.OutputExtensionPdf:  pkg.OutputContentTypePdf,
 	}
 
 	reportFileRecipes = map[string]string{
-		pkg.OutputExtensionXlsx: pkg.RecipeXlsx,
-		pkg.OutputExtensionCsv:  pkg.RecipeCsv,
-		pkg.OutputExtensionPdf:  pkg.RecipePdf,
+		reporterpb.OutputExtensionXlsx: pkg.RecipeXlsx,
+		reporterpb.OutputExtensionCsv:  pkg.RecipeCsv,
+		reporterpb.OutputExtensionPdf:  pkg.RecipePdf,
 	}
 )
 
@@ -44,7 +44,7 @@ type ReportFileTemplate struct {
 	Group      string
 }
 
-func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, res *proto.CreateFileResponse) error {
+func (app *Application) CreateFile(ctx context.Context, file *reporterpb.ReportFile, res *reporterpb.CreateFileResponse) error {
 	var err error
 
 	if _, ok := reportFileContentTypes[file.FileType]; !ok {
@@ -77,11 +77,6 @@ func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, 
 	h := builder.NewBuilder(
 		app.service,
 		file,
-		app.royaltyRepository,
-		app.vatRepository,
-		app.transactionsRepository,
-		app.payoutRepository,
-		app.merchantRepository,
 		app.billing,
 	)
 	bldr, err := h.GetBuilder()
@@ -124,25 +119,25 @@ func (app *Application) CreateFile(ctx context.Context, file *proto.ReportFile, 
 	return nil
 }
 
-func (app *Application) getTemplate(file *proto.ReportFile) (string, error) {
+func (app *Application) getTemplate(file *reporterpb.ReportFile) (string, error) {
 	if file.Template != "" {
 		return file.Template, nil
 	}
 
 	switch file.ReportType {
-	case pkg.ReportTypeRoyalty:
+	case reporterpb.ReportTypeRoyalty:
 		return app.cfg.DG.RoyaltyTemplate, nil
-	case pkg.ReportTypeRoyaltyTransactions:
+	case reporterpb.ReportTypeRoyaltyTransactions:
 		return app.cfg.DG.RoyaltyTransactionsTemplate, nil
-	case pkg.ReportTypeVat:
+	case reporterpb.ReportTypeVat:
 		return app.cfg.DG.VatTemplate, nil
-	case pkg.ReportTypeVatTransactions:
+	case reporterpb.ReportTypeVatTransactions:
 		return app.cfg.DG.VatTransactionsTemplate, nil
-	case pkg.ReportTypeTransactions:
+	case reporterpb.ReportTypeTransactions:
 		return app.cfg.DG.TransactionsTemplate, nil
-	case pkg.ReportTypeAgreement:
+	case reporterpb.ReportTypeAgreement:
 		return app.cfg.DG.AgreementTemplate, nil
-	case pkg.ReportTypePayout:
+	case reporterpb.ReportTypePayout:
 		return app.cfg.DG.PayoutTemplate, nil
 	}
 
