@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/centrifugal/gocent"
-	"github.com/paysuper/paysuper-recurring-repository/tools"
 	"github.com/paysuper/paysuper-reporter/internal/config"
+	tools "github.com/paysuper/paysuper-tools/http"
 	"go.uber.org/zap"
 )
 

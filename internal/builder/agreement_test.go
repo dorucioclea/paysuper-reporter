@@ -6,12 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/micro/go-micro"
-	billPkg "github.com/paysuper/paysuper-billing-server/pkg"
-	billMocks "github.com/paysuper/paysuper-billing-server/pkg/mocks"
-	billProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
-	"github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
-	"github.com/paysuper/paysuper-reporter/pkg"
-	"github.com/paysuper/paysuper-reporter/pkg/proto"
+	"github.com/paysuper/paysuper-proto/go/billingpb"
+	billingMocks "github.com/paysuper/paysuper-proto/go/billingpb/mocks"
+	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -34,14 +31,14 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_NewAgreementBuilder
 
 func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Validate_Ok() {
 	params := map[string]interface{}{
-		pkg.RequestParameterAgreementNumber:             "123-TEST",
-		pkg.RequestParameterAgreementLegalName:          "Test",
-		pkg.RequestParameterAgreementAddress:            "Russia, St.Petersburg, Unit Test 1",
-		pkg.RequestParameterAgreementRegistrationNumber: "0000000000000000000000001",
-		pkg.RequestParameterAgreementPayoutCost:         10,
-		pkg.RequestParameterAgreementMinimalPayoutLimit: 10000,
-		pkg.RequestParameterAgreementPayoutCurrency:     "USD",
-		pkg.RequestParameterAgreementPSRate: []*billProto.MerchantTariffRatesPayment{
+		reporterpb.RequestParameterAgreementNumber:             "123-TEST",
+		reporterpb.RequestParameterAgreementLegalName:          "Test",
+		reporterpb.RequestParameterAgreementAddress:            "Russia, St.Petersburg, Unit Test 1",
+		reporterpb.RequestParameterAgreementRegistrationNumber: "0000000000000000000000001",
+		reporterpb.RequestParameterAgreementPayoutCost:         10,
+		reporterpb.RequestParameterAgreementMinimalPayoutLimit: 10000,
+		reporterpb.RequestParameterAgreementPayoutCurrency:     "USD",
+		reporterpb.RequestParameterAgreementPSRate: []*billingpb.MerchantTariffRatesPayment{
 			{
 				MinAmount:              0,
 				MaxAmount:              4.99,
@@ -69,25 +66,25 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Validate_Ok() {
 				PayerRegion:            "europe",
 			},
 		},
-		pkg.RequestParameterAgreementHomeRegion:                         "CIS",
-		pkg.RequestParameterAgreementMerchantAuthorizedName:             "Test Unit",
-		pkg.RequestParameterAgreementMerchantAuthorizedPosition:         "Unit test",
-		pkg.RequestParameterAgreementOperatingCompanyLegalName:          "Unit test",
-		pkg.RequestParameterAgreementOperatingCompanyAddress:            "Unit test",
-		pkg.RequestParameterAgreementOperatingCompanyRegistrationNumber: "Unit test",
-		pkg.RequestParameterAgreementOperatingCompanyAuthorizedName:     "Unit test",
-		pkg.RequestParameterAgreementOperatingCompanyAuthorizedPosition: "Unit test",
+		reporterpb.RequestParameterAgreementHomeRegion:                         "CIS",
+		reporterpb.RequestParameterAgreementMerchantAuthorizedName:             "Test Unit",
+		reporterpb.RequestParameterAgreementMerchantAuthorizedPosition:         "Unit test",
+		reporterpb.RequestParameterAgreementOperatingCompanyLegalName:          "Unit test",
+		reporterpb.RequestParameterAgreementOperatingCompanyAddress:            "Unit test",
+		reporterpb.RequestParameterAgreementOperatingCompanyRegistrationNumber: "Unit test",
+		reporterpb.RequestParameterAgreementOperatingCompanyAuthorizedName:     "Unit test",
+		reporterpb.RequestParameterAgreementOperatingCompanyAuthorizedPosition: "Unit test",
 	}
 	b, err := json.Marshal(params)
 	assert.NoError(suite.T(), err)
-	handler := &Handler{report: &proto.ReportFile{Params: b}, service: micro.NewService()}
+	handler := &Handler{report: &reporterpb.ReportFile{Params: b}, service: micro.NewService()}
 	builder := newAgreementHandler(handler)
 	err = builder.Validate()
 	assert.NoError(suite.T(), err)
 }
 
 func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Validate_GetParams_Error() {
-	handler := &Handler{report: &proto.ReportFile{Params: []byte("\nnot_json_string\n")}, service: micro.NewService()}
+	handler := &Handler{report: &reporterpb.ReportFile{Params: []byte("\nnot_json_string\n")}, service: micro.NewService()}
 	builder := newAgreementHandler(handler)
 	err := builder.Validate()
 	assert.Error(suite.T(), err)
@@ -95,45 +92,45 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Validate_GetParams_
 
 func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Validate_ParamsWithoutRequiredField_Error() {
 	params := map[string]interface{}{
-		pkg.RequestParameterAgreementNumber: "123-TEST",
+		reporterpb.RequestParameterAgreementNumber: "123-TEST",
 	}
 	b, err := json.Marshal(params)
 	assert.NoError(suite.T(), err)
-	handler := &Handler{report: &proto.ReportFile{Params: b}, service: micro.NewService()}
+	handler := &Handler{report: &reporterpb.ReportFile{Params: b}, service: micro.NewService()}
 	builder := newAgreementHandler(handler)
 	err = builder.Validate()
 	assert.Error(suite.T(), err)
-	assert.Equal(suite.T(), fmt.Sprintf(errorRequestParameterIsRequired, pkg.RequestParameterAgreementLegalName), err.Error())
+	assert.Equal(suite.T(), fmt.Sprintf(errorRequestParameterIsRequired, reporterpb.RequestParameterAgreementLegalName), err.Error())
 }
 
 func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Validate_StringParamIsEmpty_Error() {
 	params := map[string]interface{}{
-		pkg.RequestParameterAgreementNumber: "",
+		reporterpb.RequestParameterAgreementNumber: "",
 	}
 	b, err := json.Marshal(params)
 	assert.NoError(suite.T(), err)
-	handler := &Handler{report: &proto.ReportFile{Params: b}, service: micro.NewService()}
+	handler := &Handler{report: &reporterpb.ReportFile{Params: b}, service: micro.NewService()}
 	builder := newAgreementHandler(handler)
 	err = builder.Validate()
 	assert.Error(suite.T(), err)
-	assert.Equal(suite.T(), fmt.Sprintf(errorRequestParameterIsEmpty, pkg.RequestParameterAgreementNumber), err.Error())
+	assert.Equal(suite.T(), fmt.Sprintf(errorRequestParameterIsEmpty, reporterpb.RequestParameterAgreementNumber), err.Error())
 }
 
 func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Validate_NumericParamIsEmpty_Error() {
 	params := map[string]interface{}{
-		pkg.RequestParameterAgreementNumber:             "123-TEST",
-		pkg.RequestParameterAgreementLegalName:          "Test",
-		pkg.RequestParameterAgreementAddress:            "Russia, St.Petersburg, Unit Test 1",
-		pkg.RequestParameterAgreementRegistrationNumber: "0000000000000000000000001",
-		pkg.RequestParameterAgreementPayoutCost:         int32(0),
+		reporterpb.RequestParameterAgreementNumber:             "123-TEST",
+		reporterpb.RequestParameterAgreementLegalName:          "Test",
+		reporterpb.RequestParameterAgreementAddress:            "Russia, St.Petersburg, Unit Test 1",
+		reporterpb.RequestParameterAgreementRegistrationNumber: "0000000000000000000000001",
+		reporterpb.RequestParameterAgreementPayoutCost:         int32(0),
 	}
 	b, err := json.Marshal(params)
 	assert.NoError(suite.T(), err)
-	handler := &Handler{report: &proto.ReportFile{Params: b}, service: micro.NewService()}
+	handler := &Handler{report: &reporterpb.ReportFile{Params: b}, service: micro.NewService()}
 	builder := newAgreementHandler(handler)
 	err = builder.Validate()
 	assert.Error(suite.T(), err)
-	assert.Equal(suite.T(), fmt.Sprintf(errorRequestParameterIsEmpty, pkg.RequestParameterAgreementPayoutCost), err.Error())
+	assert.Equal(suite.T(), fmt.Sprintf(errorRequestParameterIsEmpty, reporterpb.RequestParameterAgreementPayoutCost), err.Error())
 }
 
 func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Build_Ok() {
@@ -183,19 +180,20 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_Build_Ok() {
 		  ]
 		}`)
 
-	handler := &Handler{report: &proto.ReportFile{Params: body}, service: micro.NewService()}
+	handler := &Handler{report: &reporterpb.ReportFile{Params: body}, service: micro.NewService()}
 	builder := newAgreementHandler(handler)
 	params, err := builder.Build()
 	assert.NoError(suite.T(), err)
-	assert.Contains(suite.T(), params, pkg.RequestParameterAgreementNumber)
+	assert.Contains(suite.T(), params, reporterpb.RequestParameterAgreementNumber)
 }
 
 func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_PostProcess_Ok() {
-	bs := &billMocks.BillingService{}
+	bs := &billingMocks.BillingService{}
 	bs.On("SetMerchantS3Agreement", mock.Anything, mock.Anything, mock.Anything).
-		Return(&grpc.ChangeMerchantDataResponse{Status: billPkg.ResponseStatusOk}, nil)
+		Return(&billingpb.ChangeMerchantDataResponse{Status: billingpb.ResponseStatusOk}, nil)
 
 	handler := &Handler{
+		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex()},
 		report:  &proto.ReportFile{MerchantId: "ffffffffffffffffffffffff"},
 		billing: bs,
 	}
@@ -205,11 +203,12 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_PostProcess_Ok() {
 }
 
 func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_PostProcess_BillingServerSystem_Error() {
-	bs := &billMocks.BillingService{}
+	bs := &billingMocks.BillingService{}
 	bs.On("SetMerchantS3Agreement", mock.Anything, mock.Anything, mock.Anything).
 		Return(nil, errors.New("some error"))
 
 	handler := &Handler{
+		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex()},
 		report:  &proto.ReportFile{MerchantId: "ffffffffffffffffffffffff"},
 		billing: bs,
 	}
@@ -220,17 +219,18 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_PostProcess_Billing
 }
 
 func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_PostProcess_BillingServerReturn_Error() {
-	bs := &billMocks.BillingService{}
+	bs := &billingMocks.BillingService{}
 	bs.On("SetMerchantS3Agreement", mock.Anything, mock.Anything, mock.Anything).
 		Return(
-			&grpc.ChangeMerchantDataResponse{
-				Status:  billPkg.ResponseStatusBadData,
-				Message: &grpc.ResponseErrorMessage{Message: "some business logic  error"},
+			&billingpb.ChangeMerchantDataResponse{
+				Status:  billingpb.ResponseStatusBadData,
+				Message: &billingpb.ResponseErrorMessage{Message: "some business logic  error"},
 			},
 			nil,
 		)
 
 	handler := &Handler{
+		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex()},
 		report:  &proto.ReportFile{MerchantId: "ffffffffffffffffffffffff"},
 		billing: bs,
 	}

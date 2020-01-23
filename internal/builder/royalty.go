@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/golang/protobuf/ptypes"
-	billingGrpc "github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
-	"github.com/paysuper/paysuper-reporter/pkg"
+	"github.com/paysuper/paysuper-proto/go/billingpb"
+	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.uber.org/zap"
@@ -26,7 +26,11 @@ func (h *Royalty) Validate() error {
 		return err
 	}
 
-	if _, ok := params[pkg.ParamsFieldId]; !ok {
+	if bson.IsObjectIdHex(h.report.MerchantId) != true {
+		return errors.New(errs.ErrorParamMerchantIdNotFound.Message)
+	}
+
+	if _, ok := params[reporterpb.ParamsFieldId]; !ok {
 		return errors.New(errs.ErrorParamIdNotFound.Message)
 	}
 
@@ -40,16 +44,41 @@ func (h *Royalty) Validate() error {
 }
 
 func (h *Royalty) Build() (interface{}, error) {
+	ctx := context.TODO()
 	params, _ := h.GetParams()
-	royalty, err := h.royaltyRepository.GetById(fmt.Sprintf("%s", params[pkg.ParamsFieldId]))
+	royaltyId := fmt.Sprintf("%s", params[reporterpb.ParamsFieldId])
 
-	if err != nil {
+	royaltyRequest := &billingpb.GetRoyaltyReportRequest{ReportId: royaltyId, MerchantId: h.report.MerchantId}
+	royalty, err := h.billing.GetRoyaltyReport(ctx, royaltyRequest)
+
+	if err != nil || royalty.Status != billingpb.ResponseStatusOk {
+		if err == nil {
+			err = errors.New(royalty.Message.Message)
+		}
+
+		zap.L().Error(
+			"Unable to get royalty report",
+			zap.Error(err),
+			zap.String("royalty_id", royaltyId),
+		)
+
 		return nil, err
 	}
 
-	merchant, err := h.merchantRepository.GetById(royalty.MerchantId.Hex())
+	merchantRequest := &billingpb.GetMerchantByRequest{MerchantId: h.report.MerchantId}
+	merchant, err := h.billing.GetMerchantBy(ctx, merchantRequest)
 
-	if err != nil {
+	if err != nil || merchant.Status != billingpb.ResponseStatusOk {
+		if err == nil {
+			err = errors.New(merchant.Message.Message)
+		}
+
+		zap.L().Error(
+			"Unable to get merchant",
+			zap.Error(err),
+			zap.String("merchant_id", h.report.MerchantId),
+		)
+
 		return nil, err
 	}
 
@@ -65,7 +94,7 @@ func (h *Royalty) Build() (interface{}, error) {
 	var summaryLicenseRevenueShare float64
 	var summaryLicenseFee float64
 
-	for _, product := range royalty.Summary.ProductsItems {
+	for _, product := range royalty.Item.Summary.ProductsItems {
 		totalEndUserFees := math.Round(product.GrossSalesAmount*100) / 100
 		returnsAmount := math.Round(product.GrossReturnsAmount*100) / 100
 		endUserFees := math.Round(product.GrossTotalAmount*100) / 100
@@ -98,8 +127,8 @@ func (h *Royalty) Build() (interface{}, error) {
 		summaryLicenseFee += licenseFee
 	}
 
-	if len(royalty.Summary.Corrections) > 0 {
-		for _, correction := range royalty.Summary.Corrections {
+	if len(royalty.Item.Summary.Corrections) > 0 {
+		for _, correction := range royalty.Item.Summary.Corrections {
 			t, err := ptypes.Timestamp(correction.EntryDate)
 
 			if err != nil {
@@ -114,37 +143,68 @@ func (h *Royalty) Build() (interface{}, error) {
 		}
 	}
 
-	res, err := h.billing.GetOperatingCompany(
-		context.Background(),
-		&billingGrpc.GetOperatingCompanyRequest{Id: royalty.OperatingCompanyId},
-	)
+	ocRequest := &billingpb.GetOperatingCompanyRequest{Id: royalty.Item.OperatingCompanyId}
+	operatingCompany, err := h.billing.GetOperatingCompany(ctx, ocRequest)
 
-	if err != nil || res.Company == nil {
+	if err != nil || operatingCompany.Company == nil {
 		if err == nil {
-			err = errors.New(res.Message.Message)
+			err = errors.New(operatingCompany.Message.Message)
 		}
 
 		zap.L().Error(
-			"unable to get operating company",
+			"Unable to get operating company",
 			zap.Error(err),
-			zap.String("operating_company_id", royalty.OperatingCompanyId),
+			zap.String("operating_company_id", royalty.Item.OperatingCompanyId),
 		)
 
 		return nil, err
 	}
 
+	date, err := ptypes.Timestamp(royalty.Item.CreatedAt)
+
+	if err != nil {
+		zap.L().Error(
+			"Unable to cast timestamp to time",
+			zap.Error(err),
+			zap.String("created_at", royalty.Item.CreatedAt.String()),
+		)
+		return nil, err
+	}
+
+	periodFrom, err := ptypes.Timestamp(royalty.Item.PeriodFrom)
+
+	if err != nil {
+		zap.L().Error(
+			"Unable to cast timestamp to time",
+			zap.Error(err),
+			zap.String("period_from", royalty.Item.PeriodFrom.String()),
+		)
+		return nil, err
+	}
+
+	periodTo, err := ptypes.Timestamp(royalty.Item.PeriodTo)
+
+	if err != nil {
+		zap.L().Error(
+			"Unable to cast timestamp to time",
+			zap.Error(err),
+			zap.String("period_to", royalty.Item.PeriodTo.String()),
+		)
+		return nil, err
+	}
+
 	result := map[string]interface{}{
-		"id":                       royalty.Id.Hex(),
-		"report_date":              royalty.CreatedAt.Format("2006-01-02"),
-		"merchant_legal_name":      merchant.Company.Name,
-		"merchant_company_address": merchant.Company.Address,
-		"start_date":               royalty.PeriodFrom.Format("2006-01-02"),
-		"end_date":                 royalty.PeriodTo.Format("2006-01-02"),
-		"currency":                 royalty.Currency,
-		"correction_total_amount":  royalty.Totals.CorrectionAmount,
-		"rolling_reserve_amount":   royalty.Totals.RollingReserveAmount,
-		"oc_name":                  res.Company.Name,
-		"oc_address":               res.Company.Address,
+		"id":                       royalty.Item.Id,
+		"report_date":              date.Format("2006-01-02"),
+		"merchant_legal_name":      merchant.Item.Company.Name,
+		"merchant_company_address": merchant.Item.Company.Address,
+		"start_date":               periodFrom.Format("2006-01-02"),
+		"end_date":                 periodTo.Format("2006-01-02"),
+		"currency":                 royalty.Item.Currency,
+		"correction_total_amount":  royalty.Item.Totals.CorrectionAmount,
+		"rolling_reserve_amount":   royalty.Item.Totals.RollingReserveAmount,
+		"oc_name":                  operatingCompany.Company.Name,
+		"oc_address":               operatingCompany.Company.Address,
 		"products":                 products,
 		"products_total": map[string]interface{}{
 			"total_end_user_sales":  summaryTotalEndUserSales,
@@ -173,9 +233,9 @@ func (h *Royalty) PostProcess(
 ) error {
 	params, _ := h.GetParams()
 
-	req := &billingGrpc.RoyaltyReportPdfUploadedRequest{
+	req := &billingpb.RoyaltyReportPdfUploadedRequest{
 		Id:              id,
-		RoyaltyReportId: fmt.Sprintf("%s", params[pkg.ParamsFieldId]),
+		RoyaltyReportId: fmt.Sprintf("%s", params[reporterpb.ParamsFieldId]),
 		Filename:        fileName,
 		RetentionTime:   int32(retentionTime),
 		Content:         content,

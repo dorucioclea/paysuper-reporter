@@ -1,7 +1,7 @@
 package errors
 
 import (
-	"github.com/paysuper/paysuper-reporter/pkg/proto"
+	"github.com/paysuper/paysuper-proto/go/reporterpb"
 )
 
 var (
@@ -21,12 +21,12 @@ var (
 	ErrorMongoDbOidIncorrect          = newErrorMsg("rf000014", "mongodb object id incorrect")
 )
 
-func newErrorMsg(code, msg string, details ...string) *proto.ResponseErrorMessage {
+func newErrorMsg(code, msg string, details ...string) *reporterpb.ResponseErrorMessage {
 	var det string
 	if len(details) > 0 && details[0] != "" {
 		det = details[0]
 	} else {
 		det = ""
 	}
-	return &proto.ResponseErrorMessage{Code: code, Message: msg, Details: det}
+	return &reporterpb.ResponseErrorMessage{Code: code, Message: msg, Details: det}
 }
