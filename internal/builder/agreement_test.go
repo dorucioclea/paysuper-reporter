@@ -193,8 +193,7 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_PostProcess_Ok() {
 		Return(&billingpb.ChangeMerchantDataResponse{Status: billingpb.ResponseStatusOk}, nil)
 
 	handler := &Handler{
-		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex()},
-		report:  &proto.ReportFile{MerchantId: "ffffffffffffffffffffffff"},
+		report:  &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff"},
 		billing: bs,
 	}
 	builder := newAgreementHandler(handler)
@@ -208,8 +207,7 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_PostProcess_Billing
 		Return(nil, errors.New("some error"))
 
 	handler := &Handler{
-		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex()},
-		report:  &proto.ReportFile{MerchantId: "ffffffffffffffffffffffff"},
+		report:  &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff"},
 		billing: bs,
 	}
 	builder := newAgreementHandler(handler)
@@ -230,8 +228,7 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_PostProcess_Billing
 		)
 
 	handler := &Handler{
-		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex()},
-		report:  &proto.ReportFile{MerchantId: "ffffffffffffffffffffffff"},
+		report:  &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff"},
 		billing: bs,
 	}
 	builder := newAgreementHandler(handler)

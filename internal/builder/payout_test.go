@@ -2,23 +2,14 @@ package builder
 
 import (
 	"encoding/json"
-	"github.com/globalsign/mgo/bson"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/paysuper/paysuper-proto/go/billingpb"
 	billingMocks "github.com/paysuper/paysuper-proto/go/billingpb/mocks"
 	"github.com/paysuper/paysuper-proto/go/reporterpb"
-	errs "errors"
-	billPkg "github.com/paysuper/paysuper-billing-server/pkg"
-	billMocks "github.com/paysuper/paysuper-billing-server/pkg/mocks"
-	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
-	"github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
-	"github.com/paysuper/paysuper-reporter/internal/mocks"
-	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	mock2 "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"testing"
 	"time"
 )
@@ -42,7 +33,7 @@ func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Validate_Error_IdNotFound
 
 func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Validate_Ok() {
 	params, _ := json.Marshal(map[string]interface{}{
-		reporterpb.ParamsFieldId: bson.NewObjectId().Hex(),
+		reporterpb.ParamsFieldId: "ffffffffffffffffffffffff",
 	})
 	h := newPayoutHandler(&Handler{
 		report: &reporterpb.ReportFile{Params: params},
@@ -74,7 +65,7 @@ func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Build_Ok() {
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newPayoutHandler(&Handler{
-		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+		report:  &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff", Params: params},
 		billing: billing,
 	})
 
@@ -107,7 +98,7 @@ func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Build_Error_GetPayoutDocu
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newPayoutHandler(&Handler{
-		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+		report:  &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff", Params: params},
 		billing: billing,
 	})
 
@@ -128,31 +119,18 @@ func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Build_Error_GetMerchantBy
 		Status:  billingpb.ResponseStatusNotFound,
 		Message: &billingpb.ResponseErrorMessage{Message: "error"},
 		Item:    nil,
-	report := &billingProto.MgoPayoutDocument{
-		Id: primitive.NewObjectID(),
-		Destination: &billingProto.MerchantBanking{
-			Address: "",
-			Details: "",
-		},
-		Company: &billingProto.MerchantCompanyInfo{
-			TaxId: "",
-		},
 	}
 	billing.On("GetMerchantBy", mock2.Anything, mock2.Anything).Return(merchantResponse, nil)
 
 	ocResponse := &billingpb.GetOperatingCompanyResponse{
 		Status:  billingpb.ResponseStatusOk,
 		Company: suite.getOperatingCompanyTemplate(),
-	merchantRep := mocks.MerchantRepositoryInterface{}
-	merchant := &billingProto.MgoMerchant{
-		Id:      primitive.NewObjectID(),
-		Company: &billingProto.MerchantCompanyInfo{Name: "", Address: "", TaxId: ""},
 	}
 	billing.On("GetOperatingCompany", mock2.Anything, mock2.Anything).Return(ocResponse, nil)
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newPayoutHandler(&Handler{
-		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+		report:  &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff", Params: params},
 		billing: billing,
 	})
 
@@ -184,7 +162,7 @@ func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Build_Error_GetOperatingC
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newPayoutHandler(&Handler{
-		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+		report:  &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff", Params: params},
 		billing: billing,
 	})
 
@@ -196,11 +174,8 @@ func (suite *PayoutBuilderTestSuite) getPayoutDocumentTemplate() *billingpb.Payo
 	datetime, _ := ptypes.TimestampProto(time.Now())
 
 	return &billingpb.PayoutDocument{
-		Id: bson.NewObjectId().Hex(),
+		Id: "ffffffffffffffffffffffff",
 		Destination: &billingpb.MerchantBanking{
-	report := &billingProto.MgoPayoutDocument{
-		Id: primitive.NewObjectID(),
-		Destination: &billingProto.MerchantBanking{
 			Address: "",
 			Details: "",
 		},
@@ -211,20 +186,11 @@ func (suite *PayoutBuilderTestSuite) getPayoutDocumentTemplate() *billingpb.Payo
 		PeriodFrom: datetime,
 		PeriodTo:   datetime,
 	}
-	payoutRep := mocks.PayoutRepositoryInterface{}
-	payoutRep.On("GetById", mock2.Anything).Return(report, nil)
-
-	merchantRep := mocks.MerchantRepositoryInterface{}
-	merchant := &billingProto.MgoMerchant{
-		Id:      primitive.NewObjectID(),
-		Company: &billingProto.MerchantCompanyInfo{Name: "", Address: "", TaxId: ""},
-	}
-	merchantRep.On("GetById", mock2.Anything).Return(merchant, nil)
 }
 
 func (suite *PayoutBuilderTestSuite) getMerchantTemplate() *billingpb.Merchant {
 	return &billingpb.Merchant{
-		Id:      bson.NewObjectId().String(),
+		Id:      "ffffffffffffffffffffffff",
 		Company: &billingpb.MerchantCompanyInfo{Name: "", Address: "", TaxId: ""},
 	}
 }

@@ -26,15 +26,19 @@ func (h *Royalty) Validate() error {
 		return err
 	}
 
-	if bson.IsObjectIdHex(h.report.MerchantId) != true {
+	_, err = primitive.ObjectIDFromHex(fmt.Sprintf("%s", h.report.MerchantId))
+
+	if err != nil {
 		return errors.New(errs.ErrorParamMerchantIdNotFound.Message)
 	}
 
-	if _, ok := params[reporterpb.ParamsFieldId]; !ok {
+	id, ok := params[reporterpb.ParamsFieldId]
+
+	if !ok {
 		return errors.New(errs.ErrorParamIdNotFound.Message)
 	}
 
-	_, err = primitive.ObjectIDFromHex(fmt.Sprintf("%s", params[pkg.ParamsFieldId]))
+	_, err = primitive.ObjectIDFromHex(fmt.Sprintf("%s", id))
 
 	if err != nil {
 		return errors.New(errs.ErrorParamIdNotFound.Message)

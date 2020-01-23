@@ -53,7 +53,7 @@ type Config struct {
 	CentrifugoConfig CentrifugoConfig
 
 	MetricsPort           string `envconfig:"METRICS_PORT" required:"false" default:"8086"`
-	MicroSelector         string `envconfig:"MICRO_SELECTOR" required:"false" default:"static"`
+	MicroSelector         string `envconfig:"MICRO_SELECTOR" required:"false" default:""`
 	DocumentRetentionTime int64  `envconfig:"DOCUMENT_RETENTION_TIME" default:"604800"`
 	BrokerAddress         string `envconfig:"BROKER_ADDRESS" default:"amqp://127.0.0.1:5672"`
 }

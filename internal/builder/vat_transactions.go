@@ -4,13 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/globalsign/mgo/bson"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/paysuper/paysuper-proto/go/billingpb"
 	"github.com/paysuper/paysuper-proto/go/reporterpb"
-	billingPkg "github.com/paysuper/paysuper-billing-server/pkg"
-	billingGrpc "github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
-	"github.com/paysuper/paysuper-reporter/pkg"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.uber.org/zap"
@@ -30,12 +26,17 @@ func (h *VatTransactions) Validate() error {
 		return err
 	}
 
-	if _, ok := params[reporterpb.ParamsFieldId]; !ok {
+	id, ok := params[reporterpb.ParamsFieldId]
+
+	if !ok {
 		return errors.New(errs.ErrorParamIdNotFound.Message)
 	}
-	_, err = primitive.ObjectIDFromHex(fmt.Sprintf("%s", params[pkg.ParamsFieldId]))
+
+	_, err = primitive.ObjectIDFromHex(fmt.Sprintf("%s", id))
 
 	if err != nil {
+		return errors.New(errs.ErrorParamIdNotFound.Message)
+	}
 
 	return nil
 }
@@ -253,6 +254,6 @@ func (h *VatTransactions) Build() (interface{}, error) {
 	return result, nil
 }
 
-func (h *VatTransactions) PostProcess(ctx context.Context, id, fileName string, retentionTime int64, content []byte) error {
+func (h *VatTransactions) PostProcess(_ context.Context, _, _ string, _ int64, _ []byte) error {
 	return nil
 }

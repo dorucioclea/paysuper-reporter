@@ -6,11 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	awsWrapper "github.com/paysuper/paysuper-aws-manager"
 	awsWrapperMocks "github.com/paysuper/paysuper-aws-manager/pkg/mocks"
-	"github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
+	reporterPkg "github.com/paysuper/paysuper-proto/go/reporterpb"
 	"github.com/paysuper/paysuper-reporter/internal/config"
 	"github.com/paysuper/paysuper-reporter/internal/mocks"
-	reporterPkg "github.com/paysuper/paysuper-reporter/pkg"
-	"github.com/paysuper/paysuper-reporter/pkg/proto"
 	"github.com/streadway/amqp"
 	"github.com/stretchr/testify/assert"
 	mock2 "github.com/stretchr/testify/mock"
@@ -38,25 +36,6 @@ func (suite *ApplicationTestSuite) SetupTest() {
 	documentGeneratorMock := &mocks.DocumentGeneratorInterface{}
 	documentGeneratorMock.On("Render", mock2.Anything).Return([]byte("agreement file content"), nil)
 
-	royaltyRepository := &mocks.RoyaltyRepositoryInterface{}
-	royaltyRepository.On("GetById", mock2.Anything).Return(&billing.MgoRoyaltyReport{}, nil)
-
-	vatRepositoryMock := &mocks.VatRepositoryInterface{}
-	vatRepositoryMock.On("GetByCountry", mock2.Anything).Return(make([]*billing.MgoVatReport, 1), nil)
-	vatRepositoryMock.On("GetById", mock2.Anything).Return(&billing.MgoVatReport{}, nil)
-
-	transactionsRepositoryMock := &mocks.TransactionsRepositoryInterface{}
-	transactionsRepositoryMock.On("FindByMerchant", mock2.Anything, mock2.Anything, mock2.Anything, mock2.Anything, mock2.Anything).
-		Return(make([]*billing.MgoOrderViewPublic, 1), nil)
-	transactionsRepositoryMock.On("GetByRoyalty", mock2.Anything).Return(make([]*billing.MgoOrderViewPublic, 1), nil)
-	transactionsRepositoryMock.On("GetByVat", mock2.Anything).Return(make([]*billing.MgoOrderViewPrivate, 1), nil)
-
-	payoutRepositoryMock := &mocks.PayoutRepositoryInterface{}
-	payoutRepositoryMock.On("GetById", mock2.Anything).Return(&billing.MgoPayoutDocument{}, nil)
-
-	merchantRepositoryMock := &mocks.MerchantRepositoryInterface{}
-	merchantRepositoryMock.On("GetById", mock2.Anything).Return(&billing.MgoMerchant{}, nil)
-
 	brokerMock := &rabbitmqMock.BrokerInterface{}
 	brokerMock.On("Publish", mock2.Anything, mock2.Anything, mock2.Anything).Return(nil, nil)
 	brokerMock.On("RegisterSubscriber", mock2.Anything, mock2.Anything).Return(nil, nil)
@@ -64,17 +43,12 @@ func (suite *ApplicationTestSuite) SetupTest() {
 	brokerMock.On("Subscribe", mock2.Anything).Return(nil, nil)
 
 	suite.dummyApp = &Application{
-		s3:                     awsManagerMock,
-		s3Agreement:            awsManagerMock,
-		centrifugo:             centrifugoMock,
-		documentGenerator:      documentGeneratorMock,
-		royaltyRepository:      royaltyRepository,
-		vatRepository:          vatRepositoryMock,
-		transactionsRepository: transactionsRepositoryMock,
-		payoutRepository:       payoutRepositoryMock,
-		merchantRepository:     merchantRepositoryMock,
-		generateReportBroker:   brokerMock,
-		postProcessBroker:      brokerMock,
+		s3:                   awsManagerMock,
+		s3Agreement:          awsManagerMock,
+		centrifugo:           centrifugoMock,
+		documentGenerator:    documentGeneratorMock,
+		generateReportBroker: brokerMock,
+		postProcessBroker:    brokerMock,
 		cfg: &config.Config{
 			S3:               config.S3Config{},
 			DG:               config.DocumentGeneratorConfig{},
@@ -154,7 +128,7 @@ func (suite *ApplicationTestSuite) TestApplication_ExecuteProcess_Agreement_Ok()
 	b, err := json.Marshal(params)
 	assert.NoError(suite.T(), err)
 
-	payload := &proto.ReportFile{
+	payload := &reporterPkg.ReportFile{
 		UserId:           "ffffffffffffffffffffffff",
 		MerchantId:       "ffffffffffffffffffffffff",
 		ReportType:       reporterPkg.ReportTypeAgreement,

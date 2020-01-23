@@ -11,7 +11,6 @@ import (
 	"github.com/micro/go-plugins/client/selector/static"
 	"github.com/micro/go-plugins/wrapper/monitoring/prometheus"
 	awsWrapper "github.com/paysuper/paysuper-aws-manager"
-	mongodb "gopkg.in/paysuper/paysuper-database-mongo.v2"
 	"github.com/paysuper/paysuper-proto/go/billingpb"
 	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	"github.com/paysuper/paysuper-reporter/internal/builder"
@@ -22,6 +21,7 @@ import (
 	"github.com/streadway/amqp"
 	"go.uber.org/zap"
 	rabbitmq "gopkg.in/ProtocolONE/rabbitmq.v1/pkg"
+	mongodb "gopkg.in/paysuper/paysuper-database-mongo.v2"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -322,7 +322,7 @@ func (app *Application) ExecuteProcess(payload *reporterpb.ReportFile, d amqp.De
 
 	fileName := fmt.Sprintf(pkg.FileMask, payload.UserId, payload.Id, payload.FileType)
 
-	if payload.ReportType == pkg.ReportTypeAgreement {
+	if payload.ReportType == reporterpb.ReportTypeAgreement {
 		tHandler, ok := handler.(builder.AgreementInterface)
 
 		if !ok {

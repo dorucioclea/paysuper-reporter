@@ -2,14 +2,6 @@ package builder
 
 import (
 	"encoding/json"
-	errs "errors"
-	billPkg "github.com/paysuper/paysuper-billing-server/pkg"
-	billMocks "github.com/paysuper/paysuper-billing-server/pkg/mocks"
-	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
-	"github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
-	"github.com/paysuper/paysuper-reporter/internal/mocks"
-	"github.com/paysuper/paysuper-reporter/pkg"
-	"github.com/globalsign/mgo/bson"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/paysuper/paysuper-proto/go/billingpb"
 	billingMocks "github.com/paysuper/paysuper-proto/go/billingpb/mocks"
@@ -18,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	mock2 "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"testing"
 	"time"
 )
@@ -43,7 +34,7 @@ func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Validat
 
 func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Validate_Ok() {
 	params, _ := json.Marshal(map[string]interface{}{
-		reporterpb.ParamsFieldId: bson.NewObjectId().Hex(),
+		reporterpb.ParamsFieldId: "ffffffffffffffffffffffff",
 	})
 	h := newVatTransactionsHandler(&Handler{
 		report: &reporterpb.ReportFile{Params: params},
@@ -191,7 +182,7 @@ func (suite *VatTransactionsBuilderTestSuite) getVatTemplate() *billingpb.VatRep
 	datetime, _ := ptypes.TimestampProto(time.Now())
 
 	return &billingpb.VatReport{
-		Id:        bson.NewObjectId().Hex(),
+		Id:        "ffffffffffffffffffffffff",
 		CreatedAt: datetime,
 		DateFrom:  datetime,
 		DateTo:    datetime,
@@ -202,7 +193,7 @@ func (suite *VatTransactionsBuilderTestSuite) getOrdersTemplate() []*billingpb.O
 	datetime, _ := ptypes.TimestampProto(time.Now())
 
 	return []*billingpb.OrderViewPrivate{{
-		Id: bson.NewObjectId().Hex(),
+		Id: "ffffffffffffffffffffffff",
 		PaymentMethod: &billingpb.PaymentMethodOrder{
 			Name: "card",
 		},

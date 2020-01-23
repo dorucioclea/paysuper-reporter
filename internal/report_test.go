@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	errs "errors"
-	"github.com/globalsign/mgo/bson"
 	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	"github.com/paysuper/paysuper-reporter/internal/config"
 	"github.com/paysuper/paysuper-reporter/pkg"

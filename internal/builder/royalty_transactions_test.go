@@ -2,23 +2,14 @@ package builder
 
 import (
 	"encoding/json"
-	"github.com/globalsign/mgo/bson"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/paysuper/paysuper-proto/go/billingpb"
 	billingMocks "github.com/paysuper/paysuper-proto/go/billingpb/mocks"
 	"github.com/paysuper/paysuper-proto/go/reporterpb"
-	errs "errors"
-	billPkg "github.com/paysuper/paysuper-billing-server/pkg"
-	billMocks "github.com/paysuper/paysuper-billing-server/pkg/mocks"
-	billingProto "github.com/paysuper/paysuper-billing-server/pkg/proto/billing"
-	"github.com/paysuper/paysuper-billing-server/pkg/proto/grpc"
-	"github.com/paysuper/paysuper-reporter/internal/mocks"
-	"github.com/paysuper/paysuper-reporter/pkg"
 	"github.com/paysuper/paysuper-reporter/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	mock2 "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"testing"
 	"time"
 )
@@ -34,7 +25,7 @@ func Test_RoyaltyTransactionsBuilder(t *testing.T) {
 
 func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder_Validate_Error_MerchantIdNotFound() {
 	params, _ := json.Marshal(map[string]interface{}{
-		reporterpb.ParamsFieldId: bson.NewObjectId().Hex(),
+		reporterpb.ParamsFieldId: "ffffffffffffffffffffffff",
 	})
 	h := newRoyaltyHandler(&Handler{
 		report: &reporterpb.ReportFile{Params: params},
@@ -46,7 +37,7 @@ func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder
 func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder_Validate_Error_IdNotFound() {
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newRoyaltyHandler(&Handler{
-		report: &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+		report: &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff", Params: params},
 	})
 
 	assert.Errorf(suite.T(), h.Validate(), errors.ErrorParamIdNotFound.Message)
@@ -54,10 +45,10 @@ func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder
 
 func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder_Validate_Ok() {
 	params, _ := json.Marshal(map[string]interface{}{
-		reporterpb.ParamsFieldId: bson.NewObjectId().Hex(),
+		reporterpb.ParamsFieldId: "ffffffffffffffffffffffff",
 	})
 	h := newRoyaltyHandler(&Handler{
-		report: &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+		report: &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff", Params: params},
 	})
 
 	assert.NoError(suite.T(), h.Validate())
@@ -94,7 +85,7 @@ func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newRoyaltyTransactionsHandler(&Handler{
-		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+		report:  &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff", Params: params},
 		billing: billing,
 	})
 
@@ -134,7 +125,7 @@ func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newRoyaltyTransactionsHandler(&Handler{
-		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+		report:  &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff", Params: params},
 		billing: billing,
 	})
 
@@ -144,10 +135,6 @@ func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder
 
 func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder_Build_Error_FindAllOrdersPublic() {
 	billing := &billingMocks.BillingService{}
-func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder_Build_Error_GetByVat() {
-	report := &billingProto.MgoRoyaltyReport{Id: primitive.NewObjectID()}
-	royaltyRep := mocks.RoyaltyRepositoryInterface{}
-	royaltyRep.On("GetById", mock2.Anything).Return(report, nil)
 
 	royaltyResponse := &billingpb.GetRoyaltyReportResponse{
 		Status: billingpb.ResponseStatusOk,
@@ -155,16 +142,6 @@ func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder
 	}
 	billing.On("GetRoyaltyReport", mock2.Anything, mock2.Anything).Return(royaltyResponse, nil)
 
-	merchantRep := mocks.MerchantRepositoryInterface{}
-	merchantRep.
-		On("GetById", mock2.Anything).
-		Return(
-			&billingProto.MgoMerchant{
-				Id:      primitive.NewObjectID(),
-				Company: &billingProto.MerchantCompanyInfo{Name: "", Address: ""},
-			},
-			nil,
-		)
 	ordersResponse := &billingpb.ListOrdersPublicResponse{
 		Status:  billingpb.ResponseStatusNotFound,
 		Message: &billingpb.ResponseErrorMessage{Message: "error"},
@@ -188,7 +165,7 @@ func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newRoyaltyTransactionsHandler(&Handler{
-		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+		report:  &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff", Params: params},
 		billing: billing,
 	})
 
@@ -228,7 +205,7 @@ func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newRoyaltyTransactionsHandler(&Handler{
-		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+		report:  &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff", Params: params},
 		billing: billing,
 	})
 
@@ -268,7 +245,7 @@ func (suite *RoyaltyTransactionsBuilderTestSuite) TestRoyaltyTransactionsBuilder
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newRoyaltyTransactionsHandler(&Handler{
-		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+		report:  &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff", Params: params},
 		billing: billing,
 	})
 
@@ -280,7 +257,7 @@ func (suite *RoyaltyTransactionsBuilderTestSuite) getRoyaltyReportTemplate() *bi
 	datetime, _ := ptypes.TimestampProto(time.Now())
 
 	return &billingpb.RoyaltyReport{
-		Id:         bson.NewObjectId().Hex(),
+		Id:         "ffffffffffffffffffffffff",
 		PeriodFrom: datetime,
 		PeriodTo:   datetime,
 		PayoutDate: datetime,
@@ -313,7 +290,7 @@ func (suite *RoyaltyTransactionsBuilderTestSuite) getOrdersTemplate() []*billing
 	datetime, _ := ptypes.TimestampProto(time.Now())
 
 	return []*billingpb.OrderViewPublic{{
-		Id:          bson.NewObjectId().Hex(),
+		Id:          "ffffffffffffffffffffffff",
 		Transaction: "1",
 		CountryCode: "RU",
 		Currency:    "RUB",
@@ -331,7 +308,7 @@ func (suite *RoyaltyTransactionsBuilderTestSuite) getOrdersTemplate() []*billing
 
 func (suite *RoyaltyTransactionsBuilderTestSuite) getMerchantTemplate() *billingpb.Merchant {
 	return &billingpb.Merchant{
-		Id:      bson.NewObjectId().String(),
+		Id:      "ffffffffffffffffffffffff",
 		Company: &billingpb.MerchantCompanyInfo{Name: "", Address: "", TaxId: ""},
 	}
 }
