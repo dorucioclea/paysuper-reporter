@@ -26,6 +26,12 @@ func (h *RoyaltyTransactions) Validate() error {
 		return err
 	}
 
+	_, err = primitive.ObjectIDFromHex(h.report.MerchantId)
+
+	if err != nil {
+		return errors.New(errs.ErrorParamMerchantIdNotFound.Message)
+	}
+
 	id, ok := params[reporterpb.ParamsFieldId]
 
 	if !ok {

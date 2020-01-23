@@ -3,6 +3,7 @@ package internal
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"github.com/InVisionApp/go-health"
 	"github.com/InVisionApp/go-health/handlers"
@@ -16,12 +17,11 @@ import (
 	"github.com/paysuper/paysuper-reporter/internal/builder"
 	"github.com/paysuper/paysuper-reporter/internal/config"
 	"github.com/paysuper/paysuper-reporter/pkg"
-	"github.com/paysuper/paysuper-reporter/pkg/errors"
+	reporterErrors "github.com/paysuper/paysuper-reporter/pkg/errors"
 	"github.com/paysuper/paysuper-reporter/pkg/proto"
 	"github.com/streadway/amqp"
 	"go.uber.org/zap"
 	rabbitmq "gopkg.in/ProtocolONE/rabbitmq.v1/pkg"
-	mongodb "gopkg.in/paysuper/paysuper-database-mongo.v2"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -32,7 +32,6 @@ import (
 type Application struct {
 	cfg               *config.Config
 	log               *zap.Logger
-	database          mongodb.SourceInterface
 	s3                awsWrapper.AwsManagerInterface
 	s3Agreement       awsWrapper.AwsManagerInterface
 	centrifugo        CentrifugoInterface
@@ -47,14 +46,13 @@ type Application struct {
 }
 
 type appHealthCheck struct {
-	db mongodb.SourceInterface
+	centrifugo CentrifugoInterface
 }
 
 func NewApplication() *Application {
 	app := &Application{}
 	app.initLogger()
 	app.initConfig()
-	app.initDatabase()
 	app.initS3()
 	app.initCentrifugo()
 	app.initDocumentGenerator()
@@ -70,7 +68,7 @@ func (app *Application) initHealth() {
 		{
 			Name: "health-check",
 			Checker: &appHealthCheck{
-				db: app.database,
+				centrifugo: app.centrifugo,
 			},
 			Interval: time.Duration(1) * time.Second,
 			Fatal:    true,
@@ -115,18 +113,6 @@ func (app *Application) initConfig() {
 	}
 
 	zap.L().Info("Configuration parsed successfully...")
-}
-
-func (app *Application) initDatabase() {
-	var err error
-
-	app.database, err = mongodb.NewDatabase()
-
-	if err != nil {
-		app.fatalFn("Database connection failed", zap.Error(err))
-	}
-
-	zap.L().Info("Database initialization successfully...")
 }
 
 func (app *Application) initS3() {
@@ -320,7 +306,7 @@ func (app *Application) ExecuteProcess(payload *reporterpb.ReportFile, d amqp.De
 		return app.getProcessResult(app.generateReportBroker, pkg.BrokerGenerateReportTopicName, payload, d)
 	}
 
-	fileName := fmt.Sprintf(pkg.FileMask, payload.UserId, payload.Id, payload.FileType)
+	fileName := fmt.Sprintf(reporterpb.FileMask, payload.UserId, payload.Id, payload.FileType)
 
 	if payload.ReportType == reporterpb.ReportTypeAgreement {
 		tHandler, ok := handler.(builder.AgreementInterface)
@@ -394,7 +380,7 @@ func (app *Application) ExecuteProcess(payload *reporterpb.ReportFile, d amqp.De
 
 		if err != nil {
 			zap.L().Error(
-				errors.ErrorCentrifugoNotificationFailed.Message,
+				reporterErrors.ErrorCentrifugoNotificationFailed.Message,
 				zap.Error(err),
 				zap.Any("payload", payload),
 			)
@@ -509,11 +495,14 @@ func (app *Application) getProcessResult(
 
 func (c *appHealthCheck) Status() (interface{}, error) {
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	info, err := c.centrifugo.Info(ctx)
 
-	// INFO: Always is fail on locally if your DB don't have secondary members of the replica set
-	// and use secondary mode of database connection
-	if err := c.db.Ping(ctx); err != nil {
-		return "fail", err
+	if err != nil {
+		return "fail", errors.New("centrifugo connection lost: " + err.Error())
+	}
+
+	if len(info.Nodes) <= 0 {
+		return "fail", errors.New("centrifugo connection lost: centrifugo nodes not found")
 	}
 
 	return "ok", nil

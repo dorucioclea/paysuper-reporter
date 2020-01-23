@@ -7,7 +7,6 @@ import (
 	"github.com/micro/go-micro/client"
 	"github.com/paysuper/paysuper-proto/go/billingpb"
 	"github.com/paysuper/paysuper-proto/go/reporterpb"
-	"github.com/paysuper/paysuper-reporter/pkg"
 	"time"
 )
 
@@ -148,6 +147,6 @@ func (h *Agreement) GetAgreementName(fileType string) (string, error) {
 		return "", err
 	}
 
-	name := fmt.Sprintf(pkg.FileMaskAgreement, params[reporterpb.RequestParameterAgreementLegalName], params[reporterpb.RequestParameterAgreementNumber], fileType)
+	name := fmt.Sprintf(reporterpb.FileMaskAgreement, params[reporterpb.RequestParameterAgreementLegalName], params[reporterpb.RequestParameterAgreementNumber], fileType)
 	return name, nil
 }

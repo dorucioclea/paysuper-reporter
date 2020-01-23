@@ -11,6 +11,7 @@ import (
 
 type CentrifugoInterface interface {
 	Publish(string, interface{}) error
+	Info(ctx context.Context) (gocent.InfoResult, error)
 }
 
 type Centrifugo struct {
@@ -36,4 +37,8 @@ func (c Centrifugo) Publish(channel string, msg interface{}) error {
 	}
 
 	return c.centrifugoClient.Publish(context.Background(), channel, b)
+}
+
+func (c *Centrifugo) Info(ctx context.Context) (gocent.InfoResult, error) {
+	return c.centrifugoClient.Info(ctx)
 }
