@@ -340,7 +340,26 @@ func (app *Application) ExecuteProcess(payload *proto.ReportFile, d amqp.Deliver
 	fileName := fmt.Sprintf(pkg.FileMask, payload.UserId, payload.Id, payload.FileType)
 
 	if payload.ReportType == pkg.ReportTypeAgreement {
-		fileName = fmt.Sprintf(pkg.FileMaskAgreement, payload.MerchantId, payload.FileType)
+		tHandler, ok := handler.(builder.AgreementInterface)
+
+		if !ok {
+			zap.L().Error(
+				"Handler not implement method to get agreement name",
+				zap.Any("payload", payload),
+			)
+			return app.getProcessResult(app.generateReportBroker, pkg.BrokerGenerateReportTopicName, payload, d)
+		}
+
+		fileName, err = tHandler.GetAgreementName(payload.FileType)
+
+		if err != nil {
+			zap.L().Error(
+				"Agreement name generation fail",
+				zap.Error(err),
+				zap.Any("payload", payload),
+			)
+			return app.getProcessResult(app.generateReportBroker, pkg.BrokerGenerateReportTopicName, payload, d)
+		}
 	}
 
 	filePath := os.TempDir() + string(os.PathSeparator) + fileName

@@ -2,6 +2,7 @@ module github.com/paysuper/paysuper-reporter
 
 require (
 	github.com/InVisionApp/go-health v2.1.0+incompatible
+	github.com/aws/aws-sdk-go v1.23.8
 	github.com/centrifugal/gocent v2.0.2+incompatible
 	github.com/golang-migrate/migrate/v4 v4.6.2
 	github.com/golang/protobuf v1.3.2

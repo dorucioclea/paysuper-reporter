@@ -7,7 +7,7 @@ const (
 	LoggerName = "PAYSUPER_REPORTER"
 
 	FileMask          = "report_%s_%s.%s"
-	FileMaskAgreement = "agreement_%s.%s"
+	FileMaskAgreement = "License Agreement_%s_#%s.%s"
 
 	HeaderContentType = "Content-Type"
 

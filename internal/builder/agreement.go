@@ -39,6 +39,10 @@ var (
 	}
 )
 
+type AgreementInterface interface {
+	GetAgreementName(fileType string) (string, error)
+}
+
 type Agreement DefaultHandler
 
 type TariffPrintable struct {
@@ -111,10 +115,10 @@ func (h *Agreement) Build() (interface{}, error) {
 
 func (h *Agreement) PostProcess(
 	ctx context.Context,
-	id string,
+	_ string,
 	fileName string,
-	retentionTime int64,
-	content []byte,
+	_ int64,
+	_ []byte,
 ) error {
 	req := &billingGrpc.SetMerchantS3AgreementRequest{
 		MerchantId:      h.report.MerchantId,
@@ -135,4 +139,15 @@ func (h *Agreement) PostProcess(
 	}
 
 	return nil
+}
+
+func (h *Agreement) GetAgreementName(fileType string) (string, error) {
+	params, err := h.GetParams()
+
+	if err != nil {
+		return "", err
+	}
+
+	name := fmt.Sprintf(pkg.FileMaskAgreement, params[pkg.RequestParameterAgreementLegalName], params[pkg.RequestParameterAgreementNumber], fileType)
+	return name, nil
 }
