@@ -2,7 +2,6 @@ package builder
 
 import (
 	"encoding/json"
-	"github.com/globalsign/mgo/bson"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/paysuper/paysuper-proto/go/billingpb"
 	billingMocks "github.com/paysuper/paysuper-proto/go/billingpb/mocks"
@@ -181,7 +180,7 @@ func (suite *VatBuilderTestSuite) getReportsTemplate() []*billingpb.VatReport {
 
 	return []*billingpb.VatReport{
 		{
-			Id:           bson.NewObjectId().Hex(),
+			Id:           "ffffffffffffffffffffffff",
 			DateFrom:     datetime,
 			DateTo:       datetime,
 			PayUntilDate: datetime,

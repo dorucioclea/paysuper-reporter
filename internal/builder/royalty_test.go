@@ -2,7 +2,6 @@ package builder
 
 import (
 	"encoding/json"
-	"github.com/globalsign/mgo/bson"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/paysuper/paysuper-proto/go/billingpb"
 	billingMocks "github.com/paysuper/paysuper-proto/go/billingpb/mocks"
@@ -26,7 +25,7 @@ func Test_RoyaltyBuilder(t *testing.T) {
 
 func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Validate_Error_MerchantIdNotFound() {
 	params, _ := json.Marshal(map[string]interface{}{
-		reporterpb.ParamsFieldId: bson.NewObjectId().Hex(),
+		reporterpb.ParamsFieldId: "ffffffffffffffffffffffff",
 	})
 	h := newRoyaltyHandler(&Handler{
 		report: &reporterpb.ReportFile{Params: params},
@@ -38,7 +37,7 @@ func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Validate_Error_Merchant
 func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Validate_Error_IdNotFound() {
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newRoyaltyHandler(&Handler{
-		report: &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+		report: &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff", Params: params},
 	})
 
 	assert.Errorf(suite.T(), h.Validate(), errors.ErrorParamIdNotFound.Message)
@@ -46,10 +45,10 @@ func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Validate_Error_IdNotFou
 
 func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Validate_Ok() {
 	params, _ := json.Marshal(map[string]interface{}{
-		reporterpb.ParamsFieldId: bson.NewObjectId().Hex(),
+		reporterpb.ParamsFieldId: "ffffffffffffffffffffffff",
 	})
 	h := newRoyaltyHandler(&Handler{
-		report: &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+		report: &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff", Params: params},
 	})
 
 	assert.NoError(suite.T(), h.Validate())
@@ -78,7 +77,7 @@ func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Build_Ok() {
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newRoyaltyHandler(&Handler{
-		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+		report:  &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff", Params: params},
 		billing: billing,
 	})
 
@@ -111,7 +110,7 @@ func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Build_Error_GetRoyaltyR
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newRoyaltyHandler(&Handler{
-		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+		report:  &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff", Params: params},
 		billing: billing,
 	})
 
@@ -143,7 +142,7 @@ func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Build_Error_GetMerchant
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newRoyaltyHandler(&Handler{
-		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+		report:  &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff", Params: params},
 		billing: billing,
 	})
 
@@ -175,7 +174,7 @@ func (suite *RoyaltyBuilderTestSuite) TestRoyaltyBuilder_Build_Error_GetOperatin
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newRoyaltyHandler(&Handler{
-		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+		report:  &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff", Params: params},
 		billing: billing,
 	})
 
@@ -187,7 +186,7 @@ func (suite *RoyaltyBuilderTestSuite) getRoyaltyReportTemplate() *billingpb.Roya
 	datetime, _ := ptypes.TimestampProto(time.Now())
 
 	return &billingpb.RoyaltyReport{
-		Id:         bson.NewObjectId().Hex(),
+		Id:         "ffffffffffffffffffffffff",
 		PeriodFrom: datetime,
 		PeriodTo:   datetime,
 		PayoutDate: datetime,
@@ -218,7 +217,7 @@ func (suite *RoyaltyBuilderTestSuite) getRoyaltyReportTemplate() *billingpb.Roya
 
 func (suite *RoyaltyBuilderTestSuite) getMerchantTemplate() *billingpb.Merchant {
 	return &billingpb.Merchant{
-		Id:      bson.NewObjectId().String(),
+		Id:      "ffffffffffffffffffffffff",
 		Company: &billingpb.MerchantCompanyInfo{Name: "", Address: "", TaxId: ""},
 	}
 }

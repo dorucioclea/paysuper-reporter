@@ -1,16 +1,8 @@
 package config
 
 import (
-	"github.com/globalsign/mgo"
 	"github.com/kelseyhightower/envconfig"
 )
-
-// MongoConfig defines the parameters for connecting to the MongoDB.
-type MongoConfig struct {
-	Dsn         string   `envconfig:"MONGO_DSN" required:"true"`
-	DialTimeout string   `envconfig:"MONGO_DIAL_TIMEOUT" required:"false" default:"10"`
-	MongoMode   mgo.Mode `envconfig:"MONGO_MODE" required:"false" default:"4"`
-}
 
 // AWS defines the parameters for connecting to the NATS streaming server.
 type S3Config struct {
@@ -48,13 +40,12 @@ type DocumentGeneratorConfig struct {
 }
 
 type Config struct {
-	Db               MongoConfig
 	S3               S3Config
 	DG               DocumentGeneratorConfig
 	CentrifugoConfig CentrifugoConfig
 
 	MetricsPort           string `envconfig:"METRICS_PORT" required:"false" default:"8086"`
-	MicroSelector         string `envconfig:"MICRO_SELECTOR" required:"false" default:"static"`
+	MicroSelector         string `envconfig:"MICRO_SELECTOR" required:"false" default:""`
 	DocumentRetentionTime int64  `envconfig:"DOCUMENT_RETENTION_TIME" default:"604800"`
 	BrokerAddress         string `envconfig:"BROKER_ADDRESS" default:"amqp://127.0.0.1:5672"`
 }

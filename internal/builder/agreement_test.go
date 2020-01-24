@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/globalsign/mgo/bson"
 	"github.com/micro/go-micro"
 	"github.com/paysuper/paysuper-proto/go/billingpb"
 	billingMocks "github.com/paysuper/paysuper-proto/go/billingpb/mocks"
@@ -194,7 +193,7 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_PostProcess_Ok() {
 		Return(&billingpb.ChangeMerchantDataResponse{Status: billingpb.ResponseStatusOk}, nil)
 
 	handler := &Handler{
-		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex()},
+		report:  &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff"},
 		billing: bs,
 	}
 	builder := newAgreementHandler(handler)
@@ -208,7 +207,7 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_PostProcess_Billing
 		Return(nil, errors.New("some error"))
 
 	handler := &Handler{
-		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex()},
+		report:  &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff"},
 		billing: bs,
 	}
 	builder := newAgreementHandler(handler)
@@ -229,7 +228,7 @@ func (suite *AgreementBuilderTestSuite) TestAgreementBuilder_PostProcess_Billing
 		)
 
 	handler := &Handler{
-		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex()},
+		report:  &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff"},
 		billing: bs,
 	}
 	builder := newAgreementHandler(handler)

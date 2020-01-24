@@ -2,7 +2,6 @@ package builder
 
 import (
 	"encoding/json"
-	"github.com/globalsign/mgo/bson"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/paysuper/paysuper-proto/go/billingpb"
 	billingMocks "github.com/paysuper/paysuper-proto/go/billingpb/mocks"
@@ -35,7 +34,7 @@ func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Validat
 
 func (suite *VatTransactionsBuilderTestSuite) TestVatTransactionsBuilder_Validate_Ok() {
 	params, _ := json.Marshal(map[string]interface{}{
-		reporterpb.ParamsFieldId: bson.NewObjectId().Hex(),
+		reporterpb.ParamsFieldId: "ffffffffffffffffffffffff",
 	})
 	h := newVatTransactionsHandler(&Handler{
 		report: &reporterpb.ReportFile{Params: params},
@@ -183,7 +182,7 @@ func (suite *VatTransactionsBuilderTestSuite) getVatTemplate() *billingpb.VatRep
 	datetime, _ := ptypes.TimestampProto(time.Now())
 
 	return &billingpb.VatReport{
-		Id:        bson.NewObjectId().Hex(),
+		Id:        "ffffffffffffffffffffffff",
 		CreatedAt: datetime,
 		DateFrom:  datetime,
 		DateTo:    datetime,
@@ -194,7 +193,7 @@ func (suite *VatTransactionsBuilderTestSuite) getOrdersTemplate() []*billingpb.O
 	datetime, _ := ptypes.TimestampProto(time.Now())
 
 	return []*billingpb.OrderViewPrivate{{
-		Id: bson.NewObjectId().Hex(),
+		Id: "ffffffffffffffffffffffff",
 		PaymentMethod: &billingpb.PaymentMethodOrder{
 			Name: "card",
 		},

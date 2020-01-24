@@ -2,7 +2,6 @@ package builder
 
 import (
 	"encoding/json"
-	"github.com/globalsign/mgo/bson"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/paysuper/paysuper-proto/go/billingpb"
 	billingMocks "github.com/paysuper/paysuper-proto/go/billingpb/mocks"
@@ -35,7 +34,7 @@ func (suite *TransactionsBuilderTestSuite) TestTransactionsBuilder_Validate_Erro
 
 func (suite *TransactionsBuilderTestSuite) TestTransactionsBuilder_Validate_Ok() {
 	h := newTransactionsHandler(&Handler{
-		report: &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex()},
+		report: &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff"},
 	})
 
 	assert.NoError(suite.T(), h.Validate())
@@ -54,7 +53,7 @@ func (suite *TransactionsBuilderTestSuite) TestTransactionsBuilder_Build_Ok() {
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newTransactionsHandler(&Handler{
-		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+		report:  &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff", Params: params},
 		billing: billing,
 	})
 
@@ -74,7 +73,7 @@ func (suite *TransactionsBuilderTestSuite) TestTransactionsBuilder_Build_Error_F
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newTransactionsHandler(&Handler{
-		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+		report:  &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff", Params: params},
 		billing: billing,
 	})
 

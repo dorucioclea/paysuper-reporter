@@ -2,7 +2,6 @@ package builder
 
 import (
 	"encoding/json"
-	"github.com/globalsign/mgo/bson"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/paysuper/paysuper-proto/go/billingpb"
 	billingMocks "github.com/paysuper/paysuper-proto/go/billingpb/mocks"
@@ -34,7 +33,7 @@ func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Validate_Error_IdNotFound
 
 func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Validate_Ok() {
 	params, _ := json.Marshal(map[string]interface{}{
-		reporterpb.ParamsFieldId: bson.NewObjectId().Hex(),
+		reporterpb.ParamsFieldId: "ffffffffffffffffffffffff",
 	})
 	h := newPayoutHandler(&Handler{
 		report: &reporterpb.ReportFile{Params: params},
@@ -66,7 +65,7 @@ func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Build_Ok() {
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newPayoutHandler(&Handler{
-		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+		report:  &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff", Params: params},
 		billing: billing,
 	})
 
@@ -99,7 +98,7 @@ func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Build_Error_GetPayoutDocu
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newPayoutHandler(&Handler{
-		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+		report:  &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff", Params: params},
 		billing: billing,
 	})
 
@@ -131,7 +130,7 @@ func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Build_Error_GetMerchantBy
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newPayoutHandler(&Handler{
-		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+		report:  &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff", Params: params},
 		billing: billing,
 	})
 
@@ -163,7 +162,7 @@ func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Build_Error_GetOperatingC
 
 	params, _ := json.Marshal(map[string]interface{}{})
 	h := newPayoutHandler(&Handler{
-		report:  &reporterpb.ReportFile{MerchantId: bson.NewObjectId().Hex(), Params: params},
+		report:  &reporterpb.ReportFile{MerchantId: "ffffffffffffffffffffffff", Params: params},
 		billing: billing,
 	})
 
@@ -175,7 +174,7 @@ func (suite *PayoutBuilderTestSuite) getPayoutDocumentTemplate() *billingpb.Payo
 	datetime, _ := ptypes.TimestampProto(time.Now())
 
 	return &billingpb.PayoutDocument{
-		Id: bson.NewObjectId().Hex(),
+		Id: "ffffffffffffffffffffffff",
 		Destination: &billingpb.MerchantBanking{
 			Address: "",
 			Details: "",
@@ -191,7 +190,7 @@ func (suite *PayoutBuilderTestSuite) getPayoutDocumentTemplate() *billingpb.Payo
 
 func (suite *PayoutBuilderTestSuite) getMerchantTemplate() *billingpb.Merchant {
 	return &billingpb.Merchant{
-		Id:      bson.NewObjectId().String(),
+		Id:      "ffffffffffffffffffffffff",
 		Company: &billingpb.MerchantCompanyInfo{Name: "", Address: "", TaxId: ""},
 	}
 }

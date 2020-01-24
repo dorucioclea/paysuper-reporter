@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/globalsign/mgo/bson"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/paysuper/paysuper-proto/go/billingpb"
 	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.uber.org/zap"
 	"math"
 	"reflect"
@@ -22,8 +22,9 @@ func newTransactionsHandler(h *Handler) BuildInterface {
 
 func (h *Transactions) Validate() error {
 	params, _ := h.GetParams()
+	_, err := primitive.ObjectIDFromHex(h.report.MerchantId)
 
-	if bson.IsObjectIdHex(h.report.MerchantId) != true {
+	if err != nil {
 		return errors.New(errs.ErrorParamMerchantIdNotFound.Message)
 	}
 
@@ -39,7 +40,9 @@ func (h *Transactions) Validate() error {
 		}
 
 		for _, str := range st.([]interface{}) {
-			if !bson.IsObjectIdHex(fmt.Sprintf("%s", str)) {
+			_, err = primitive.ObjectIDFromHex(fmt.Sprintf("%s", str))
+
+			if err != nil {
 				return errors.New(errs.ErrorHandlerValidation.Message)
 			}
 		}
@@ -156,6 +159,6 @@ func (h *Transactions) Build() (interface{}, error) {
 	return reports, nil
 }
 
-func (h *Transactions) PostProcess(ctx context.Context, id, fileName string, retentionTime int64, content []byte) error {
+func (h *Transactions) PostProcess(_ context.Context, _, _ string, _ int64, _ []byte) error {
 	return nil
 }

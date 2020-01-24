@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/globalsign/mgo/bson"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/paysuper/paysuper-proto/go/billingpb"
 	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.uber.org/zap"
 	"math"
 )
@@ -30,7 +30,9 @@ func (h *Payout) Validate() error {
 		return errors.New(errs.ErrorParamIdNotFound.Message)
 	}
 
-	if !bson.IsObjectIdHex(fmt.Sprintf("%s", params[reporterpb.ParamsFieldId])) {
+	_, err = primitive.ObjectIDFromHex(fmt.Sprintf("%s", params[reporterpb.ParamsFieldId]))
+
+	if err != nil {
 		return errors.New(errs.ErrorParamIdNotFound.Message)
 	}
 

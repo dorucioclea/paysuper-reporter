@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/globalsign/mgo/bson"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/paysuper/paysuper-proto/go/billingpb"
 	"github.com/paysuper/paysuper-proto/go/reporterpb"
 	errs "github.com/paysuper/paysuper-reporter/pkg/errors"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.uber.org/zap"
 	"math"
 )
@@ -26,15 +26,21 @@ func (h *RoyaltyTransactions) Validate() error {
 		return err
 	}
 
-	if bson.IsObjectIdHex(h.report.MerchantId) != true {
+	_, err = primitive.ObjectIDFromHex(h.report.MerchantId)
+
+	if err != nil {
 		return errors.New(errs.ErrorParamMerchantIdNotFound.Message)
 	}
 
-	if _, ok := params[reporterpb.ParamsFieldId]; !ok {
+	id, ok := params[reporterpb.ParamsFieldId]
+
+	if !ok {
 		return errors.New(errs.ErrorParamIdNotFound.Message)
 	}
 
-	if !bson.IsObjectIdHex(fmt.Sprintf("%s", params[reporterpb.ParamsFieldId])) {
+	_, err = primitive.ObjectIDFromHex(fmt.Sprintf("%s", id))
+
+	if err != nil {
 		return errors.New(errs.ErrorParamIdNotFound.Message)
 	}
 
@@ -193,6 +199,6 @@ func (h *RoyaltyTransactions) Build() (interface{}, error) {
 	return result, nil
 }
 
-func (h *RoyaltyTransactions) PostProcess(ctx context.Context, id, fileName string, retentionTime int64, content []byte) error {
+func (h *RoyaltyTransactions) PostProcess(_ context.Context, _, _ string, _ int64, _ []byte) error {
 	return nil
 }

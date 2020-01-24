@@ -3,31 +3,31 @@ module github.com/paysuper/paysuper-reporter
 require (
 	github.com/InVisionApp/go-health v2.1.0+incompatible
 	github.com/InVisionApp/go-logger v1.0.1 // indirect
+	github.com/aws/aws-sdk-go v1.23.8
 	github.com/centrifugal/gocent v2.0.2+incompatible
-	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8
 	github.com/golang-migrate/migrate/v4 v4.6.2
 	github.com/golang/protobuf v1.3.2
 	github.com/jinzhu/now v1.1.1
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/micro/go-micro v1.18.0
+	github.com/micro/go-micro v1.8.0
 	github.com/micro/go-plugins v1.2.0
 	github.com/paysuper/paysuper-aws-manager v0.0.1
-	github.com/paysuper/paysuper-database-mongo v0.1.3
-	github.com/paysuper/paysuper-proto/go/billingpb v0.0.0-20200122185921-11231a858c42
-	github.com/paysuper/paysuper-proto/go/recurringpb v0.0.0-20200122152034-6d6bb19abebf // indirect
-	github.com/paysuper/paysuper-proto/go/reporterpb v0.0.0-20200122152034-6d6bb19abebf
+	github.com/paysuper/paysuper-proto/go/billingpb v0.0.0-20200123205157-1d5091bbdf69
+	github.com/paysuper/paysuper-proto/go/recurringpb v0.0.0-20200123205409-310033c3629d // indirect
+	github.com/paysuper/paysuper-proto/go/reporterpb v0.0.0-20200123200131-df93e6644cbd
 	github.com/paysuper/paysuper-tools v0.0.0-20200117101901-522574ce4d1c
 	github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271
 	github.com/stretchr/testify v1.4.0
-	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5 // indirect
+	go.mongodb.org/mongo-driver v1.2.1
 	go.uber.org/zap v1.13.0
 	gopkg.in/ProtocolONE/rabbitmq.v1 v1.0.0-20191130200733-22b27ffa73aa
+	gopkg.in/paysuper/paysuper-database-mongo.v2 v2.0.0-20200116095540-a477bfd0ce4c
 )
 
 replace (
 	github.com/gogo/protobuf v0.0.0-20190410021324-65acae22fc9 => github.com/gogo/protobuf v1.2.2-0.20190723190241-65acae22fc9d
 	github.com/hashicorp/consul => github.com/hashicorp/consul v1.5.1
-	github.com/paysuper/paysuper-tax-service => github.com/paysuper/paysuper-tax-service v1.0.0
+	github.com/micro/go-micro => github.com/micro/go-micro v1.8.0
 	golang.org/x/sys => golang.org/x/sys v0.0.0-20190927073244-c990c680b611
 )
 
