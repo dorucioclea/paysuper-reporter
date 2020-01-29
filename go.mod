@@ -14,7 +14,7 @@ require (
 	github.com/paysuper/paysuper-aws-manager v0.0.1
 	github.com/paysuper/paysuper-proto/go/billingpb v0.0.0-20200123205157-1d5091bbdf69
 	github.com/paysuper/paysuper-proto/go/recurringpb v0.0.0-20200123205409-310033c3629d // indirect
-	github.com/paysuper/paysuper-proto/go/reporterpb v0.0.0-20200123200131-df93e6644cbd
+	github.com/paysuper/paysuper-proto/go/reporterpb v0.0.0-20200129080608-6453c4671c25
 	github.com/paysuper/paysuper-tools v0.0.0-20200117101901-522574ce4d1c
 	github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271
 	github.com/stretchr/testify v1.4.0

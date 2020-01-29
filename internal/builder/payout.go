@@ -26,14 +26,28 @@ func (h *Payout) Validate() error {
 		return err
 	}
 
-	if _, ok := params[reporterpb.ParamsFieldId]; !ok {
+	val, ok := params[reporterpb.ParamsFieldId]
+
+	if !ok {
 		return errors.New(errs.ErrorParamIdNotFound.Message)
 	}
 
-	_, err = primitive.ObjectIDFromHex(fmt.Sprintf("%s", params[reporterpb.ParamsFieldId]))
+	_, err = primitive.ObjectIDFromHex(fmt.Sprintf("%s", val))
 
 	if err != nil {
 		return errors.New(errs.ErrorParamIdNotFound.Message)
+	}
+
+	val, ok = params[reporterpb.ParamsFieldMerchantId]
+
+	if !ok {
+		return errors.New(errs.ErrorParamIdNotFound.Message)
+	}
+
+	_, err = primitive.ObjectIDFromHex(val.(string))
+
+	if err != nil {
+		return errors.New(errs.ErrorParamMerchantIdNotFound.Message)
 	}
 
 	return nil
@@ -44,7 +58,10 @@ func (h *Payout) Build() (interface{}, error) {
 	params, _ := h.GetParams()
 	payoutId := fmt.Sprintf("%s", params[reporterpb.ParamsFieldId])
 
-	payoutRequest := &billingpb.GetPayoutDocumentRequest{PayoutDocumentId: payoutId}
+	payoutRequest := &billingpb.GetPayoutDocumentRequest{
+		PayoutDocumentId: payoutId,
+		MerchantId:       fmt.Sprintf("%s", params[reporterpb.ParamsFieldMerchantId]),
+	}
 	payout, err := h.billing.GetPayoutDocument(ctx, payoutRequest)
 
 	if err != nil || payout.Status != billingpb.ResponseStatusOk {

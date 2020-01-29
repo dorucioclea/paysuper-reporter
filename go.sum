@@ -942,6 +942,8 @@ github.com/paysuper/paysuper-proto/go/reporterpb v0.0.0-20200123195948-851f12dce
 github.com/paysuper/paysuper-proto/go/reporterpb v0.0.0-20200123195948-851f12dce3fc/go.mod h1:HRso4x4mlPM6FjkOcrsmDdbMD+yqS+aNFcKEO6QkL9o=
 github.com/paysuper/paysuper-proto/go/reporterpb v0.0.0-20200123200131-df93e6644cbd h1:rzDJ+v5GMw+ERYkZYu/fHI1cQuB7LoGe8ap6lho1gAM=
 github.com/paysuper/paysuper-proto/go/reporterpb v0.0.0-20200123200131-df93e6644cbd/go.mod h1:HRso4x4mlPM6FjkOcrsmDdbMD+yqS+aNFcKEO6QkL9o=
+github.com/paysuper/paysuper-proto/go/reporterpb v0.0.0-20200129080608-6453c4671c25 h1:uNGB6vTGEV8Jn9HxJrsCmyFRYzXZfx1T3K0DjkfANSg=
+github.com/paysuper/paysuper-proto/go/reporterpb v0.0.0-20200129080608-6453c4671c25/go.mod h1:HRso4x4mlPM6FjkOcrsmDdbMD+yqS+aNFcKEO6QkL9o=
 github.com/paysuper/paysuper-recurring-repository v1.0.123 h1:24cPUNrJTUXwFPI93fvqW30nA1omEwMxWY2YueiUnnc=
 github.com/paysuper/paysuper-recurring-repository v1.0.123/go.mod h1:J5qs2I+QNL09dzJeCOGT++zrOXMbJNrzGP62/B6ZaEg=
 github.com/paysuper/paysuper-recurring-repository v1.0.124 h1:unUHzvLD0J119K1QOHdD6MZM5eYYtLP7Ip9JwwN3cGA=

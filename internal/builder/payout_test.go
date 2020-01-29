@@ -33,7 +33,8 @@ func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Validate_Error_IdNotFound
 
 func (suite *PayoutBuilderTestSuite) TestPayoutBuilder_Validate_Ok() {
 	params, _ := json.Marshal(map[string]interface{}{
-		reporterpb.ParamsFieldId: "ffffffffffffffffffffffff",
+		reporterpb.ParamsFieldId:         "ffffffffffffffffffffffff",
+		reporterpb.ParamsFieldMerchantId: "ffffffffffffffffffffffff",
 	})
 	h := newPayoutHandler(&Handler{
 		report: &reporterpb.ReportFile{Params: params},

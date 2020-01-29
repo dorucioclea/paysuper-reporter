@@ -424,7 +424,6 @@ func (app *Application) ExecuteProcess(payload *reporterpb.ReportFile, d amqp.De
 }
 
 func (app *Application) ExecutePostProcess(payload *reporterpb.PostProcessRequest, d amqp.Delivery) error {
-	log.Println("2")
 	h := builder.NewBuilder(
 		app.service,
 		payload.ReportFile,
